@@ -1,0 +1,33 @@
+$font-ui:     'DM Sans', system-ui, sans-serif;
+$font-mono:   'IBM Plex Mono', 'Courier New', monospace;
+$font-serif:  'Instrument Serif', Georgia, serif;
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-ui;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+h1.hero {
+  font-family: $font-serif;
+  font-size: 3rem;
+  font-weight: 400;
+
+  em {
+    font-style: italic;
+    color: var(--accent);
+  }
+}
+
+code, pre, .mono {
+  font-family: $font-mono;
+}
+
+.text-muted  { color: var(--text-muted); }
+.text-dim    { color: var(--text-dim); }
+.text-accent { color: var(--accent); }
+.text-green  { color: var(--green); }
+.text-yellow { color: var(--yellow); }
+.text-red    { color: var(--red); }
+.text-purple { color: var(--purple); }
