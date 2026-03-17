@@ -1,0 +1,207 @@
+.people-page {
+  padding: 32px 170px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  &__sub {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+}
+
+.people-list {
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.people-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--bg2);
+  animation: fadeIn 0.2s ease;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover { background: var(--bg3); }
+
+  &__avatar {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+
+    &--gradient {
+      background: linear-gradient(116deg, var(--accent) 0%, var(--purple) 71%);
+    }
+
+    &--green  { background: var(--bg3); border: 1px solid var(--border); color: var(--green);  }
+    &--accent { background: var(--bg3); border: 1px solid var(--border); color: var(--accent); }
+    &--purple { background: var(--bg3); border: 1px solid var(--border); color: var(--purple); }
+    &--yellow { background: var(--bg3); border: 1px solid var(--border); color: var(--yellow); }
+    &--red    { background: var(--bg3); border: 1px solid var(--border); color: var(--red);    }
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+
+    &--dim { color: var(--text-dim); }
+  }
+
+  &__skeleton-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__tags {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  &__meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+.people-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.people-available {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(63, 185, 80, 0.12);
+  border: 1px solid rgba(63, 185, 80, 0.3);
+  border-radius: 4px;
+  padding: 3px 8px;
+  flex-shrink: 0;
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    white-space: nowrap;
+  }
+}
+
+.people-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 64px 24px;
+  text-align: center;
+
+  &__icon {
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  &__text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  &__sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    max-width: 380px;
+  }
+}
+
+.people-btn {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  &--primary {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: #fff;
+    &:hover { opacity: 0.88; }
+  }
+
+  &--ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    &:hover { color: var(--text); border-color: var(--text-dim); }
+  }
+}

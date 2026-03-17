@@ -1,0 +1,82 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &--narrow { max-width: 720px; margin: 0 auto; width: 100%; }
+
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--text);
+    margin: 0;
+  }
+
+  &__title--sm { font-size: 28px; }
+
+  &__sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+    max-width: 640px;
+  }
+
+  &__heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+    margin: 0;
+
+    &--mono {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.077em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+  }
+
+  &__heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+  }
+}
