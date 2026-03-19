@@ -1,0 +1,8 @@
+<div [class]="'avatar avatar--' + size + ' avatar--' + shape"
+     [style.color]="displayColor()">
+  @if (displayUrl() && !imgError()) {
+    <img [src]="displayUrl()!" [alt]="altText()" (error)="onImgError()" class="avatar__img" />
+  } @else {
+    <span class="avatar__initials">{{ initials() }}</span>
+  }
+</div>
