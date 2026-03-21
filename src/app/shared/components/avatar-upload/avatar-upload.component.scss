@@ -1,0 +1,111 @@
+.av-upload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  &__trigger {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: var(--transition);
+
+    &:hover .av-upload__overlay { opacity: 1; }
+    &--loading .av-upload__overlay { opacity: 1; }
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__initials {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: var(--transition);
+  }
+
+  &__cam {
+    width: 22px;
+    height: 22px;
+  }
+
+  &__spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: av-spin 0.7s linear infinite;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  &__btn {
+    height: 28px;
+    padding: 0 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+
+    &:hover:not(:disabled) { color: var(--text); border-color: var(--text-dim); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    &--danger {
+      color: var(--red);
+      border-color: rgba(248, 81, 73, 0.3);
+      &:hover:not(:disabled) { background: rgba(248, 81, 73, 0.08); border-color: var(--red); }
+    }
+  }
+
+  &__hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  &__error {
+    font-size: 11px;
+    color: var(--red);
+  }
+}
+
+@keyframes av-spin {
+  to { transform: rotate(360deg); }
+}

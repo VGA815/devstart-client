@@ -1,0 +1,40 @@
+<div class="crr" [class.crr--unread]="request.status === 'Pending'">
+  @if (request.status === 'Pending') {
+    <span class="crr__dot"></span>
+  }
+
+  <div class="crr__info">
+    @if (direction === 'incoming') {
+      <a class="crr__name" [routerLink]="['/experts', request.expertProfileId]">{{ request.expertDisplayName }}</a>
+    } @else {
+      <a class="crr__name" [routerLink]="['/startups', request.startupId]">{{ request.startupName }}</a>
+    }
+    <span class="crr__sub">{{ getTypeLabel(request.collaborationType) }}</span>
+    @if (request.message) {
+      <span class="crr__msg">«{{ request.message }}»</span>
+    }
+  </div>
+
+  @if (request.proposedRate) {
+    <span class="crr__amount">{{ formatAmount(request.proposedRate) }}/ч</span>
+  }
+  @if (request.proposedHoursPerWeek) {
+    <span class="crr__hours">{{ request.proposedHoursPerWeek }} ч/нед</span>
+  }
+  <span class="crr__time">{{ formatDate(request.createdAt) }}</span>
+
+  @if (request.status === 'Pending') {
+    @if (direction === 'incoming') {
+      <div class="crr__actions">
+        <button class="crr-btn crr-btn--accept" type="button" (click)="accept.emit(request)">Принять</button>
+        <button class="crr-btn crr-btn--decline" type="button" (click)="reject.emit(request)">Отклонить</button>
+      </div>
+    } @else {
+      <button class="crr-btn crr-btn--decline" type="button" (click)="withdraw.emit(request)">Отозвать</button>
+    }
+  } @else {
+    <span class="crr__status crr__status--{{ request.status.toLowerCase() }}">
+      {{ getStatusLabel(request.status) }}
+    </span>
+  }
+</div>
