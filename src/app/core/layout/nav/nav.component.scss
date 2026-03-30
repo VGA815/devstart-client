@@ -1,0 +1,201 @@
+@use '../../../../styles/mixins' as *;
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  height: 56px;
+
+  &__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 100%;
+    @include flex-between;
+    gap: 24px;
+
+    @include mobile { padding: 0 16px; gap: 12px; }
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    text-decoration: none;
+    transition: var(--transition);
+    &:hover { opacity: 0.85; }
+  }
+
+  &__logo-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: var(--accent);
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  &__logo-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  &__links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    @include mobile { display: none; }
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 400;
+    transition: var(--transition);
+    text-decoration: none;
+
+    &:hover { color: var(--text); background: var(--bg3); }
+    &--active { color: var(--text); background: var(--bg3); }
+  }
+
+  &__avatar-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    border-radius: 50%;
+    transition: var(--transition);
+    flex-shrink: 0;
+
+    &:hover app-avatar { border-color: var(--accent); color: var(--accent) !important; }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__auth {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    @include mobile { display: none; }
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    transition: var(--transition);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &--primary {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #fff;
+      &:hover { opacity: 0.88; }
+    }
+
+    &--ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      &:hover { color: var(--text); background: var(--bg3); }
+    }
+  }
+
+  &__burger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+
+    @include mobile { display: inline-flex; }
+
+    span {
+      display: block;
+      width: 16px;
+      height: 2px;
+      margin: 0 auto;
+      background: var(--text-muted);
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+
+    &:hover span { background: var(--text); }
+
+    &--open {
+      border-color: var(--text-muted);
+      span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+      span:nth-child(2) { opacity: 0; }
+      span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+    }
+  }
+
+  &__mobile {
+    display: none;
+
+    @include mobile {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 16px 16px;
+      background: rgba(13, 17, 23, 0.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+  }
+
+  &__mobile-link {
+    display: block;
+    padding: 11px 12px;
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: 14px;
+    text-decoration: none;
+    transition: var(--transition);
+
+    &:hover { color: var(--text); background: var(--bg3); }
+    &--active { color: var(--text); background: var(--bg3); }
+  }
+
+  &__mobile-auth {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+
+    .nav__btn { flex: 1; justify-content: center; padding: 9px 14px; }
+  }
+}

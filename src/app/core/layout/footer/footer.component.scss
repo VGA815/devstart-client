@@ -1,0 +1,55 @@
+@use '../../../../styles/mixins' as *;
+
+.footer {
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+  margin-top: auto;
+
+  &__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    @include mobile {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      padding: 20px 16px;
+    }
+  }
+
+  &__copy {
+    color: var(--text-dim);
+    font-size: 0.86rem;
+  }
+
+  &__links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    @include mobile {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px 16px;
+    }
+
+    a {
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      transition: var(--transition);
+      &:hover { color: var(--text); }
+    }
+  }
+
+  &__links-sep {
+    width: 1px;
+    height: 12px;
+    background: var(--border);
+  }
+}

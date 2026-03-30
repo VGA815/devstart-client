@@ -1,0 +1,96 @@
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="nav__logo" routerLink="/">
+      <span class="nav__logo-mark">D</span>
+      <span class="nav__logo-text">DevStart</span>
+    </a>
+
+    <ul class="nav__links">
+      <li>
+        <a class="nav__link" routerLink="/" routerLinkActive="nav__link--active" [routerLinkActiveOptions]="{exact:true}">
+          Обзор
+        </a>
+      </li>
+      <li>
+        <a class="nav__link" routerLink="/startups" routerLinkActive="nav__link--active">
+          Стартапы
+        </a>
+      </li>
+      <li>
+        <a class="nav__link" routerLink="/investors" routerLinkActive="nav__link--active">
+          Инвесторы
+        </a>
+      </li>
+      <li>
+        <a class="nav__link" routerLink="/experts" routerLinkActive="nav__link--active">
+          Эксперты
+        </a>
+      </li>
+      <li>
+        <a class="nav__link" routerLink="/plans" routerLinkActive="nav__link--active">
+          Планы
+        </a>
+      </li>
+    </ul>
+
+    <div class="nav__actions">
+      @if (auth.isAuthenticated()) {
+        <a class="nav__avatar-link" routerLink="/dashboard/profile" [title]="auth.user()?.username ?? ''">
+          <app-avatar
+            [avatarId]="profileAvatarId()"
+            [name]="auth.user()?.username ?? ''"
+            size="sm"
+            shape="circle"
+            [color]="'var(--text-muted)'" />
+        </a>
+      } @else {
+        <span class="nav__auth">
+          <a class="nav__btn nav__btn--ghost" routerLink="/login">Войти</a>
+          <a class="nav__btn nav__btn--primary" routerLink="/register">Регистрация</a>
+        </span>
+      }
+
+      <button
+        class="nav__burger"
+        type="button"
+        (click)="toggleMenu()"
+        [class.nav__burger--open]="menuOpen()"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="nav-mobile"
+        aria-label="Меню навигации">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  @if (menuOpen()) {
+    <div class="nav__mobile" id="nav-mobile">
+      <a class="nav__mobile-link" routerLink="/" routerLinkActive="nav__mobile-link--active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">
+        Обзор
+      </a>
+      <a class="nav__mobile-link" routerLink="/startups" routerLinkActive="nav__mobile-link--active" (click)="closeMenu()">
+        Стартапы
+      </a>
+      <a class="nav__mobile-link" routerLink="/investors" routerLinkActive="nav__mobile-link--active" (click)="closeMenu()">
+        Инвесторы
+      </a>
+      <a class="nav__mobile-link" routerLink="/experts" routerLinkActive="nav__mobile-link--active" (click)="closeMenu()">
+        Эксперты
+      </a>
+      <a class="nav__mobile-link" routerLink="/plans" routerLinkActive="nav__mobile-link--active" (click)="closeMenu()">
+        Планы
+      </a>
+
+      @if (auth.isAuthenticated()) {
+        <a class="nav__mobile-link" routerLink="/dashboard/overview" (click)="closeMenu()">
+          Личный кабинет
+        </a>
+      } @else {
+        <div class="nav__mobile-auth">
+          <a class="nav__btn nav__btn--ghost" routerLink="/login" (click)="closeMenu()">Войти</a>
+          <a class="nav__btn nav__btn--primary" routerLink="/register" (click)="closeMenu()">Регистрация</a>
+        </div>
+      }
+    </div>
+  }
+</nav>
