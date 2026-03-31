@@ -1,0 +1,108 @@
+<section class="hero">
+  <div class="hero__badge">
+    <span class="hero__badge-dot"></span>
+    <span class="hero__badge-text">Открытая бета · 1 248 стартапов</span>
+  </div>
+
+  <div class="hero__heading">
+    <p>Площадка, где стартапы</p>
+    <p>встречают <em>инвесторов</em></p>
+  </div>
+
+  <p class="hero__sub">
+    DevStart соединяет основателей с инвесторами и менторами.<br>
+    Публикуйте стартап, загружайте документы, стройте команду.
+  </p>
+
+  <div class="hero__cta">
+    <a class="hero__btn hero__btn--primary" routerLink="/startups">Смотреть стартапы →</a>
+    @if (auth.isAuthenticated()) {
+      <a class="hero__btn hero__btn--ghost" routerLink="/dashboard/my-startups">Добавить стартап</a>
+    } @else {
+      <a class="hero__btn hero__btn--ghost" routerLink="/register">Добавить стартап</a>
+    }
+  </div>
+</section>
+
+<div class="stats-bar">
+  @for (stat of stats; track stat.label; let last = $last) {
+    <div class="stats-bar__item" [class.stats-bar__item--last]="last">
+      <span class="stats-bar__value">{{ stat.value }}</span>
+      <span class="stats-bar__label">{{ stat.label }}</span>
+    </div>
+  }
+</div>
+
+<!-- ═══ Startup List Section ════════════════════════════════════ -->
+<section class="list-section">
+  <div class="list-section__header">
+    <span class="section-label">// Последние стартапы</span>
+    <a class="list-section__see-all" routerLink="/startups">Все →</a>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-bar__search">
+      <span class="filter-bar__search-icon">🔍</span>
+      <span class="filter-bar__placeholder">Поиск по стартапам...</span>
+    </div>
+    <div class="filter-bar__chip">Все стадии</div>
+    <div class="filter-bar__chip">Все отрасли</div>
+    <div class="filter-bar__chip">Любой город</div>
+  </div>
+
+  <div class="startup-list">
+    @if (catalog.loading()) {
+      @for (s of skeletons; track $index) {
+        <div class="startup-row startup-row--skeleton">
+          <app-skeleton width="36px" height="36px" border-radius="6px" />
+          <div class="startup-row__info">
+            <app-skeleton height="13px" width="140px" />
+            <app-skeleton height="12px" width="260px" style="margin-top:4px" />
+          </div>
+          <app-skeleton height="20px" width="70px" border-radius="20px" />
+        </div>
+      }
+    } @else {
+      @for (startup of catalog.startups(); track startup.id) {
+        <a class="startup-row" [routerLink]="['/startups', startup.id]">
+          <app-avatar
+            [avatarId]="startup.avatarId"
+            [name]="startup.name"
+            size="md"
+            shape="square" />
+          <div class="startup-row__info">
+            <div class="startup-row__name-row">
+              <span class="startup-row__name">{{ startup.name }}</span>
+              @if (startup.isStopped) {
+                <app-tag color="red">Остановлен</app-tag>
+              } @else {
+                <app-tag [color]="getStageColor(startup.stage)">{{ startup.stage }}</app-tag>
+              }
+            </div>
+            <p class="startup-row__desc">{{ startup.shortDescription }}</p>
+          </div>
+          <div class="startup-row__meta">
+            @if (startup.location) {
+              <app-tag color="default">{{ startup.location }}</app-tag>
+            }
+          </div>
+        </a>
+      }
+    }
+  </div>
+</section>
+
+<section class="features-section">
+  <div class="features-section__header">
+    <span class="section-label">// Возможности платформы</span>
+  </div>
+  <div class="features-grid">
+    @for (f of features; track f.title) {
+      <div class="feature-card">
+        <div class="feature-card__icon">{{ f.icon }}</div>
+        <p class="feature-card__title">{{ f.title }}</p>
+        <p class="feature-card__desc">{{ f.desc }}</p>
+      </div>
+    }
+  </div>
+</section>
