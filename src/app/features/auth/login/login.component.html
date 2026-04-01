@@ -1,0 +1,116 @@
+<div class="auth-page">
+  <div class="auth-page__center">
+
+    <div class="auth-heading">
+      <h1 class="auth-heading__title">Вход в аккаунт</h1>
+      <p class="auth-heading__sub">Войдите, чтобы управлять стартапами и следить за обновлениями</p>
+    </div>
+
+    <div class="auth-card">
+
+      @if (emailNotVerified()) {
+
+        <div class="auth-verify">
+          <div class="auth-verify__icon">✉</div>
+          <p class="auth-verify__title">Подтвердите почту</p>
+          <p class="auth-verify__sub">
+            Письмо отправлено на <strong>{{ verifyEmail() }}</strong>.
+            Перейдите по ссылке в письме для активации аккаунта.
+          </p>
+
+          @if (resendSuccess()) {
+            <div class="toast toast--success">Письмо отправлено повторно ✓</div>
+          }
+          @if (resendError()) {
+            <div class="toast toast--error">{{ resendError() }}</div>
+          }
+
+          <button class="btn btn--primary btn--lg btn--block" type="button" [disabled]="resending()" (click)="resend()">
+            {{ resending() ? 'Отправляем…' : 'Отправить письмо повторно' }}
+          </button>
+
+          <button class="auth-verify__back" type="button" (click)="backToForm()">
+            ← Вернуться к форме входа
+          </button>
+        </div>
+
+      } @else {
+
+        @if (error()) {
+          <div class="toast toast--error">{{ error() }}</div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+
+          <div class="field">
+            <label class="field__label" for="email">Email</label>
+            <input id="email" class="field__input"
+              [class.field__input--error]="emailError"
+              type="email" formControlName="email"
+              placeholder="name@example.com" autocomplete="email" />
+            @if (emailError) {
+              <span class="field__hint field__hint--error">{{ emailError }}</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="password">Пароль</label>
+            <input id="password" class="field__input"
+              [class.field__input--error]="passwordError"
+              type="password" formControlName="password"
+              placeholder="••••••••" autocomplete="current-password" />
+            @if (passwordError) {
+              <span class="field__hint field__hint--error">{{ passwordError }}</span>
+            }
+          </div>
+
+          <button class="btn btn--primary btn--lg btn--block" type="submit"
+            [disabled]="loading() || oauthLoading() !== null">
+            @if (loading()) { Входим… } @else { Войти }
+          </button>
+
+        </form>
+
+      }
+
+      <div class="auth-oauth">
+        <button type="button"
+          class="auth-oauth__btn"
+          [disabled]="loading() || oauthLoading() !== null"
+          (click)="loginWith('google')">
+          <svg class="auth-oauth__logo" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/>
+            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+            <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.5-4.6 2.4-7.2 2.4-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C41.6 35.4 44 30 44 24c0-1.3-.1-2.4-.4-3.5z"/>
+          </svg>
+          @if (oauthLoading() === 'google') {
+            <span>Переходим…</span>
+          } @else {
+            <span>Войти через Google</span>
+          }
+        </button>
+
+        <button type="button"
+          class="auth-oauth__btn"
+          [disabled]="loading() || oauthLoading() !== null"
+          (click)="loginWith('github')">
+          <svg class="auth-oauth__logo" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2.1c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.4 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.2-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2 1-.3 2-.4 3-.4s2 .1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.8.9 1.2 1.9 1.2 3.2 0 4.5-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/>
+          </svg>
+          @if (oauthLoading() === 'github') {
+            <span>Переходим…</span>
+          } @else {
+            <span>Войти через GitHub</span>
+          }
+        </button>
+      </div>
+
+    </div>
+
+    <a class="auth-footer-link" routerLink="/register">
+      Нет аккаунта? <span>Зарегистрироваться</span>
+    </a>
+
+  </div>
+</div>
