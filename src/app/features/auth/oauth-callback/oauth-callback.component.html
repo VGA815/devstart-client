@@ -1,0 +1,24 @@
+<div class="oauth-callback">
+  <div class="oauth-callback__card">
+
+    @if (status() === 'pending') {
+      <div class="oauth-callback__spinner" aria-hidden="true"></div>
+      <h1 class="oauth-callback__title">Завершаем вход через {{ providerLabel() }}…</h1>
+      <p class="oauth-callback__sub">Пожалуйста, подождите.</p>
+    }
+
+    @if (status() === 'success') {
+      <div class="oauth-callback__icon oauth-callback__icon--ok">✓</div>
+      <h1 class="oauth-callback__title">Готово</h1>
+      <p class="oauth-callback__sub">Перенаправляем в кабинет…</p>
+    }
+
+    @if (status() === 'error') {
+      <div class="oauth-callback__icon oauth-callback__icon--err">!</div>
+      <h1 class="oauth-callback__title">Не удалось войти</h1>
+      <p class="oauth-callback__sub">{{ error() }}</p>
+      <a class="oauth-callback__btn" routerLink="/login">Вернуться ко входу</a>
+    }
+
+  </div>
+</div>

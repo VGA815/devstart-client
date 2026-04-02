@@ -1,0 +1,153 @@
+<div class="auth-page">
+  <div class="auth-page__center">
+
+    <div class="auth-heading">
+      <h1 class="auth-heading__title">Регистрация эксперта</h1>
+      <p class="auth-heading__sub">Помогайте стартапам расти своим опытом</p>
+    </div>
+
+    <div class="auth-card">
+
+      @if (registered()) {
+
+        <div class="auth-verify">
+          <div class="auth-verify__icon">✉</div>
+          <p class="auth-verify__title">Аккаунт создан!</p>
+          <p class="auth-verify__sub">
+            Письмо с подтверждением отправлено на <strong>{{ verifyEmail() }}</strong>.
+            Перейдите по ссылке в письме для активации аккаунта.
+          </p>
+
+          @if (resendSuccess()) {
+            <div class="toast toast--success">Письмо отправлено повторно ✓</div>
+          }
+          @if (resendError()) {
+            <div class="toast toast--error">{{ resendError() }}</div>
+          }
+
+          <button class="btn btn--primary btn--lg btn--block" type="button" [disabled]="resending()" (click)="resend()">
+            {{ resending() ? 'Отправляем…' : 'Отправить письмо повторно' }}
+          </button>
+        </div>
+
+      } @else {
+
+      @if (error()) {
+        <div class="toast toast--error">{{ error() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+
+        <div class="field">
+          <label class="field__label" for="exp-name">Имя</label>
+          <input id="exp-name" class="field__input" [class.field__input--error]="fieldError('name')"
+            formControlName="name" type="text" placeholder="Анна Волкова" autocomplete="name" />
+          @if (fieldError('name')) {
+            <span class="field__hint field__hint--error">{{ fieldError('name') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="exp-email">Email</label>
+          <input id="exp-email" class="field__input" [class.field__input--error]="fieldError('email')"
+            formControlName="email" type="email" placeholder="name@example.com" autocomplete="email" />
+          @if (fieldError('email')) {
+            <span class="field__hint field__hint--error">{{ fieldError('email') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="exp-password">Пароль</label>
+          <input id="exp-password" class="field__input" [class.field__input--error]="fieldError('password')"
+            formControlName="password" type="password" placeholder="Минимум 8 символов" autocomplete="new-password" />
+          @if (fieldError('password')) {
+            <span class="field__hint field__hint--error">{{ fieldError('password') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="exp-spec">Специализация</label>
+          <input id="exp-spec" class="field__input"
+            formControlName="specialization" type="text" placeholder="Product, Growth, Legal, Finance..." />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="exp-exp">Опыт работы</label>
+          <input id="exp-exp" class="field__input"
+            formControlName="experience" type="text" placeholder="ex-Яндекс, ex-VK, 10+ лет" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="exp-areas">Области экспертизы</label>
+          <input id="exp-areas" class="field__input"
+            formControlName="expertise" type="text" placeholder="Product Strategy, User Research — через запятую" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="exp-bio">О себе</label>
+          <textarea id="exp-bio" class="field__textarea"
+            formControlName="bio" placeholder="Чем можете помочь стартапам" rows="3"></textarea>
+        </div>
+
+        <div class="auth-consents">
+          <div class="auth-consents__header">
+            <span class="auth-consents__title">Согласия</span>
+            <div class="auth-consents__line"></div>
+          </div>
+
+          <label class="auth-consent-row">
+            <input type="checkbox" class="auth-consent-row__check" formControlName="consentPersonal" />
+            <span class="auth-consent-row__label">
+              <a routerLink="/legal/0" target="_blank" class="auth-consent-row__link">Согласие на обработку персональных данных</a>
+              <span class="auth-consent-row__badge">Обязательно</span>
+            </span>
+          </label>
+          @if (fieldError('consentPersonal')) {
+            <span class="field__hint field__hint--error">{{ fieldError('consentPersonal') }}</span>
+          }
+
+          <label class="auth-consent-row">
+            <input type="checkbox" class="auth-consent-row__check" formControlName="consentPrivacy" />
+            <span class="auth-consent-row__label">
+              <a routerLink="/legal/1" target="_blank" class="auth-consent-row__link">Политика конфиденциальности</a>
+              <span class="auth-consent-row__badge">Обязательно</span>
+            </span>
+          </label>
+          @if (fieldError('consentPrivacy')) {
+            <span class="field__hint field__hint--error">{{ fieldError('consentPrivacy') }}</span>
+          }
+
+          <label class="auth-consent-row">
+            <input type="checkbox" class="auth-consent-row__check" formControlName="consentTerms" />
+            <span class="auth-consent-row__label">
+              <a routerLink="/legal/2" target="_blank" class="auth-consent-row__link">Пользовательское соглашение</a>
+              <span class="auth-consent-row__badge">Обязательно</span>
+            </span>
+          </label>
+          @if (fieldError('consentTerms')) {
+            <span class="field__hint field__hint--error">{{ fieldError('consentTerms') }}</span>
+          }
+
+          <label class="auth-consent-row">
+            <input type="checkbox" class="auth-consent-row__check" formControlName="consentCookies" />
+            <span class="auth-consent-row__label">
+              <a routerLink="/legal/3" target="_blank" class="auth-consent-row__link">Использование cookies для аналитики</a>
+              <span class="auth-consent-row__badge auth-consent-row__badge--optional">Необязательно</span>
+            </span>
+          </label>
+        </div>
+
+        <button class="btn btn--primary btn--lg btn--block" type="submit" [disabled]="loading() || !consentVersions()">
+          {{ loading() ? 'Создание...' : 'Создать аккаунт' }}
+        </button>
+
+      </form>
+      }
+    </div>
+
+    <a class="auth-footer-link" routerLink="/login">
+      Уже есть аккаунт? <span>Войти</span>
+    </a>
+
+  </div>
+</div>
