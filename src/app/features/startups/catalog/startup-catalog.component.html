@@ -1,0 +1,106 @@
+<div class="page catalog-page">
+
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Каталог стартапов</h1>
+    <p class="page__sub">
+      @if (!facade.loading()) {
+        {{ facade.startups().length }} стартапов на платформе
+      } @else {
+        Загрузка…
+      }
+    </p>
+  </header>
+
+  <div class="catalog-filters">
+    <input
+      class="catalog-filters__search field__input field__input--sm"
+      type="text"
+      placeholder="🔍  Поиск по стартапам..."
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)" />
+
+    <select class="field__select field__select--sm catalog-filters__select" (change)="selectStage($any($event.target).value)">
+      <option value="">Все стадии</option>
+      <option value="Idea">Идея</option>
+      <option value="PreSeed">Pre-Seed</option>
+      <option value="Mvp">MVP</option>
+      <option value="Seed">Seed</option>
+      <option value="SeriesA">Series A</option>
+    </select>
+
+    <select class="field__select field__select--sm catalog-filters__select" (change)="selectLocation($any($event.target).value)">
+      <option value="">Любой регион</option>
+      <option value="Russia">Россия</option>
+      <option value="USA">США</option>
+      <option value="China">Китай</option>
+      <option value="India">Индия</option>
+      <option value="Other">Другое</option>
+    </select>
+  </div>
+
+  <div class="startup-list">
+
+    @if (facade.loading()) {
+      @for (s of skeletons; track $index) {
+        <div class="startup-row startup-row--skeleton">
+          <app-skeleton [height]="'40px'" [width]="'40px'" />
+          <div class="startup-row__info">
+            <app-skeleton height="16px" width="180px" />
+            <app-skeleton height="12px" width="280px" />
+          </div>
+        </div>
+      }
+    } @else if (filteredStartups().length === 0) {
+      <div class="startup-list__empty">
+        <p>Стартапы не найдены</p>
+      </div>
+    } @else {
+      @for (startup of filteredStartups(); track startup.id) {
+        <a class="startup-row" [routerLink]="['/startups', startup.id]">
+
+          <app-avatar
+            [avatarId]="startup.avatarId"
+            [name]="startup.name"
+            size="xl"
+            shape="square" />
+
+          <div class="startup-row__info">
+            <div class="startup-row__name-row">
+              <span class="startup-row__name">{{ startup.name }}</span>
+              <span class="sr-badge" [class]="getStageBadgeClass(startup.stage, startup.isStopped)">
+                {{ getStageBadgeLabel(startup.stage, startup.isStopped) }}
+              </span>
+            </div>
+            <p class="startup-row__desc">
+              @if (startup.shortDescription) { {{ startup.shortDescription }} }
+              @if (startup.shortDescription && startup.location) { · }
+              @if (startup.location) {
+                <span class="startup-row__loc">{{ locationLabel(startup.location) }}</span>
+              }
+              @if (!startup.shortDescription && !startup.location) {
+                <span class="startup-row__no-desc">Описание не добавлено</span>
+              }
+            </p>
+          </div>
+
+          @let metrics = getStartupMetrics(startup.id);
+          @if (metrics.length > 0) {
+            <div class="sr-metrics">
+              @for (m of metrics; track m.id) {
+                <div class="sr-metric-cell">
+                  <span class="sr-metric-val" [style.color]="metricCssColor(m.metricType)">
+                    {{ formatMetric(m) }}
+                  </span>
+                  <span class="sr-metric-lbl">{{ getMetricLabel(m.metricType) }}</span>
+                </div>
+              }
+            </div>
+          }
+
+        </a>
+      }
+    }
+
+  </div>
+
+</div>
