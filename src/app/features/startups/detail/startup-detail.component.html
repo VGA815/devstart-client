@@ -1,0 +1,789 @@
+@if (loading()) {
+  <div class="detail-page">
+    <div class="detail-page__content">
+      <div class="detail-page__main">
+        <div class="startup-header">
+          <app-skeleton width="64px" height="64px" border-radius="10px" />
+          <div class="startup-header__info">
+            <app-skeleton height="22px" width="200px" />
+            <app-skeleton height="14px" width="320px" style="margin-top:6px" />
+            <app-skeleton height="20px" width="160px" style="margin-top:8px" border-radius="20px" />
+          </div>
+        </div>
+      </div>
+      <aside class="detail-page__sidebar">
+        <app-skeleton height="280px" border-radius="6px" />
+        <app-skeleton height="140px" border-radius="6px" style="margin-top:14px" />
+      </aside>
+    </div>
+  </div>
+
+} @else if (startup()) {
+  @let s = startup()!;
+
+  <div class="detail-page">
+    <div class="detail-page__content">
+      <div class="detail-page__main">
+        <div class="startup-header">
+          <app-avatar
+            [avatarId]="s.avatarId"
+            [name]="s.name"
+            size="xxl"
+            shape="square" />
+
+          <div class="startup-header__info">
+            <div class="startup-header__title-row">
+              <span class="startup-header__name">{{ s.name }}</span>
+              @if (s.isStopped) {
+                <app-tag color="red">Остановлен</app-tag>
+              } @else {
+                <app-tag [color]="getStageColor(s.stage)">{{ s.stage }}</app-tag>
+              }
+            </div>
+
+            @if (s.shortDescription) {
+              <p class="startup-header__desc">{{ s.shortDescription }}</p>
+            }
+
+            <div class="startup-header__tags">
+              @if (s.location) {
+                <span class="startup-tag">📍 {{ s.location }}</span>
+              }
+              @if (s.url) {
+                <a [href]="s.url" target="_blank" rel="noopener" class="startup-tag">🌐 {{ s.url }}</a>
+              }
+            </div>
+          </div>
+
+          <div class="startup-header__actions">
+            <button
+              class="sd-follow-btn"
+              [class.sd-follow-btn--active]="isFollowing()"
+              [disabled]="!isAuthenticated() || followLoading()"
+              (click)="toggleFollow()"
+              [title]="isAuthenticated() ? '' : 'Войдите, чтобы подписаться'"
+            >
+              @if (isFollowing()) {
+                <span class="sd-follow-btn__icon">✓</span> Вы подписаны
+              } @else {
+                <span class="sd-follow-btn__icon">★</span> Следить
+              }
+              @if (followersCount() > 0) {
+                <span class="sd-follow-btn__count">{{ followersCount() }}</span>
+              }
+            </button>
+            @if (isAuthenticated()) {
+              <button class="btn btn--ghost btn--sm" (click)="startChat()">✉ Написать</button>
+              <button class="btn btn--success-soft btn--sm" (click)="openInvestForm()">💰 Инвестировать</button>
+            }
+            <a [href]="'mailto:' + s.publicEmail" class="btn btn--primary btn--sm">Связаться</a>
+          </div>
+        </div>
+
+        <div class="sd-tabs">
+          @for (tab of tabs; track tab.key) {
+            <button
+              class="sd-tabs__tab"
+              [class.sd-tabs__tab--active]="activeTab() === tab.key"
+              (click)="setTab(tab.key)"
+            >{{ tab.label }}</button>
+          }
+        </div>
+
+        <div class="sd-content">
+          @switch (activeTab()) {
+
+            @case ('overview') {
+              @if (s.description) {
+                <div class="sd-desc-wrap" [class.sd-desc-wrap--expanded]="descExpanded()">
+                  <div class="sd-markdown" [innerHTML]="s.description | markdown"></div>
+                  @if (!descExpanded()) {
+                    <div class="sd-desc-wrap__fade"></div>
+                  }
+                </div>
+                <button class="sd-desc-toggle" type="button" (click)="toggleDesc()">
+                  {{ descExpanded() ? '▲ Свернуть' : '▼ Читать полностью' }}
+                </button>
+              }
+
+              @if (score()) {
+                @let sc = score()!;
+                <div class="sd-score-badge" (click)="setTab('scoring')" role="button" tabindex="0" (keydown.enter)="setTab('scoring')">
+                  <div class="sd-score-badge__ring">
+                    <svg viewBox="0 0 36 36" class="sd-score-badge__svg">
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--bg3)" stroke-width="2.8"/>
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--accent)" stroke-width="2.8"
+                        [attr.stroke-dasharray]="(sc.totalScore / 100) * 100 + ' 100'"
+                        stroke-dashoffset="25" stroke-linecap="round" pathLength="100"/>
+                    </svg>
+                    <span class="sd-score-badge__num">{{ sc.totalScore }}</span>
+                  </div>
+                  <div class="sd-score-badge__info">
+                    <span class="sd-score-badge__label">Скоринг DevStart</span>
+                    <span class="sd-score-badge__range">{{ formatMoney(sc.valuationLow) }} — {{ formatMoney(sc.valuationHigh) }}</span>
+                    <span class="sd-score-badge__link">Подробнее →</span>
+                  </div>
+                </div>
+              }
+
+              @if (metricsLoading()) {
+                <div class="sd-metrics-grid">
+                  @for (n of [1,2,3,4]; track n) {
+                    <app-skeleton height="72px" border-radius="5px" />
+                  }
+                </div>
+              } @else if (metrics().length > 0) {
+                <div class="sd-metrics-grid">
+                  @for (m of metrics(); track m.id) {
+                    <div class="sd-metric-tile">
+                      <span class="sd-metric-tile__value" [class]="getMetricColor(m.metricType)">{{ formatMetricValue(m) }}</span>
+                      <span class="sd-metric-tile__label">{{ getMetricLabel(m.metricType) }}</span>
+                    </div>
+                  }
+                </div>
+              } @else if (!s.description) {
+                <div class="empty-state empty-state--card"><p class="empty-state__title">Информация не заполнена</p></div>
+              }
+            }
+
+            @case ('roadmap') {
+              @if (roadmapLoading()) {
+                <app-skeleton height="48px" /><app-skeleton height="48px" /><app-skeleton height="48px" />
+              } @else if (roadmap().length === 0) {
+                <div class="empty-state empty-state--card"><p class="empty-state__title">Дорожная карта не опубликована</p></div>
+              } @else {
+                <div class="card card__body--flush">
+                  @for (item of roadmap(); track item.id) {
+                    <div class="sd-roadmap-row"
+                      [class.sd-roadmap-row--expanded]="expandedRoadmapId() === item.id"
+                      [class.sd-roadmap-row--clickable]="!!item.description"
+                      (click)="item.description && toggleRoadmapExpand(item)">
+                      <span class="sd-roadmap-row__dot sd-roadmap-row__dot--{{ getRoadmapStatusClass(item.status) }}"></span>
+                      <div class="sd-roadmap-row__info">
+                        <div class="sd-roadmap-row__top">
+                          <span class="sd-roadmap-row__title">{{ item.title }}</span>
+                          @if (item.description) {
+                            <span class="sd-roadmap-row__chevron">{{ expandedRoadmapId() === item.id ? '▲' : '▼' }}</span>
+                          }
+                        </div>
+                        <span class="sd-roadmap-row__quarter">
+                          {{ formatTargetDate(item.targetDate) }} ·
+                          <span class="sd-roadmap-row__status--{{ getRoadmapStatusClass(item.status) }}">{{ getRoadmapStatusLabel(item.status) }}</span>
+                          @if (item.targetAmount) {
+                            · <span class="sd-roadmap-row__amount">{{ formatMoney(item.targetAmount) }}</span>
+                          }
+                        </span>
+                        @if (expandedRoadmapId() === item.id && item.description) {
+                          <span class="sd-roadmap-row__desc">{{ item.description }}</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            @case ('metrics') {
+              @if (metricsLoading()) {
+                <app-skeleton height="80px" /><app-skeleton height="80px" />
+              } @else if (metrics().length === 0) {
+                <div class="empty-state empty-state--card"><p class="empty-state__title">Метрики не опубликованы</p></div>
+              } @else {
+                <div class="sd-metrics">
+                  @for (m of metrics(); track m.id) {
+                    <div class="sd-metric">
+                      <span class="sd-metric__value">{{ formatMetricValue(m) }}</span>
+                      <span class="sd-metric__label">{{ getMetricLabel(m.metricType) }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            @case ('team') {
+              @if (myMember() && editingMemberProfile()) {
+                <div class="sd-member-edit">
+                  <div class="sd-member-edit__header">Редактирование профиля в команде</div>
+                  <div class="sd-member-edit__body">
+                    <div class="field">
+                      <label class="field__label field__label--mono">Должность</label>
+                      <select class="field__select field__select--sm"
+                        [value]="memberPositionEdit()"
+                        (change)="memberPositionEdit.set(+$any($event.target).value)">
+                        @for (opt of positionOptions; track opt.value) {
+                          <option [value]="opt.value">{{ opt.label }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="field__label field__label--mono">О себе / Bio</label>
+                      <textarea class="field__textarea"
+                        rows="3"
+                        placeholder="Кратко о своём опыте и роли в стартапе…"
+                        [value]="memberBioEdit()"
+                        (input)="memberBioEdit.set($any($event.target).value)"></textarea>
+                    </div>
+                    <div class="field">
+                      <label class="field__label field__label--mono">Лет опыта</label>
+                      <input class="field__input field__input--sm"
+                        type="number" min="0" max="60"
+                        placeholder="5"
+                        [value]="memberYearsEdit()"
+                        (input)="memberYearsEdit.set($any($event.target).value)" />
+                    </div>
+                    <div class="field">
+                      <label class="field__label field__label--checkbox">
+                        <input type="checkbox"
+                          [checked]="memberHasPriorExit()"
+                          (change)="memberHasPriorExit.set($any($event.target).checked)" />
+                        <span>Есть успешный выход (prior exit)</span>
+                      </label>
+                    </div>
+                    <div class="field">
+                      <label class="field__label field__label--mono">Предыдущих стартапов</label>
+                      <input class="field__input field__input--sm"
+                        type="number" min="0" max="50"
+                        placeholder="0"
+                        [value]="memberPrevStartups()"
+                        (input)="memberPrevStartups.set($any($event.target).value)" />
+                    </div>
+                    @if (memberProfileError()) {
+                      <p class="field__hint field__hint--error">{{ memberProfileError() }}</p>
+                    }
+                    <div class="sd-member-edit__actions">
+                      <button class="btn btn--ghost btn--sm" type="button" (click)="cancelMemberProfileEdit()">Отмена</button>
+                      <button class="btn btn--primary btn--sm" type="button" [disabled]="memberProfileSaving()" (click)="saveMemberProfile()">
+                        {{ memberProfileSaving() ? 'Сохранение…' : 'Сохранить' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              @if (membersLoading()) {
+                <app-skeleton height="48px" /><app-skeleton height="48px" />
+              } @else if (members().length === 0) {
+                <div class="empty-state empty-state--card"><p class="empty-state__title">Команда не указана</p></div>
+              } @else {
+                <div class="card card__body--flush">
+                  @for (member of members(); track member.profileId) {
+                    <div class="sd-team-row" [class.sd-team-row--mine]="myMember()?.profileId === member.profileId">
+                      <a [routerLink]="['/profile', member.profileId]" class="sd-team-row__link">
+                        <app-avatar
+                          [avatarId]="getMemberAvatarId(member.profileId)"
+                          [name]="getMemberDisplayName(member.profileId)"
+                          size="md"
+                          shape="circle"
+                          [color]="getMemberColor(member.role)" />
+                        <div class="sd-team-row__info">
+                          <div class="sd-team-row__name-row">
+                            <span class="sd-team-row__name">{{ getMemberDisplayName(member.profileId) }}</span>
+                            @if (member.position) {
+                              <span class="sd-team-row__position">{{ getPositionLabel(member.position) }}</span>
+                            }
+                          </div>
+                          <span class="sd-team-row__role">{{ member.role }}</span>
+                          @if (member.bio) {
+                            <p class="sd-team-row__bio">{{ member.bio }}</p>
+                          }
+                          @if (member.yearsOfExperience) {
+                            <span class="sd-team-row__years">{{ member.yearsOfExperience }} лет опыта</span>
+                          }
+                        </div>
+                      </a>
+                      @if (myMember()?.profileId === member.profileId && !editingMemberProfile()) {
+                        <button class="sd-team-row__edit-btn" type="button" title="Редактировать профиль" (click)="openMemberProfileEdit()">✎</button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            @case ('documents') {
+              @if (docsLoading()) {
+                <app-skeleton height="52px" />
+                <app-skeleton height="52px" />
+                <app-skeleton height="52px" />
+              } @else if (docs().length === 0) {
+                <div class="empty-state empty-state--card"><p class="empty-state__title">Документы не загружены</p></div>
+              } @else {
+                <div class="card card__body--flush">
+                  @for (doc of docs(); track doc.id) {
+                    <div class="sd-doc-row">
+                      <span class="sd-doc-row__icon">{{ getDocumentIcon(doc.documentType) }}</span>
+                      <div class="sd-doc-row__info">
+                        <span class="sd-doc-row__name">{{ doc.documentName }}</span>
+                        <span class="sd-doc-row__meta">
+                          {{ getDocumentTypeLabel(doc.documentType) }} · {{ formatFileSize(doc.fileSize) }}
+                        </span>
+                      </div>
+                      <a class="btn btn--ghost btn--sm" [href]="doc.presignedUrl"
+                        target="_blank" rel="noopener" title="Скачать">
+                        ⬇ Скачать
+                      </a>
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            @case ('competitors') {
+              @if (isFounderOrAdmin() && !showCompetitorForm()) {
+                <div class="sd-competitors-toolbar">
+                  <button class="btn btn--ghost btn--sm" type="button" (click)="openNewCompetitorForm()">
+                    + Добавить конкурента
+                  </button>
+                </div>
+              }
+
+              @if (showCompetitorForm()) {
+                <div class="sd-competitor-form">
+                  <div class="sd-competitor-form__header">
+                    {{ editingCompetitor() ? 'Редактировать конкурента' : 'Новый конкурент' }}
+                  </div>
+                  <div class="sd-competitor-form__body">
+                    <div class="field">
+                      <label class="field__label field__label--mono">Название *</label>
+                      <input class="field__input field__input--sm"
+                        type="text" placeholder="Название компании"
+                        [value]="competitorName()"
+                        (input)="competitorName.set($any($event.target).value)" />
+                    </div>
+                    <div class="field">
+                      <label class="field__label field__label--mono">Сайт</label>
+                      <input class="field__input field__input--sm"
+                        type="url" placeholder="https://competitor.com"
+                        [value]="competitorWebsite()"
+                        (input)="competitorWebsite.set($any($event.target).value)" />
+                    </div>
+                    <div class="field">
+                      <label class="field__label field__label--mono">Описание</label>
+                      <textarea class="field__textarea"
+                        rows="2" placeholder="Краткое описание конкурента"
+                        [value]="competitorDesc()"
+                        (input)="competitorDesc.set($any($event.target).value)"></textarea>
+                    </div>
+                    <div class="field-grid">
+                      <div class="field">
+                        <label class="field__label field__label--mono">Наши преимущества</label>
+                        <textarea class="field__textarea"
+                          rows="2" placeholder="Чем мы лучше"
+                          [value]="competitorStrengths()"
+                          (input)="competitorStrengths.set($any($event.target).value)"></textarea>
+                      </div>
+                      <div class="field">
+                        <label class="field__label field__label--mono">Их преимущества</label>
+                        <textarea class="field__textarea"
+                          rows="2" placeholder="Где они сильнее"
+                          [value]="competitorWeaknesses()"
+                          (input)="competitorWeaknesses.set($any($event.target).value)"></textarea>
+                      </div>
+                    </div>
+                    @if (competitorError()) {
+                      <p class="field__hint field__hint--error">{{ competitorError() }}</p>
+                    }
+                    <div class="sd-competitor-form__actions">
+                      <button class="btn btn--ghost btn--sm" type="button" (click)="cancelCompetitorForm()">Отмена</button>
+                      <button class="btn btn--primary btn--sm" type="button" [disabled]="competitorSaving()" (click)="saveCompetitor()">
+                        {{ competitorSaving() ? 'Сохранение…' : 'Сохранить' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              @if (competitorsLoading()) {
+                <app-skeleton height="80px" /><app-skeleton height="80px" />
+              } @else if (!isAuthenticated()) {
+                <div class="empty-state empty-state--card"><p class="empty-state__title">Войдите, чтобы увидеть анализ конкурентов</p></div>
+              } @else if (competitors().length === 0 && !showCompetitorForm()) {
+                <div class="empty-state empty-state--card"><p class="empty-state__title">Анализ конкурентов не добавлен</p></div>
+              } @else {
+                <div class="sd-competitors">
+                  @for (c of competitors(); track c.id) {
+                    <div class="sd-competitor-card">
+                      <div class="sd-competitor-card__header">
+                        <div class="sd-competitor-card__title-row">
+                          <span class="sd-competitor-card__name">{{ c.name }}</span>
+                          @if (c.website) {
+                            <a [href]="c.website" target="_blank" rel="noopener" class="sd-competitor-card__link">
+                              🌐 {{ c.website }}
+                            </a>
+                          }
+                        </div>
+                        @if (isFounderOrAdmin()) {
+                          <div class="sd-competitor-card__actions">
+                            <button class="sd-competitor-card__btn" type="button" (click)="openEditCompetitorForm(c)">✎</button>
+                            <button class="sd-competitor-card__btn sd-competitor-card__btn--danger"
+                              type="button"
+                              [disabled]="deletingCompetitorId() === c.id"
+                              (click)="deleteCompetitor(c)">
+                              {{ deletingCompetitorId() === c.id ? '…' : '✕' }}
+                            </button>
+                          </div>
+                        }
+                      </div>
+                      @if (c.description) {
+                        <p class="sd-competitor-card__desc">{{ c.description }}</p>
+                      }
+                      @if (c.strengthsVsUs || c.weaknessesVsUs) {
+                        <div class="sd-competitor-card__analysis">
+                          @if (c.strengthsVsUs) {
+                            <div class="sd-competitor-card__col sd-competitor-card__col--green">
+                              <span class="sd-competitor-card__col-label">✓ Наши преимущества</span>
+                              <p class="sd-competitor-card__col-text">{{ c.strengthsVsUs }}</p>
+                            </div>
+                          }
+                          @if (c.weaknessesVsUs) {
+                            <div class="sd-competitor-card__col sd-competitor-card__col--red">
+                              <span class="sd-competitor-card__col-label">⚡ Их преимущества</span>
+                              <p class="sd-competitor-card__col-text">{{ c.weaknessesVsUs }}</p>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            @case ('scoring') {
+              @if (scoreLoading()) {
+                <app-skeleton height="220px" border-radius="6px" />
+              } @else if (!score()) {
+                @if (scoreErrorStatus() === 403) {
+                  <div class="sd-pro-lock">
+                    <div class="sd-pro-lock__badge">PRO</div>
+                    <div class="sd-pro-lock__body">
+                      <span class="sd-pro-lock__title">Скоринг доступен в DevStart Pro</span>
+                      <span class="sd-pro-lock__text">Подписка открывает оценку проекта, диапазон valuation и расширенные метрики для внешних зрителей.</span>
+                    </div>
+                    <a class="btn btn--primary btn--sm" routerLink="/plans">Подключить Pro</a>
+                  </div>
+                } @else {
+                  <div class="empty-state empty-state--card"><p class="empty-state__title">Скоринг недоступен — заполните данные стартапа</p></div>
+                }
+              } @else {
+                @let sc = score()!;
+
+                <div class="sc-hero">
+                  <div class="sc-hero__ring">
+                    <svg viewBox="0 0 80 80" class="sc-hero__svg">
+                      <circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg3)" stroke-width="5"/>
+                      <circle cx="40" cy="40" r="34" fill="none" stroke="var(--accent)" stroke-width="5"
+                        [attr.stroke-dasharray]="(sc.totalScore / 100) * 213.6 + ' 213.6'"
+                        stroke-dashoffset="53.4" stroke-linecap="round"/>
+                    </svg>
+                    <div class="sc-hero__label">
+                      <span class="sc-hero__num">{{ sc.totalScore }}</span>
+                      <span class="sc-hero__max">/100</span>
+                    </div>
+                  </div>
+                  <div class="sc-hero__meta">
+                    <span class="sc-hero__title">Итоговый скоринг</span>
+                    <span class="sc-hero__valuation">{{ formatMoney(sc.valuationLow) }} — {{ formatMoney(sc.valuationHigh) }}</span>
+                    <span class="sc-hero__sub">Оценка стоимости (DCF/Scorecard/VC)</span>
+                    <span class="sc-hero__updated">Рассчитано: {{ formatRelativeTime(sc.calculatedAt) }}</span>
+                  </div>
+                </div>
+
+                <div class="sc-axes">
+                  @for (row of [
+                    {label: 'Команда',       icon: '👥', value: sc.teamScore,        max: 100, desc: 'Опыт, экспертиза, предыдущие стартапы'},
+                    {label: 'Рынок',         icon: '📈', value: sc.marketScore,       max: 100, desc: 'TAM, темп роста, конкуренция'},
+                    {label: 'Продукт',       icon: '⚙️', value: sc.productScore,      max: 100, desc: 'MVP, патенты, уникальность'},
+                    {label: 'Traction',      icon: '🚀', value: sc.tractionScore,     max: 100, desc: 'Метрики, клиенты, рост'},
+                    {label: 'Конкуренция',   icon: '🏆', value: sc.competitionScore,  max: 100, desc: 'Позиция относительно конкурентов'}
+                  ]; track row.label) {
+                    <div class="sc-axis">
+                      <div class="sc-axis__top">
+                        <span class="sc-axis__icon">{{ row.icon }}</span>
+                        <span class="sc-axis__name">{{ row.label }}</span>
+                        <span class="sc-axis__score">{{ row.value }}<span class="sc-axis__max">/{{ row.max }}</span></span>
+                      </div>
+                      <div class="sc-axis__track">
+                        <div class="sc-axis__fill"
+                          [style.width.%]="(row.value / row.max) * 100"
+                          [class.sc-axis__fill--high]="row.value / row.max >= 0.75"
+                          [class.sc-axis__fill--mid]="row.value / row.max >= 0.4 && row.value / row.max < 0.75"
+                          [class.sc-axis__fill--low]="row.value / row.max < 0.4"></div>
+                      </div>
+                      <span class="sc-axis__desc">{{ row.desc }}</span>
+                    </div>
+                  }
+                </div>
+
+                @if (sc.methodsUsed.length > 0) {
+                  <div class="sc-methods">
+                    <span class="sc-methods__label">Методы оценки</span>
+                    <div class="sc-methods__chips">
+                      @for (m of sc.methodsUsed; track m) {
+                        <span class="sc-methods__chip">{{ m }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            }
+
+          }
+        </div>
+      </div>
+
+      <aside class="detail-page__sidebar">
+
+        <div class="card">
+          <div class="card__header"><span class="card__title">ИНФОРМАЦИЯ</span></div>
+          <div class="card__body card__body--flush">
+            <div class="sd-card__row">
+              <span class="sd-card__label">Стадия</span>
+              <span class="sd-card__value">{{ s.stage }}</span>
+            </div>
+            <div class="sd-card__row">
+              <span class="sd-card__label">Год основания</span>
+              <span class="sd-card__value">{{ getFoundedYear(s.createdAt) }}</span>
+            </div>
+            @if (s.location) {
+              <div class="sd-card__row">
+                <span class="sd-card__label">Локация</span>
+                <span class="sd-card__value">{{ s.location }}</span>
+              </div>
+            }
+            @if (s.publicEmail) {
+              <div class="sd-card__row">
+                <span class="sd-card__label">Email</span>
+                <a [href]="'mailto:' + s.publicEmail" class="sd-card__value sd-card__value--accent">{{ s.publicEmail }}</a>
+              </div>
+            }
+            @if (s.url) {
+              <div class="sd-card__row">
+                <span class="sd-card__label">Веб-сайт</span>
+                <a [href]="s.url" target="_blank" rel="noopener" class="sd-card__value sd-card__value--accent">{{ s.url }}</a>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (s.tam || s.sam || s.som) {
+          <div class="card">
+            <div class="card__header"><span class="card__title">РЫНОК</span></div>
+            <div class="card__body card__body--flush">
+              @if (s.tam) {
+                <div class="sd-card__row">
+                  <span class="sd-card__label">TAM</span>
+                  <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.tam) }}</span>
+                </div>
+              }
+              @if (s.sam) {
+                <div class="sd-card__row">
+                  <span class="sd-card__label">SAM</span>
+                  <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.sam) }}</span>
+                </div>
+              }
+              @if (s.som) {
+                <div class="sd-card__row">
+                  <span class="sd-card__label">SOM</span>
+                  <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.som) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="card">
+          <div class="card__header"><span class="card__title">ИЩУТ</span></div>
+          <div class="card__body card__body--lg">
+
+            @if (showInvestForm()) {
+              @if (investSuccess()) {
+                <div class="toast toast--success">
+                  ✓ Заявка отправлена! Следите за статусом в разделе <a routerLink="/dashboard/investments">Инвестиции</a>.
+                </div>
+                <button class="btn btn--ghost btn--block" type="button" (click)="showInvestForm.set(false)">Закрыть</button>
+              } @else if (investorProfile() === null) {
+                <div class="toast toast--info">
+                  Для подачи заявки создайте <a routerLink="/dashboard/investments">профиль инвестора</a>.
+                </div>
+                <button class="btn btn--ghost btn--block" type="button" (click)="showInvestForm.set(false)">Отмена</button>
+              } @else if (investorProfile() === undefined) {
+                <app-skeleton height="80px" />
+              } @else {
+                <div class="sd-invest-form">
+                  @if (roadmap().length > 0) {
+                    <div class="field">
+                      <label class="field__label field__label--mono">Этап (опционально)</label>
+                      <select class="field__select field__select--sm" [value]="investRoadmapId()" (change)="investRoadmapId.set($any($event.target).value)">
+                        <option value="">— Без привязки к этапу —</option>
+                        @for (item of roadmap(); track item.id) {
+                          <option [value]="item.id">{{ item.title }}</option>
+                        }
+                      </select>
+                    </div>
+                  }
+
+                  <div class="field">
+                    <label class="field__label field__label--mono">Инструмент</label>
+                    <div class="chips">
+                      @for (ins of [{v:0,l:'SAFE'},{v:1,l:'Конвертируемый заём'},{v:2,l:'Priced Round'}]; track ins.v) {
+                        <button type="button"
+                          class="chip"
+                          [class.chip--active]="investInstrument() === ins.v"
+                          (click)="investInstrument.set(ins.v)">{{ ins.l }}</button>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label field__label--mono">Сумма ($) *</label>
+                    <div class="sd-invest-form__amount-row">
+                      <input
+                        class="field__input field__input--sm"
+                        type="number"
+                        placeholder="50000"
+                        min="1"
+                        [value]="investAmount()"
+                        (input)="investAmount.set($any($event.target).value)" />
+                      <button type="button" class="sd-invest-form__suggest-btn"
+                        [disabled]="suggestedTermsLoading() || !investAmount()"
+                        (click)="loadSuggestedTerms()">
+                        {{ suggestedTermsLoading() ? '…' : '⚡ Авто-условия' }}
+                      </button>
+                    </div>
+                  </div>
+
+                  @if (investInstrument() === 0) {
+                    <div class="sd-invest-form__terms-grid">
+                      <div class="field">
+                        <label class="field__label field__label--mono">Valuation Cap ($)</label>
+                        <input class="field__input field__input--sm" type="number" min="0" placeholder="2000000"
+                          [value]="investValuationCap()" (input)="investValuationCap.set($any($event.target).value)" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label field__label--mono">Discount (%)</label>
+                        <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="20"
+                          [value]="investDiscount()" (input)="investDiscount.set($any($event.target).value)" />
+                      </div>
+                    </div>
+                    <label class="field__label field__label--checkbox">
+                      <input type="checkbox" [checked]="investProRata()" (change)="investProRata.set($any($event.target).checked)" />
+                      <span>Pro-rata rights</span>
+                    </label>
+                  }
+
+                  @if (investInstrument() === 1) {
+                    <div class="sd-invest-form__terms-grid">
+                      <div class="field">
+                        <label class="field__label field__label--mono">Valuation Cap ($)</label>
+                        <input class="field__input field__input--sm" type="number" min="0" placeholder="2000000"
+                          [value]="investValuationCap()" (input)="investValuationCap.set($any($event.target).value)" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label field__label--mono">Discount (%)</label>
+                        <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="20"
+                          [value]="investDiscount()" (input)="investDiscount.set($any($event.target).value)" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label field__label--mono">Ставка (% год.)</label>
+                        <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="8"
+                          [value]="investInterestRate()" (input)="investInterestRate.set($any($event.target).value)" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label field__label--mono">Срок (мес.)</label>
+                        <input class="field__input field__input--sm" type="number" min="1" max="120" placeholder="24"
+                          [value]="investTermMonths()" (input)="investTermMonths.set($any($event.target).value)" />
+                      </div>
+                    </div>
+                  }
+
+                  @if (investInstrument() === 2) {
+                    <div class="sd-invest-form__terms-grid">
+                      <div class="field">
+                        <label class="field__label field__label--mono">Pre-money valuation ($)</label>
+                        <input class="field__input field__input--sm" type="number" min="0" placeholder="5000000"
+                          [value]="investPreMoney()" (input)="investPreMoney.set($any($event.target).value)" />
+                      </div>
+                      <div class="field">
+                        <label class="field__label field__label--mono">Liquidation Preference (×)</label>
+                        <input class="field__input field__input--sm" type="number" min="1" max="5" step="0.5" placeholder="1"
+                          [value]="investLiquidationPref()" (input)="investLiquidationPref.set($any($event.target).value)" />
+                      </div>
+                    </div>
+                    <label class="field__label field__label--checkbox">
+                      <input type="checkbox" [checked]="investProRata()" (change)="investProRata.set($any($event.target).checked)" />
+                      <span>Pro-rata rights</span>
+                    </label>
+                  }
+
+                  <div class="field">
+                    <label class="field__label field__label--mono">Сообщение</label>
+                    <textarea
+                      class="field__textarea"
+                      placeholder="Расскажите о себе и своих ожиданиях…"
+                      rows="3"
+                      [value]="investMessage()"
+                      (input)="investMessage.set($any($event.target).value)"></textarea>
+                  </div>
+
+                  @if (investError()) {
+                    <p class="field__hint field__hint--error">{{ investError() }}</p>
+                  }
+
+                  <div class="sd-invest-form__actions">
+                    <button class="btn btn--ghost btn--sm" type="button" (click)="showInvestForm.set(false)">Отмена</button>
+                    <button class="btn btn--success-soft btn--sm" type="button" [disabled]="investSubmitting()" (click)="submitApplication()">
+                      {{ investSubmitting() ? 'Отправка…' : 'Отправить' }}
+                    </button>
+                  </div>
+                </div>
+              }
+
+            } @else {
+              <p class="sd-card__cta-text">
+                Свяжитесь с командой стартапа для обсуждения сотрудничества или инвестиций.
+              </p>
+              <div class="sd-card__buttons">
+                @if (isAuthenticated()) {
+                  <button class="btn btn--success-soft btn--block" type="button" (click)="openInvestForm()">
+                    💰 Инвестировать
+                  </button>
+                  <button class="btn btn--ghost btn--block" (click)="startChat()">
+                    ✉ Написать стартапу
+                  </button>
+                } @else {
+                  <a [href]="'mailto:' + s.publicEmail" class="btn btn--primary btn--block">Оставить заявку</a>
+                }
+                <button
+                  class="btn btn--ghost btn--block sd-follow-btn--sidebar"
+                  [class.sd-follow-btn--sidebar-active]="isFollowing()"
+                  [disabled]="!isAuthenticated() || followLoading()"
+                  (click)="toggleFollow()"
+                >
+                  @if (isFollowing()) { ✓ Вы подписаны } @else { ★ Подписаться }
+                </button>
+              </div>
+            }
+
+          </div>
+        </div>
+
+        @if (s.socialMediaLinks.length > 0) {
+          <div class="card">
+            <div class="card__header"><span class="card__title">СОЦИАЛЬНЫЕ СЕТИ</span></div>
+            <div class="card__body card__body--social">
+              @for (link of s.socialMediaLinks; track link) {
+                <a [href]="link" target="_blank" rel="noopener" class="sd-social-tag">{{ link }}</a>
+              }
+            </div>
+          </div>
+        }
+
+      </aside>
+    </div>
+  </div>
+
+  @if (showScrollTop()) {
+    <button class="sd-scroll-top" type="button" (click)="scrollToTop()" aria-label="Наверх">↑</button>
+  }
+}
