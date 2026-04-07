@@ -1,0 +1,188 @@
+<div class="page page--narrow create-page">
+
+  <header class="page__heading page__heading-row">
+    <h1 class="page__title page__title--sm">Новый стартап</h1>
+    <span class="create-page__path">/startups/new</span>
+  </header>
+
+  @if (error()) {
+    <div class="toast toast--error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Основная информация</span>
+      </div>
+      <div class="card__body card__body--lg">
+
+        <div class="field">
+          <label class="field__label" for="cName">Название стартапа *</label>
+          <input id="cName" class="field__input"
+            [class.field__input--error]="fieldError('name')"
+            type="text" formControlName="name"
+            placeholder="Например: Nexum Finance" />
+          @if (fieldError('name')) {
+            <span class="field__hint field__hint--error">{{ fieldError('name') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cShortDesc">Краткое описание *</label>
+          <input id="cShortDesc" class="field__input"
+            [class.field__input--error]="fieldError('shortDesc')"
+            type="text" formControlName="shortDesc"
+            placeholder="Опишите проект в одном предложении" />
+          @if (fieldError('shortDesc')) {
+            <span class="field__hint field__hint--error">{{ fieldError('shortDesc') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cDesc">Полное описание</label>
+          <textarea id="cDesc" class="field__textarea"
+            formControlName="description" rows="4"
+            placeholder="Проблема, решение, целевая аудитория, бизнес-модель..."></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Стадия *</label>
+          <div class="chips">
+            @for (s of stages; track s.label; let i = $index) {
+              <button type="button" class="chip"
+                [class.chip--active]="selectedStage() === i"
+                (click)="setStage(i)">
+                {{ s.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Локация</label>
+          <div class="chips">
+            @for (loc of locations; track loc.label; let i = $index) {
+              <button type="button" class="chip"
+                [class.chip--active]="selectedLocation() === i"
+                (click)="setLocation(i)">
+                {{ loc.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Контакты и ссылки</span>
+      </div>
+      <div class="card__body card__body--lg">
+
+        <div class="field">
+          <label class="field__label" for="cEmail">Публичный email *</label>
+          <input id="cEmail" class="field__input"
+            [class.field__input--error]="fieldError('publicEmail')"
+            type="email" formControlName="publicEmail"
+            placeholder="hello@startup.com" />
+          @if (fieldError('publicEmail')) {
+            <span class="field__hint field__hint--error">{{ fieldError('publicEmail') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cBilling">Billing email</label>
+          <input id="cBilling" class="field__input"
+            type="email" formControlName="billingEmail"
+            placeholder="billing@startup.com" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cUrl">Веб-сайт (URL)</label>
+          <input id="cUrl" class="field__input"
+            type="url" formControlName="url"
+            placeholder="https://example.com" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Логотип / аватарка</label>
+          <app-avatar-upload
+            [avatarId]="selectedAvatarId()"
+            [name]="form.get('name')?.value || ''"
+            (avatarIdChange)="selectedAvatarId.set($event)" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cSocial">Социальные сети</label>
+          <input id="cSocial" class="field__input"
+            type="text" formControlName="socialLinks"
+            placeholder="telegram, linkedin, github — через запятую" />
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Продукт</span>
+      </div>
+      <div class="card__body card__body--lg">
+
+        <div class="field">
+          <label class="field__label" for="cProductName">Название продукта *</label>
+          <input id="cProductName" class="field__input"
+            [class.field__input--error]="fieldError('productName')"
+            type="text" formControlName="productName"
+            placeholder="Название вашего основного продукта" />
+          @if (fieldError('productName')) {
+            <span class="field__hint field__hint--error">{{ fieldError('productName') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cProblem">Проблема и решение *</label>
+          <textarea id="cProblem" class="field__textarea"
+            [class.field__textarea--error]="fieldError('problemSolution')"
+            formControlName="problemSolution" rows="3"
+            placeholder="Какую проблему решаете и как"></textarea>
+          @if (fieldError('problemSolution')) {
+            <span class="field__hint field__hint--error">{{ fieldError('problemSolution') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cValue">Ценностное предложение</label>
+          <input id="cValue" class="field__input"
+            type="text" formControlName="valueProposition"
+            placeholder="Почему клиенты выбирают именно вас" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cDiff">Конкурентные преимущества</label>
+          <input id="cDiff" class="field__input"
+            type="text" formControlName="differentiators"
+            placeholder="Чем вы отличаетесь от конкурентов" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cStack">Технологический стек</label>
+          <input id="cStack" class="field__input"
+            type="text" formControlName="stack"
+            placeholder="React, .NET, PostgreSQL — через запятую" />
+        </div>
+
+      </div>
+    </div>
+
+    <div class="create-actions">
+      <a class="btn btn--ghost" routerLink="/dashboard/my-startups">Отмена</a>
+      <button class="btn btn--primary" type="submit" [disabled]="loading()">
+        @if (loading()) { Публикуем… } @else { Опубликовать стартап }
+      </button>
+    </div>
+
+  </form>
+
+</div>

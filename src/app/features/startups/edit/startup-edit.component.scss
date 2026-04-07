@@ -1,0 +1,36 @@
+:host { display: block; }
+
+.edit-page {
+  margin: 32px auto 48px;
+  padding: 0 16px;
+
+  &__path {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.edit-tam-grid {
+  grid-template-columns: 1fr 1fr 1fr;
+  @media (max-width: 720px) { grid-template-columns: 1fr; }
+}
+
+.edit-hint-block {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: 0;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

@@ -1,0 +1,242 @@
+@if (pageLoading()) {
+  <div class="page page--narrow edit-page">
+    <app-skeleton height="36px" width="240px" />
+    <app-skeleton height="220px" border-radius="6px" />
+    <app-skeleton height="180px" border-radius="6px" />
+    <app-skeleton height="260px" border-radius="6px" />
+  </div>
+
+} @else {
+
+<div class="page page--narrow edit-page">
+
+  <header class="page__heading page__heading-row">
+    <h1 class="page__title page__title--sm">Редактирование стартапа</h1>
+    <span class="edit-page__path">/startups/{{ id }}/edit</span>
+  </header>
+
+  @if (error()) {
+    <div class="toast toast--error">{{ error() }}</div>
+  }
+  @if (saveSuccess()) {
+    <div class="toast toast--success">Изменения сохранены ✓</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+
+    <div class="card">
+      <div class="card__header"><span class="card__title">Основная информация</span></div>
+      <div class="card__body card__body--lg">
+
+        <div class="field">
+          <label class="field__label">Логотип / аватарка</label>
+          <app-avatar-upload
+            [avatarId]="selectedAvatarId()"
+            [name]="form.get('name')?.value || ''"
+            (avatarIdChange)="selectedAvatarId.set($event)" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eName">Название стартапа *</label>
+          <input id="eName" class="field__input"
+            [class.field__input--error]="fieldError('name')"
+            type="text" formControlName="name" />
+          @if (fieldError('name')) {
+            <span class="field__hint field__hint--error">{{ fieldError('name') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eShortDesc">Краткое описание</label>
+          <input id="eShortDesc" class="field__input"
+            type="text" formControlName="shortDescription"
+            placeholder="Одна строка — показывается в каталоге и в шапке стартапа" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eDesc">Полное описание <span class="field__hint field__hint--inline">Markdown</span></label>
+          <textarea id="eDesc" class="field__textarea"
+            formControlName="description" rows="6"
+            placeholder="Поддерживает Markdown: **жирный**, ## заголовок, - список…"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Стадия</label>
+          <div class="chips">
+            @for (s of stages; track s.value; let i = $index) {
+              <button type="button" class="chip"
+                [class.chip--active]="selectedStage() === i"
+                (click)="setStage(i)">{{ s.label }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Локация</label>
+          <div class="chips">
+            @for (loc of locations; track loc.value; let i = $index) {
+              <button type="button" class="chip"
+                [class.chip--active]="selectedLocation() === i"
+                (click)="setLocation(i)">{{ loc.label }}</button>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header"><span class="card__title">Контакты и ссылки</span></div>
+      <div class="card__body card__body--lg">
+
+        <div class="field">
+          <label class="field__label" for="eEmail">Публичный email *</label>
+          <input id="eEmail" class="field__input"
+            [class.field__input--error]="fieldError('publicEmail')"
+            type="email" formControlName="publicEmail" />
+          @if (fieldError('publicEmail')) {
+            <span class="field__hint field__hint--error">{{ fieldError('publicEmail') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eBilling">Billing email</label>
+          <input id="eBilling" class="field__input"
+            type="email" formControlName="billingEmail" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eUrl">Веб-сайт (URL)</label>
+          <input id="eUrl" class="field__input"
+            type="url" formControlName="url" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eSocial">Социальные сети</label>
+          <input id="eSocial" class="field__input"
+            type="text" formControlName="socialLinks"
+            placeholder="telegram, linkedin, github — через запятую" />
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header"><span class="card__title">Продукт</span></div>
+      <div class="card__body card__body--lg">
+
+        <div class="field">
+          <label class="field__label" for="eProblem">Проблема</label>
+          <textarea id="eProblem" class="field__textarea"
+            formControlName="productProblem" rows="2"
+            placeholder="Какую проблему решаете"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eSolution">Решение *</label>
+          <textarea id="eSolution" class="field__textarea"
+            [class.field__textarea--error]="fieldError('productSolution')"
+            formControlName="productSolution" rows="3"
+            placeholder="Как вы её решаете"></textarea>
+          @if (fieldError('productSolution')) {
+            <span class="field__hint field__hint--error">{{ fieldError('productSolution') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eValue">Ценностное предложение</label>
+          <input id="eValue" class="field__input"
+            type="text" formControlName="valueProposition"
+            placeholder="Почему клиенты выбирают именно вас" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eDiff">Конкурентные преимущества</label>
+          <input id="eDiff" class="field__input"
+            type="text" formControlName="differentiators"
+            placeholder="Чем вы отличаетесь от конкурентов" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eStack">Технологический стек</label>
+          <input id="eStack" class="field__input"
+            type="text" formControlName="stack"
+            placeholder="React, .NET, PostgreSQL — через запятую" />
+        </div>
+
+        <div class="field">
+          <label class="field__label field__label--checkbox">
+            <input type="checkbox" formControlName="hasPatents" />
+            <span>Есть патенты или ИС</span>
+          </label>
+          <p class="edit-hint-block">Патенты, зарегистрированные торговые марки или другие объекты интеллектуальной собственности</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header"><span class="card__title">Рынок</span></div>
+      <div class="card__body card__body--lg">
+        <p class="edit-hint-block">Объём рынка в USD. Оставьте пустым, если не применимо.</p>
+
+        <div class="field-grid edit-tam-grid">
+          <div class="field">
+            <label class="field__label" for="eTam">
+              TAM
+              <span class="field__hint field__hint--inline">Total Addressable Market</span>
+            </label>
+            <input id="eTam" class="field__input"
+              type="number" min="0"
+              formControlName="tam"
+              placeholder="Весь возможный рынок, $" />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="eSam">
+              SAM
+              <span class="field__hint field__hint--inline">Serviceable Addressable</span>
+            </label>
+            <input id="eSam" class="field__input"
+              type="number" min="0"
+              formControlName="sam"
+              placeholder="Доступный сегмент, $" />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="eSom">
+              SOM
+              <span class="field__hint field__hint--inline">Serviceable Obtainable</span>
+            </label>
+            <input id="eSom" class="field__input"
+              type="number" min="0"
+              formControlName="som"
+              placeholder="Достижимый рынок, $" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eGrowthRate">
+            Темп роста рынка
+            <span class="field__hint field__hint--inline">% в год</span>
+          </label>
+          <input id="eGrowthRate" class="field__input"
+            type="number" min="0" max="1000"
+            formControlName="marketGrowthRate"
+            placeholder="Например, 25 = 25% в год" />
+        </div>
+      </div>
+    </div>
+
+    <div class="edit-actions">
+      <a class="btn btn--ghost" routerLink="/dashboard/my-startups">Отмена</a>
+      <button class="btn btn--primary" type="submit" [disabled]="saving()">
+        @if (saving()) { Сохраняем… } @else { Сохранить изменения }
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+}
