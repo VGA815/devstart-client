@@ -1,0 +1,83 @@
+@if (loading()) {
+  <div class="profile-page">
+    <div class="profile-banner">
+      <app-skeleton width="72px" height="72px" border-radius="50%" />
+      <div class="profile-banner__skeleton">
+        <app-skeleton height="22px" width="200px" />
+        <app-skeleton height="14px" width="160px" />
+        <app-skeleton height="13px" width="320px" />
+      </div>
+    </div>
+  </div>
+
+} @else if (notFound()) {
+  <div class="profile-page">
+    <div class="empty-state empty-state--card">
+      <span class="empty-state__icon">🔍</span>
+      <p class="empty-state__title">Инвестор не найден</p>
+      <p class="empty-state__sub">Профиль не существует или был удалён</p>
+    </div>
+  </div>
+
+} @else if (investor()) {
+  @let inv = investor()!;
+
+  <div class="profile-page">
+
+    <div class="profile-banner">
+      <app-avatar
+        [name]="inv.displayName"
+        size="xxl"
+        shape="circle" />
+      <div class="profile-banner__info">
+        <span class="profile-banner__name">{{ inv.displayName }}</span>
+        <span class="profile-banner__title">{{ typeLabel(inv.type) }}</span>
+        @if (inv.bio) {
+          <span class="profile-banner__bio">{{ inv.bio }}</span>
+        }
+      </div>
+      @if (inv.website) {
+        <a class="btn btn--primary" [href]="inv.website" target="_blank" rel="noopener">Сайт →</a>
+      }
+    </div>
+
+    <div class="profile-body">
+
+      <div class="profile-main">
+
+        @if (inv.bio) {
+          <div class="card">
+            <div class="card__header"><span class="card__title">Об инвесторе</span></div>
+            <div class="card__body card__body--lg">
+              <p class="inv-bio">{{ inv.bio }}</p>
+            </div>
+          </div>
+        } @else {
+          <div class="card">
+            <div class="card__empty">Информация не заполнена</div>
+          </div>
+        }
+
+      </div>
+
+      <aside class="profile-sidebar">
+        <div class="card">
+          <div class="card__header"><span class="card__title">Контакты</span></div>
+          <div class="card__body card__body--lg">
+            <div class="contact-row">
+              <span class="contact-row__label">Тип</span>
+              <span class="contact-row__value">{{ typeLabel(inv.type) }}</span>
+            </div>
+            @if (inv.website) {
+              <div class="contact-row">
+                <span class="contact-row__label">Сайт</span>
+                <a class="contact-row__value" [href]="inv.website" target="_blank" rel="noopener">{{ inv.website }}</a>
+              </div>
+            }
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+}

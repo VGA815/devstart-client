@@ -1,0 +1,67 @@
+<div class="page catalog-page">
+
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Инвесторы</h1>
+    <p class="page__sub">Ангелы, фонды и стратегические инвесторы, ищущие проекты на платформе</p>
+  </header>
+
+  <div class="catalog-filters">
+    <input
+      class="catalog-filters__search field__input field__input--sm"
+      type="text"
+      placeholder="Поиск по инвесторам..."
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)" />
+    <select class="field__select field__select--sm catalog-filters__select" (change)="selectType($any($event.target).value)">
+      <option value="">Все типы</option>
+      <option value="Individual">Физическое лицо</option>
+      <option value="Fund">Фонд</option>
+    </select>
+    <select class="field__select field__select--sm catalog-filters__select" (change)="selectSort($any($event.target).value)">
+      <option value="DisplayName">По имени</option>
+      <option value="CreatedAt">По дате</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="people-list">
+      @for (n of [1,2,3,4,5]; track n) {
+        <div class="people-row">
+          <app-skeleton width="44px" height="44px" border-radius="50%" />
+          <div class="people-row__skeleton-info">
+            <app-skeleton height="14px" width="160px" />
+            <app-skeleton height="12px" width="220px" />
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (filteredInvestors().length === 0) {
+    <div class="empty-state empty-state--card">
+      <span class="empty-state__icon">📭</span>
+      <p class="empty-state__title">Инвесторов пока нет</p>
+      <p class="empty-state__sub">Зарегистрируйтесь и создайте публичный профиль инвестора</p>
+    </div>
+  } @else {
+    <div class="people-list">
+      @for (inv of filteredInvestors(); track inv.id) {
+        <a class="people-row" [routerLink]="['/investors', inv.id]">
+          <app-avatar
+            [name]="inv.displayName"
+            size="md"
+            shape="circle" />
+          <div class="people-row__info">
+            <span class="people-row__name">{{ inv.displayName }}</span>
+            <span class="people-row__sub">{{ typeLabel(inv.type) }}</span>
+            @if (inv.bio) {
+              <span class="people-row__sub people-row__sub--dim">{{ inv.bio }}</span>
+            }
+          </div>
+          @if (inv.website) {
+            <span class="people-row__meta">{{ inv.website }}</span>
+          }
+        </a>
+      }
+    </div>
+  }
+
+</div>
