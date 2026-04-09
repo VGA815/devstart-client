@@ -1,0 +1,71 @@
+<div class="page catalog-page">
+
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Эксперты</h1>
+    <p class="page__sub">Менторы и консультанты, готовые помочь вашему стартапу расти</p>
+  </header>
+
+  <div class="catalog-filters">
+    <input
+      class="catalog-filters__search field__input field__input--sm"
+      type="text"
+      placeholder="Поиск по экспертам..."
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)" />
+    <select class="field__select field__select--sm catalog-filters__select" (change)="selectSpecialization($any($event.target).value)">
+      <option value="">Все специализации</option>
+      @for (s of specializations; track s) {
+        <option [value]="s">{{ getSpecializationLabel(s) }}</option>
+      }
+    </select>
+    <select class="field__select field__select--sm catalog-filters__select" (change)="selectSort($any($event.target).value)">
+      <option value="DisplayName">По имени</option>
+      <option value="CreatedAt">По дате</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="people-list">
+      @for (n of [1,2,3,4,5]; track n) {
+        <div class="people-row">
+          <app-skeleton width="44px" height="44px" border-radius="50%" />
+          <div class="people-row__skeleton-info">
+            <app-skeleton height="14px" width="160px" />
+            <app-skeleton height="12px" width="220px" />
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (filteredExperts().length === 0) {
+    <div class="empty-state empty-state--card">
+      <span class="empty-state__icon">📭</span>
+      <p class="empty-state__title">Экспертов пока нет</p>
+      <p class="empty-state__sub">Зарегистрируйтесь и создайте публичный профиль эксперта</p>
+    </div>
+  } @else {
+    <div class="people-list">
+      @for (ex of filteredExperts(); track ex.id) {
+        <a class="people-row" [routerLink]="['/experts', ex.id]">
+          <app-avatar
+            [name]="ex.displayName"
+            size="md"
+            shape="circle" />
+          <div class="people-row__info">
+            <span class="people-row__name">{{ ex.displayName }}</span>
+            @if (ex.bio) {
+              <span class="people-row__sub">{{ ex.bio }}</span>
+            }
+          </div>
+          @if (ex.specializations.length > 0) {
+            <div class="people-row__tags">
+              @for (spec of ex.specializations.slice(0, 3); track spec) {
+                <span class="people-tag">{{ getSpecializationLabel(spec) }}</span>
+              }
+            </div>
+          }
+        </a>
+      }
+    </div>
+  }
+
+</div>

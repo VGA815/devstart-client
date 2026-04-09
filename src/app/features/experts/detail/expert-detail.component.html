@@ -1,0 +1,225 @@
+@if (loading()) {
+  <div class="profile-page">
+    <div class="profile-banner">
+      <app-skeleton width="72px" height="72px" border-radius="50%" />
+      <div class="profile-banner__skeleton">
+        <app-skeleton height="22px" width="200px" />
+        <app-skeleton height="14px" width="160px" />
+        <app-skeleton height="13px" width="320px" />
+      </div>
+    </div>
+  </div>
+
+} @else if (notFound()) {
+  <div class="profile-page">
+    <div class="empty-state empty-state--card">
+      <span class="empty-state__icon">🔍</span>
+      <p class="empty-state__title">Эксперт не найден</p>
+      <p class="empty-state__sub">Профиль не существует или был удалён</p>
+    </div>
+  </div>
+
+} @else if (expert()) {
+  @let ex = expert()!;
+
+  <div class="profile-page">
+
+    <!-- Banner -->
+    <div class="profile-banner">
+      <app-avatar
+        [name]="ex.displayName"
+        size="xxl"
+        shape="circle" />
+      <div class="profile-banner__info">
+        <span class="profile-banner__name">{{ ex.displayName }}</span>
+        @if (ex.specializations.length > 0) {
+          <span class="profile-banner__title">
+            @for (spec of ex.specializations; track spec; let last = $last) {
+              {{ getSpecializationLabel(spec) }}@if (!last) { · }
+            }
+          </span>
+        }
+        @if (ex.bio) {
+          <span class="profile-banner__bio">{{ ex.bio }}</span>
+        }
+      </div>
+      <div class="profile-banner__actions">
+        @if (ex.website) {
+          <a class="btn btn--ghost" [href]="ex.website" target="_blank" rel="noopener">Сайт →</a>
+        }
+        @if (!isSelf()) {
+          <button class="btn btn--primary" type="button" (click)="openInvite()">Пригласить</button>
+        }
+      </div>
+    </div>
+
+    <div class="profile-body">
+
+      <div class="profile-main">
+
+        @if (ex.bio) {
+          <div class="card">
+            <div class="card__header"><span class="card__title">Об эксперте</span></div>
+            <div class="card__body card__body--lg">
+              <p class="exp-bio">{{ ex.bio }}</p>
+            </div>
+          </div>
+        }
+
+        @if (ex.specializations.length > 0) {
+          <div class="card">
+            <div class="card__header"><span class="card__title">Области экспертизы</span></div>
+            <div class="card__body card__body--lg">
+              <div class="chips">
+                @for (spec of ex.specializations; track spec) {
+                  <span class="chip chip--pill">{{ getSpecializationLabel(spec) }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="card">
+          <div class="card__header"><span class="card__title">Опыт работы</span></div>
+          @if (experiences().length === 0) {
+            <div class="card__empty">Опыт работы не указан</div>
+          } @else {
+            <div class="card__body card__body--lg">
+              @for (job of experiences(); track job.id) {
+                <div class="experience-row">
+                  <div class="experience-row__main">
+                    <span class="experience-row__position">{{ job.position }}</span>
+                    <span class="experience-row__company">{{ job.company }}</span>
+                    @if (job.description) {
+                      <span class="experience-row__desc">{{ job.description }}</span>
+                    }
+                  </div>
+                  <span class="experience-row__range">{{ formatExperienceRange(job.startDate, job.endDate) }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (!ex.bio && ex.specializations.length === 0 && experiences().length === 0) {
+          <div class="card">
+            <div class="card__empty">Информация не заполнена</div>
+          </div>
+        }
+
+      </div>
+
+      <aside class="profile-sidebar">
+        <div class="card">
+          <div class="card__header"><span class="card__title">Контакты</span></div>
+          <div class="card__body card__body--lg">
+            @if (ex.website) {
+              <div class="contact-row">
+                <span class="contact-row__label">Сайт</span>
+                <a class="contact-row__value" [href]="ex.website" target="_blank" rel="noopener">{{ ex.website }}</a>
+              </div>
+            }
+            @for (link of socialLinks(ex); track link.label) {
+              <div class="contact-row">
+                <span class="contact-row__label">{{ link.label }}</span>
+                <a class="contact-row__value" [href]="link.url" target="_blank" rel="noopener">{{ link.url }}</a>
+              </div>
+            }
+            @if (!ex.website && socialLinks(ex).length === 0) {
+              <span class="exp-empty-contacts">Контактов нет</span>
+            }
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  @if (inviteOpen()) {
+    <div class="modal-backdrop" (click)="closeInvite()"></div>
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal__header">
+        <span class="modal__title">Пригласить эксперта</span>
+        <button class="modal__close" type="button" (click)="closeInvite()" aria-label="Закрыть">×</button>
+      </div>
+
+      @if (inviteSuccess()) {
+        <div class="modal__body invite-success">
+          <p class="invite-success__title">Заявка отправлена</p>
+          <p class="invite-success__sub">Эксперт получит уведомление и сможет ответить.</p>
+        </div>
+      } @else {
+        <form class="modal__body" [formGroup]="inviteForm" (ngSubmit)="submitInvite()">
+
+          @if (inviteError()) {
+            <div class="toast toast--error">{{ inviteError() }}</div>
+          }
+
+          <div class="field">
+            <label class="field__label" for="inviteStartup">Стартап *</label>
+            <select id="inviteStartup" class="field__select" formControlName="startupId">
+              <option value="" disabled>Выберите стартап</option>
+              @for (s of myStartups(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+              }
+            </select>
+            @if (myStartups().length === 0) {
+              <span class="field__hint">У вас нет стартапов — создайте его прежде, чем приглашать эксперта.</span>
+            }
+            @if (inviteFieldError('startupId')) {
+              <span class="field__hint field__hint--error">{{ inviteFieldError('startupId') }}</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="inviteType">Тип сотрудничества *</label>
+            <select id="inviteType" class="field__select" formControlName="collaborationType">
+              @for (t of collabTypes; track t) {
+                <option [value]="t">{{ getCollaborationTypeLabel(t) }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label class="field__label" for="inviteHours">Часов в неделю</label>
+              <input id="inviteHours" class="field__input"
+                type="number" formControlName="hoursPerWeek"
+                min="1" max="168" placeholder="например, 5" />
+              @if (inviteFieldError('hoursPerWeek')) {
+                <span class="field__hint field__hint--error">{{ inviteFieldError('hoursPerWeek') }}</span>
+              }
+            </div>
+            <div class="field">
+              <label class="field__label" for="inviteRate">Ставка, ₽/ч</label>
+              <input id="inviteRate" class="field__input"
+                type="number" formControlName="rate"
+                min="1" placeholder="например, 5000" />
+              @if (inviteFieldError('rate')) {
+                <span class="field__hint field__hint--error">{{ inviteFieldError('rate') }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="inviteMessage">Сообщение</label>
+            <textarea id="inviteMessage" class="field__textarea"
+              formControlName="message"
+              placeholder="Расскажите о задаче и почему именно этот эксперт…"
+              rows="4"></textarea>
+            @if (inviteFieldError('message')) {
+              <span class="field__hint field__hint--error">{{ inviteFieldError('message') }}</span>
+            }
+          </div>
+
+          <div class="modal__actions">
+            <button class="btn btn--ghost" type="button" (click)="closeInvite()">Отмена</button>
+            <button class="btn btn--primary" type="submit" [disabled]="inviteSending() || myStartups().length === 0">
+              {{ inviteSending() ? 'Отправка…' : 'Отправить заявку' }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  }
+}
