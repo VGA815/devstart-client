@@ -1,0 +1,118 @@
+@let user = auth.user();
+
+<div class="page">
+  <div class="profile-banner">
+    <app-avatar
+      [avatarId]="profileAvatarId()"
+      [name]="user?.username ?? ''"
+      size="xxl"
+      shape="circle"
+      [color]="'var(--text-muted)'" />
+    <div class="profile-banner__info">
+      <span class="profile-banner__name">{{ user?.username ?? '—' }}</span>
+      <span class="profile-banner__handle">{{ user?.email }}</span>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-card__label">Просмотры профиля</span>
+      <span class="stat-card__value stat-card__value--accent">—</span>
+      <span class="stat-card__sub">Нет данных</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Входящих заявок</span>
+      <span class="stat-card__value stat-card__value--green">
+        @if (loading()) { … } @else { {{ incomingCount() ?? '—' }} }
+      </span>
+      <span class="stat-card__sub">
+        @if (!loading() && incomingCount()) { Ожидают ответа } @else { Нет данных }
+      </span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Мои стартапы</span>
+      <span class="stat-card__value stat-card__value--text">
+        @if (loading()) { … } @else { {{ startups().length }} }
+      </span>
+      <span class="stat-card__sub">Опубликовано</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Уведомления</span>
+      <span class="stat-card__value stat-card__value--purple">
+        @if (loading()) { … } @else { {{ unreadCount() ?? '—' }} }
+      </span>
+      <span class="stat-card__sub">Непрочитанных</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Мои стартапы</span>
+      <a class="btn btn--text" routerLink="/startups/new">+ Добавить</a>
+    </div>
+    <div class="card__body card__body--lg">
+      @if (loading()) {
+        <p class="overview-empty">Загрузка…</p>
+      } @else if (startups().length === 0) {
+        <p class="overview-empty">Стартапы не добавлены. <a routerLink="/startups/new">Создать стартап →</a></p>
+      } @else {
+        @for (s of startups(); track s.id) {
+          <div class="startup-item">
+            <app-avatar
+              [avatarId]="s.avatarId"
+              [name]="s.name"
+              size="md"
+              shape="square" />
+            <div class="startup-item__info">
+              <span class="startup-item__name">{{ s.name }}</span>
+              <span class="startup-item__meta">{{ s.stage }}</span>
+            </div>
+            @let badge = getRoleBadge(s.id);
+            <span class="badge badge--mono"
+              [class.badge--purple]="badge.mod === 'founder'"
+              [class.badge--accent]="badge.mod === 'admin'"
+              [class.badge--green]="badge.mod === 'member'">{{ badge.label }}</span>
+            <a class="btn btn--ghost btn--sm" [routerLink]="['/dashboard/my-startups']">Управление →</a>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="bottom-row">
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Уведомления</span>
+        <a class="btn btn--text" routerLink="/dashboard/notifications">Все →</a>
+      </div>
+      <div class="card__body card__body--flush">
+        @if (loading()) {
+          <div class="overview-empty-block"><span>Загрузка…</span></div>
+        } @else if (notifications().length === 0) {
+          <div class="overview-empty-block"><span>Нет новых уведомлений</span></div>
+        } @else {
+          @for (n of notifications(); track n.id) {
+            <div class="overview-notif" [class.overview-notif--unread]="!n.isRead">
+              @if (!n.isRead) { <span class="overview-notif__dot"></span> }
+              <div class="overview-notif__info">
+                <p class="overview-notif__text">{{ n.title }}</p>
+                <p class="overview-notif__time">{{ formatTime(n.createdAt) }}</p>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Активность</span>
+      </div>
+      <div class="card__body">
+        <div class="overview-empty-block"><span>Активность отсутствует</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>

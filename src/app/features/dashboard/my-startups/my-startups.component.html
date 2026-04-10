@@ -1,0 +1,60 @@
+@if (loading()) {
+  <div class="page">
+    <app-skeleton height="48px" border-radius="6px" />
+    <app-skeleton height="140px" border-radius="6px" />
+    <app-skeleton height="200px" border-radius="6px" />
+    <app-skeleton height="180px" border-radius="6px" />
+  </div>
+
+} @else if (!startup()) {
+  <div class="empty-state empty-state--card">
+    <p class="empty-state__title">У вас пока нет стартапов</p>
+    <a class="btn btn--primary" routerLink="/startups/new">+ Создать стартап</a>
+  </div>
+
+} @else {
+  @let s = startup()!;
+  <div class="page">
+
+    @if (startups().length > 1) {
+      <div class="chips">
+        @for (item of startups(); track item.id; let i = $index) {
+          <button class="chip"
+            [class.chip--active]="selectedIndex() === i"
+            (click)="selectStartup(i)">
+            {{ item.name }}
+          </button>
+        }
+      </div>
+    }
+
+    <div class="ms-header">
+      <div class="ms-header__left">
+        <app-avatar
+          [avatarId]="s.avatarId"
+          [name]="s.name"
+          size="lg"
+          shape="square" />
+        <span class="ms-header__name">{{ s.name }}</span>
+        <span class="badge badge--mono"
+          [class.badge--purple]="roleBadge().mod === 'founder'"
+          [class.badge--accent]="roleBadge().mod === 'admin'"
+          [class.badge--green]="roleBadge().mod === 'member'">{{ roleBadge().label }}</span>
+      </div>
+      <div class="ms-header__actions">
+        <a class="btn btn--ghost" [routerLink]="['/startups', s.id, 'edit']">✏ Редактировать</a>
+        <a class="btn btn--primary" [routerLink]="['/startups', s.id]">Просмотр →</a>
+      </div>
+    </div>
+
+    <app-incoming-collaboration-requests [startupId]="s.id" />
+    <app-startup-metrics-card [startupId]="s.id" />
+    <app-startup-roadmap-card [startupId]="s.id" [stage]="s.stage" />
+    <app-startup-team-card
+      [startupId]="s.id"
+      [currentUserId]="currentUserId()"
+      (currentRoleChange)="myRole.set($event)" />
+    <app-startup-docs-card [startupId]="s.id" />
+
+  </div>
+}

@@ -1,0 +1,22 @@
+<div class="card">
+  <div class="card__header">
+    <span class="card__title">Заявки от экспертов</span>
+    @if (!loading() && requests().length > 0) {
+      <span class="card__count">{{ requests().length }}</span>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="card__skeleton"><app-skeleton height="60px" /></div>
+  } @else if (requests().length === 0) {
+    <div class="card__empty">Заявок от экспертов пока нет</div>
+  } @else {
+    @for (req of requests(); track req.id) {
+      <app-collab-request-row
+        [request]="req"
+        direction="incoming"
+        (accept)="accept($event)"
+        (reject)="reject($event)" />
+    }
+  }
+</div>

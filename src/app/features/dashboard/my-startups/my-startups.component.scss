@@ -1,0 +1,33 @@
+@use '../../../../styles/mixins' as *;
+
+:host { display: block; }
+
+.ms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  @include mobile { flex-wrap: wrap; }
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  &__name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+
+    @include mobile { flex: 1 1 100%; }
+  }
+}

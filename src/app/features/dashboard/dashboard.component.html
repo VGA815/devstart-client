@@ -1,0 +1,111 @@
+<div class="dash-layout">
+
+  <button class="dash-mobile-bar" type="button" (click)="toggleSidebar()"
+          [attr.aria-expanded]="sidebarOpen()" aria-controls="dash-sidebar">
+    <span class="dash-mobile-bar__icon">☰</span>
+    <span class="dash-mobile-bar__text">Меню кабинета</span>
+  </button>
+
+  @if (sidebarOpen()) {
+    <div class="dash-overlay" (click)="closeSidebar()"></div>
+  }
+
+  <aside class="dash-sidebar" id="dash-sidebar" [class.dash-sidebar--open]="sidebarOpen()">
+
+    <div class="dash-sidebar__group">
+      <span class="dash-sidebar__group-label">Основное</span>
+      <a class="dash-sidebar__item" routerLink="overview"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">⬡</span>
+        <span class="dash-sidebar__item-text">Обзор</span>
+      </a>
+      <a class="dash-sidebar__item" routerLink="profile"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">👤</span>
+        <span class="dash-sidebar__item-text">Мой профиль</span>
+      </a>
+      <a class="dash-sidebar__item" routerLink="notifications"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">🔔</span>
+        <span class="dash-sidebar__item-text">Уведомления</span>
+      </a>
+      <a class="dash-sidebar__item" routerLink="messages"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">✉</span>
+        <span class="dash-sidebar__item-text">Сообщения</span>
+      </a>
+    </div>
+
+    <div class="dash-sidebar__group">
+      <span class="dash-sidebar__group-label">Стартапы</span>
+      <a class="dash-sidebar__item" routerLink="my-startups"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">🗂</span>
+        <span class="dash-sidebar__item-text">Мои стартапы</span>
+      </a>
+      <a class="dash-sidebar__item" routerLink="subscriptions"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">★</span>
+        <span class="dash-sidebar__item-text">Подписки</span>
+      </a>
+      <a class="dash-sidebar__item" routerLink="documents"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">📁</span>
+        <span class="dash-sidebar__item-text">Документы</span>
+      </a>
+    </div>
+
+    <div class="dash-sidebar__group">
+      <span class="dash-sidebar__group-label">Активность</span>
+      <a class="dash-sidebar__item" routerLink="applications"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">📨</span>
+        <span class="dash-sidebar__item-text">Заявки</span>
+      </a>
+      <a class="dash-sidebar__item" routerLink="investments"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">💼</span>
+        <span class="dash-sidebar__item-text">Инвестиции</span>
+      </a>
+      <a class="dash-sidebar__item" routerLink="collaboration-requests"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">🤝</span>
+        <span class="dash-sidebar__item-text">Сотрудничество</span>
+      </a>
+    </div>
+
+    <div class="dash-sidebar__group">
+      <span class="dash-sidebar__group-label">Эксперт</span>
+      <a class="dash-sidebar__item" routerLink="expert-profile"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">🎓</span>
+        <span class="dash-sidebar__item-text">Профиль эксперта</span>
+      </a>
+    </div>
+
+    <div class="dash-sidebar__group">
+      <span class="dash-sidebar__group-label">Система</span>
+      <a class="dash-sidebar__item" routerLink="consents"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">📋</span>
+        <span class="dash-sidebar__item-text">Согласия</span>
+      </a>
+      <a class="dash-sidebar__item" routerLink="settings"
+         routerLinkActive="dash-sidebar__item--active" (click)="closeSidebar()">
+        <span class="dash-sidebar__icon">⚙</span>
+        <span class="dash-sidebar__item-text">Настройки</span>
+      </a>
+      <button class="dash-sidebar__item dash-sidebar__item--logout"
+              (click)="auth.logout()">
+        <span class="dash-sidebar__icon">→</span>
+        <span class="dash-sidebar__item-text">Выйти</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <main class="dash-main">
+    <router-outlet />
+  </main>
+
+</div>
