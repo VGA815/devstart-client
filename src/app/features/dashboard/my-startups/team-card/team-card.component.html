@@ -1,0 +1,124 @@
+<div class="card">
+  <div class="card__header">
+    <span class="card__title">Команда</span>
+    <button class="card__action" type="button"
+      [disabled]="inviteGenerating()"
+      (click)="generateInvite()">
+      {{ inviteGenerating() ? 'Генерация…' : '+ Пригласить' }}
+    </button>
+  </div>
+
+  @if (inviteLink()) {
+    <div class="invite-block">
+      <div class="invite-block__row">
+        <span class="invite-block__url">{{ inviteLink() }}</span>
+        <button class="btn btn--primary btn--sm" type="button" (click)="copyInvite()">
+          @if (inviteCopied()) { ✓ Скопировано } @else { Скопировать }
+        </button>
+      </div>
+      <span class="invite-block__hint">⏱ Ссылка действует 24 часа</span>
+    </div>
+  }
+
+  @if (editing()) {
+    <div class="member-edit">
+      <div class="member-edit__header">Мой профиль в команде</div>
+      <div class="member-edit__body">
+        <div class="field">
+          <label class="field__label field__label--mono">Должность</label>
+          <select class="field__select field__select--sm"
+            [value]="positionEdit()"
+            (change)="positionEdit.set(+$any($event.target).value)">
+            @for (opt of positionOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Bio</label>
+          <textarea class="field__textarea"
+            rows="2"
+            placeholder="Кратко о себе…"
+            [value]="bioEdit()"
+            (input)="bioEdit.set($any($event.target).value)"></textarea>
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Лет опыта</label>
+          <input class="field__input field__input--sm"
+            type="number" min="0" max="60"
+            placeholder="5"
+            [value]="yearsEdit()"
+            (input)="yearsEdit.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label field__label--checkbox">
+            <input type="checkbox"
+              [checked]="hasPriorExit()"
+              (change)="hasPriorExit.set($any($event.target).checked)" />
+            <span>Есть prior exit (успешный выход)</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Предыдущих стартапов</label>
+          <input class="field__input field__input--sm"
+            type="number" min="0" max="50"
+            placeholder="0"
+            [value]="prevStartups()"
+            (input)="prevStartups.set($any($event.target).value)" />
+        </div>
+        @if (editError()) {
+          <p class="field__hint field__hint--error">{{ editError() }}</p>
+        }
+        <div class="member-edit__actions">
+          <button class="btn btn--ghost btn--sm" type="button" (click)="cancelEdit()">Отмена</button>
+          <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="editSaving()" (click)="saveEdit()">
+            {{ editSaving() ? 'Сохранение…' : 'Сохранить' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="card__skeleton">
+      <app-skeleton height="38px" border-radius="6px" />
+      <app-skeleton height="38px" border-radius="6px" />
+    </div>
+  } @else if (members().length === 0) {
+    <div class="card__empty">В команде пока никого нет — пригласите первого участника</div>
+  } @else {
+    @for (m of members(); track m.profileId) {
+      <div class="member-row" [class.member-row--mine]="myMember()?.profileId === m.profileId">
+        <app-avatar
+          [avatarId]="getMemberAvatarId(m)"
+          [name]="getMemberName(m)"
+          size="sm"
+          shape="circle" />
+        <div class="member-row__info">
+          <div class="member-row__name-row">
+            <span class="member-row__name">{{ getMemberName(m) }}</span>
+            @if (m.position) {
+              <span class="member-row__position">{{ getPositionLabel(m.position) }}</span>
+            }
+          </div>
+          <span class="member-row__sub">
+            {{ m.role }}@if (m.yearsOfExperience) { · {{ m.yearsOfExperience }} лет}
+          </span>
+          @if (m.bio) {
+            <span class="member-row__bio">{{ m.bio }}</span>
+          }
+        </div>
+        @if (myMember()?.profileId === m.profileId && !editing()) {
+          <button class="btn btn--icon" type="button" title="Редактировать профиль"
+            (click)="openEdit()">✎</button>
+        }
+        @if (m.role !== 'Founder') {
+          <button class="btn btn--icon btn--danger-hover"
+            type="button" title="Удалить участника"
+            (click)="remove(m)">✕</button>
+        }
+      </div>
+    }
+  }
+</div>

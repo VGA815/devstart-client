@@ -1,0 +1,95 @@
+<div class="card">
+  <div class="card__header">
+    <span class="card__title">Дорожная карта</span>
+    <button class="card__action" type="button" (click)="toggleAdd()">
+      {{ showAddForm() ? '✕ Отмена' : '+ Добавить' }}
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="card__skeleton">
+      <app-skeleton height="40px" />
+      <app-skeleton height="40px" />
+    </div>
+  } @else if (items().length === 0 && !showAddForm()) {
+    <div class="card__empty">Дорожная карта пуста</div>
+  } @else {
+    <div class="roadmap-body">
+      @for (item of items(); track item.id) {
+        @if (editingId() === item.id) {
+          <div class="roadmap-edit" [formGroup]="editForm">
+            <input class="field__input field__input--sm" type="text"
+              formControlName="title" placeholder="Название пункта" />
+            <textarea class="field__textarea"
+              formControlName="description" placeholder="Описание (необязательно)" rows="2"></textarea>
+            <div class="chips chips--compact">
+              @for (opt of statusOptions; track opt.value; let i = $index) {
+                <button type="button" class="chip"
+                  [class.chip--active]="editStatus() === i"
+                  (click)="setEditStatus(i)">{{ opt.label }}</button>
+              }
+            </div>
+            <input class="field__input field__input--sm" type="date" formControlName="targetDate" />
+            <div class="roadmap-edit__actions">
+              <button class="btn btn--primary btn--sm" type="button"
+                [disabled]="updating()" (click)="saveEdit()">
+                {{ updating() ? 'Сохранение…' : 'Сохранить' }}
+              </button>
+              <button class="btn btn--ghost btn--sm" type="button"
+                (click)="cancelEdit()">Отмена</button>
+            </div>
+          </div>
+        } @else {
+          <div class="roadmap-row"
+            [class.roadmap-row--expanded]="expandedId() === item.id"
+            (click)="toggleExpand(item)">
+            <span class="status-dot status-dot--{{ getStatusClass(item.status) }}"></span>
+            <div class="roadmap-row__body">
+              <span class="roadmap-row__title">{{ item.title }}</span>
+              @if (expandedId() === item.id && item.description) {
+                <span class="roadmap-row__desc">{{ item.description }}</span>
+              }
+            </div>
+            <span class="roadmap-row__quarter">{{ formatDate(item.targetDate) }}</span>
+            <button class="btn btn--icon" type="button" title="Редактировать"
+              (click)="$event.stopPropagation(); startEdit(item)">✏</button>
+            <button class="btn btn--icon btn--danger-hover" type="button" title="Удалить"
+              (click)="$event.stopPropagation(); remove(item)">🗑</button>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  @if (showAddForm()) {
+    <div class="card__form" [formGroup]="addForm">
+      <label class="field__label field__label--mono">Статус</label>
+      <div class="chips">
+        @for (opt of statusOptions; track opt.value; let i = $index) {
+          <button type="button" class="chip"
+            [class.chip--active]="newStatus() === i"
+            (click)="setNewStatus(i)">{{ opt.label }}</button>
+        }
+      </div>
+      <label class="field__label field__label--mono roadmap-form__label">Название пункта</label>
+      <input class="field__input field__input--sm"
+        [class.field__input--error]="fieldError('title')"
+        type="text" formControlName="title"
+        placeholder="Например: Запуск MVP" />
+      @if (fieldError('title')) {
+        <span class="field__hint field__hint--error">{{ fieldError('title') }}</span>
+      }
+      <label class="field__label field__label--mono roadmap-form__label">Целевая дата</label>
+      <input class="field__input field__input--sm"
+        [class.field__input--error]="fieldError('targetDate')"
+        type="date" formControlName="targetDate" />
+      @if (fieldError('targetDate')) {
+        <span class="field__hint field__hint--error">{{ fieldError('targetDate') }}</span>
+      }
+      <button class="btn btn--primary btn--block roadmap-form__submit" type="button"
+        [disabled]="saving()" (click)="add()">
+        @if (saving()) { Сохраняем… } @else { Добавить пункт }
+      </button>
+    </div>
+  }
+</div>

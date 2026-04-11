@@ -1,0 +1,61 @@
+<div class="card">
+  <div class="card__header">
+    <span class="card__title">Документы</span>
+    <button class="card__action" type="button" (click)="toggleAdd()">
+      {{ showAddForm() ? '✕ Отмена' : '+ Добавить' }}
+    </button>
+  </div>
+
+  @if (showAddForm()) {
+    <div class="card__form" [formGroup]="form">
+      <label class="field__label field__label--mono">Тип</label>
+      <div class="chips">
+        @for (opt of docTypeOptions; track opt.value; let i = $index) {
+          <button type="button" class="chip"
+            [class.chip--active]="newType() === i"
+            (click)="setType(i)">{{ opt.label }}</button>
+        }
+      </div>
+      <label class="field__label field__label--mono docs-form__label">Название</label>
+      <input class="field__input field__input--sm"
+        [class.field__input--error]="fieldError()"
+        type="text" formControlName="documentName"
+        placeholder="Например: Pitch Deck 2026" />
+      @if (fieldError()) {
+        <span class="field__hint field__hint--error">{{ fieldError() }}</span>
+      }
+      <label class="field__label field__label--mono docs-form__label">Файл</label>
+      <label class="file-pick" [class.file-pick--selected]="!!selectedFile()">
+        <span class="file-pick__icon">📎</span>
+        <span class="file-pick__label">
+          {{ selectedFile() ? selectedFile()!.name : 'Выберите файл' }}
+        </span>
+        <input type="file" hidden (change)="onFileSelected($event)" />
+      </label>
+      <button class="btn btn--primary btn--block docs-form__submit" type="button"
+        [disabled]="uploading() || !selectedFile()" (click)="upload()">
+        @if (uploading()) { Загружаем… } @else { Загрузить документ }
+      </button>
+    </div>
+  }
+
+  @if (docs().length === 0 && !showAddForm()) {
+    <div class="card__empty">Документы не загружены</div>
+  } @else {
+    @for (doc of docs(); track doc.id) {
+      <div class="doc-row">
+        <span class="doc-row__icon">{{ getDocumentIcon(doc.documentType) }}</span>
+        <div class="doc-row__info">
+          <span class="doc-row__name">{{ doc.documentName }}</span>
+          <span class="doc-row__meta">
+            {{ getDocumentTypeLabel(doc.documentType) }} · {{ formatFileSize(doc.fileSize) }}
+          </span>
+        </div>
+        <a class="btn btn--icon" [href]="doc.presignedUrl" target="_blank" rel="noopener"
+          title="Скачать">⬇</a>
+        <button class="btn btn--icon btn--danger-hover" type="button"
+          title="Удалить" (click)="remove(doc)">✕</button>
+      </div>
+    }
+  }
+</div>

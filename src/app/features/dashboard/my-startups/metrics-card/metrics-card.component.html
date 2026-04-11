@@ -1,0 +1,51 @@
+<div class="card">
+  <div class="card__header">
+    <span class="card__title">Метрики</span>
+    <button class="card__action" type="button" (click)="toggleAdd()">
+      {{ showAddForm() ? '✕ Отмена' : '+ Добавить' }}
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="card__skeleton"><app-skeleton height="60px" /></div>
+  } @else if (metrics().length === 0 && !showAddForm()) {
+    <div class="card__empty">Метрики не добавлены</div>
+  } @else {
+    <div class="metrics-grid">
+      @for (m of metrics(); track m.id) {
+        <div class="metric-tile">
+          <div class="metric-tile__top">
+            <span class="metric-tile__value" [class]="getMetricColor(m.metricType)">{{ formatMetricValue(m) }}</span>
+            <button class="btn btn--icon btn--danger-hover" type="button" (click)="remove(m)" title="Удалить">✕</button>
+          </div>
+          <span class="metric-tile__label">{{ getMetricLabel(m.metricType) }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  @if (showAddForm()) {
+    <div class="card__form" [formGroup]="form">
+      <label class="field__label field__label--mono">Тип метрики</label>
+      <div class="chips">
+        @for (opt of metricOptions; track opt.value; let i = $index) {
+          <button type="button" class="chip"
+            [class.chip--active]="newType() === i"
+            (click)="setType(i)">{{ opt.label }}</button>
+        }
+      </div>
+      <label class="field__label field__label--mono metric-form__label">Значение</label>
+      <input class="field__input field__input--sm"
+        [class.field__input--error]="fieldError()"
+        type="number" min="0" formControlName="value"
+        placeholder="Например: 12500" />
+      @if (fieldError()) {
+        <span class="field__hint field__hint--error">{{ fieldError() }}</span>
+      }
+      <button class="btn btn--primary btn--block metric-form__submit" type="button"
+        [disabled]="saving()" (click)="add()">
+        @if (saving()) { Сохраняем… } @else { Добавить метрику }
+      </button>
+    </div>
+  }
+</div>
