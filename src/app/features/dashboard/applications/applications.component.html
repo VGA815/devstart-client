@@ -1,0 +1,55 @@
+<div class="page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Входящие заявки</h1>
+  </header>
+
+  @if (loading()) {
+    <div class="card card__body--flush">
+      <app-skeleton height="60px" /><app-skeleton height="60px" /><app-skeleton height="60px" />
+    </div>
+  } @else if (applications().length === 0) {
+    <div class="empty-state empty-state--card">
+      <p class="empty-state__title">Нет входящих заявок</p>
+    </div>
+  } @else {
+    <div class="card card__body--flush">
+      @for (app of applications(); track app.id) {
+        <div class="app-row" [class.app-row--unread]="app.status === 'Pending'">
+          @if (app.status === 'Pending') {
+            <span class="app-row__dot"></span>
+          }
+
+          <app-avatar
+            [avatarId]="getApplicantAvatarId(app.applicantProfileId)"
+            [name]="app.applicantName"
+            size="md"
+            shape="circle"
+            [color]="'var(--accent)'" />
+
+          <div class="app-row__info">
+            <span class="app-row__name">{{ app.applicantName }}</span>
+            <span class="app-row__sub">{{ app.startupName }}</span>
+          </div>
+
+          @if (app.amount) {
+            <span class="app-row__amount">{{ formatAmount(app.amount) }}</span>
+          }
+          <span class="app-row__time">{{ formatDate(app.createdAt) }}</span>
+
+          @if (app.status === 'Pending') {
+            <div class="app-row__actions">
+              <button class="btn btn--primary btn--xs" type="button" (click)="accept(app)">Принять</button>
+              <button class="btn btn--ghost btn--xs" type="button" (click)="reject(app)">Отклонить</button>
+            </div>
+          } @else {
+            <span class="badge badge--mono"
+              [class.badge--green]="app.status === 'Accepted'"
+              [class.badge--red]="app.status === 'Rejected'">
+              {{ app.status === 'Accepted' ? 'Принято' : 'Отклонено' }}
+            </span>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

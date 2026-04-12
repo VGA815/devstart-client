@@ -1,0 +1,43 @@
+<div class="page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Мои заявки на сотрудничество</h1>
+  </header>
+
+  @if (loading()) {
+    <div class="card card__body--flush">
+      <app-skeleton height="56px" /><app-skeleton height="56px" /><app-skeleton height="56px" />
+    </div>
+  } @else if (!hasProfile()) {
+    <div class="empty-state empty-state--card">
+      <p class="empty-state__title">У вас ещё нет профиля эксперта</p>
+      <p class="empty-state__sub">Создайте профиль, чтобы отправлять стартапам заявки на сотрудничество.</p>
+      <a class="btn btn--primary" routerLink="/dashboard/expert-profile">Создать профиль</a>
+    </div>
+  } @else {
+    <div class="cr-filter">
+      <select class="field__select field__select--sm" (change)="selectStatus($any($event.target).value)">
+        <option value="All">Все статусы</option>
+        <option value="Pending">Ожидает</option>
+        <option value="Accepted">Принято</option>
+        <option value="Rejected">Отклонено</option>
+        <option value="Withdrawn">Отозвано</option>
+      </select>
+    </div>
+
+    @if (filtered().length === 0) {
+      <div class="empty-state empty-state--card">
+        <p class="empty-state__title">Заявок нет</p>
+        <p class="empty-state__sub">Откройте каталог экспертов или страницу стартапа, чтобы отправить заявку.</p>
+      </div>
+    } @else {
+      <div class="card card__body--flush">
+        @for (req of filtered(); track req.id) {
+          <app-collab-request-row
+            [request]="req"
+            direction="outgoing"
+            (withdraw)="withdraw($event)" />
+        }
+      </div>
+    }
+  }
+</div>
