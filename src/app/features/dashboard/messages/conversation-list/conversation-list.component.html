@@ -1,0 +1,46 @@
+<div class="conv-panel__header">
+  <span class="conv-panel__title">Сообщения</span>
+</div>
+
+@if (loading) {
+  <div class="conv-panel__body">
+    @for (i of [1,2,3]; track i) {
+      <div class="conv-item conv-item--skeleton">
+        <app-skeleton height="36px" width="36px" />
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          <app-skeleton height="13px" width="120px" />
+          <app-skeleton height="11px" width="160px" />
+        </div>
+      </div>
+    }
+  </div>
+} @else if (conversations.length === 0) {
+  <div class="conv-panel__empty">
+    <p>Нет диалогов</p>
+  </div>
+} @else {
+  <div class="conv-panel__body">
+    @for (conv of conversations; track conv.otherParticipantId) {
+      <button
+        class="conv-item"
+        [class.conv-item--active]="isSelected(conv)"
+        (click)="select.emit(conv)">
+
+        <app-avatar
+          [avatarId]="participantAvatarId(conv.otherParticipantId)"
+          [name]="participantName(conv.otherParticipantId)"
+          size="md"
+          [shape]="conv.otherParticipantType === ChatParticipant.Startup ? 'square' : 'circle'" />
+
+        <div class="conv-item__info">
+          <span class="conv-item__name">{{ participantName(conv.otherParticipantId) }}</span>
+          <span class="conv-item__time">{{ formatTime(conv.lastMessageAt) }}</span>
+        </div>
+
+        @if (conv.unreadCount > 0) {
+          <span class="conv-item__badge">{{ conv.unreadCount }}</span>
+        }
+      </button>
+    }
+  </div>
+}

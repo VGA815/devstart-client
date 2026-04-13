@@ -1,0 +1,137 @@
+<!-- Hidden file input -->
+<input
+  type="file"
+  #fileInputEl
+  accept="image/*"
+  style="display:none"
+  (change)="onFileSelected($event)" />
+
+@if (errorSend()) {
+  <p class="chat-input-area__error">Не удалось отправить. Попробуйте снова.</p>
+}
+
+@if (showMetricPicker()) {
+  <div class="attach-picker">
+    @if (pickerLoading()) {
+      <div class="attach-picker__loader"><app-skeleton height="28px" /></div>
+    } @else if (pickerMetrics().length === 0) {
+      <p class="attach-picker__empty">У ваших стартапов нет метрик</p>
+    } @else {
+      @for (m of pickerMetrics(); track m.id) {
+        <button
+          class="attach-picker__item"
+          [class.attach-picker__item--selected]="isMetricAttached(m.id)"
+          type="button"
+          (click)="toggleMetric(m)">
+          <div class="attach-picker__item-info">
+            <span class="attach-picker__item-title">{{ metricLabel(m.metricType) }}</span>
+            @if (pickerStartupName(m.startupId)) {
+              <span class="attach-picker__item-sub">{{ pickerStartupName(m.startupId) }}</span>
+            }
+          </div>
+          <span class="attach-picker__item-value">{{ metricValue(m) }}</span>
+        </button>
+      }
+    }
+  </div>
+}
+
+@if (showDocPicker()) {
+  <div class="attach-picker">
+    @if (pickerDocLoading()) {
+      <div class="attach-picker__loader"><app-skeleton height="28px" /></div>
+    } @else if (pickerDocuments().length === 0) {
+      <p class="attach-picker__empty">Нет загруженных документов</p>
+    } @else {
+      @for (doc of pickerDocuments(); track doc.id) {
+        <button
+          class="attach-picker__item"
+          [class.attach-picker__item--selected]="isDocumentAttached(doc.id)"
+          type="button"
+          (click)="toggleDocument(doc)">
+          <div class="attach-picker__item-icon">{{ docIcon(doc.documentType) }}</div>
+          <div class="attach-picker__item-info">
+            <span class="attach-picker__item-title">{{ doc.documentName }}</span>
+            <span class="attach-picker__item-sub">{{ docLabel(doc.documentType) }}</span>
+          </div>
+          <span class="attach-picker__item-value">{{ fileSize(doc.fileSize) }}</span>
+        </button>
+      }
+    }
+  </div>
+}
+
+@if (mediaIds().length > 0 || metricIds().length > 0 || documentIds().length > 0) {
+  <div class="attach-strip">
+    @for (id of mediaIds(); track id) {
+      <div class="attach-strip__thumb">
+        @if (attachments.mediaUrl(id); as url) {
+          <img [src]="url" alt="" />
+        } @else {
+          <app-skeleton height="48px" width="64px" />
+        }
+        <button class="attach-strip__remove" type="button" (click)="removeAttachedMedia(id)">×</button>
+      </div>
+    }
+    @for (id of metricIds(); track id) {
+      @if (attachments.metric(id); as metric) {
+        <div class="attach-strip__chip">
+          <span>📊 {{ metricLabel(metric.metricType) }}: {{ metricValue(metric) }}</span>
+          <button class="attach-strip__chip-remove" type="button" (click)="removeAttachedMetric(id)">×</button>
+        </div>
+      }
+    }
+    @for (id of documentIds(); track id) {
+      @if (attachments.document(id); as doc) {
+        <div class="attach-strip__chip">
+          <span>{{ docIcon(doc.documentType) }} {{ doc.documentName }}</span>
+          <button class="attach-strip__chip-remove" type="button" (click)="removeAttachedDocument(id)">×</button>
+        </div>
+      }
+    }
+  </div>
+}
+
+<div class="chat-input-row">
+  <button
+    class="chat-attach-btn"
+    type="button"
+    title="Прикрепить изображение"
+    [disabled]="sending() || uploadingMedia()"
+    (click)="triggerFileInput()">
+    @if (uploadingMedia()) { <span class="chat-attach-btn__spinner">…</span> } @else { 📎 }
+  </button>
+  <button
+    class="chat-attach-btn"
+    type="button"
+    title="Прикрепить метрику"
+    [class.chat-attach-btn--active]="showMetricPicker()"
+    [disabled]="sending()"
+    (click)="toggleMetricPicker()">
+    📊
+  </button>
+  <button
+    class="chat-attach-btn"
+    type="button"
+    title="Прикрепить документ"
+    [class.chat-attach-btn--active]="showDocPicker()"
+    [disabled]="sending()"
+    (click)="toggleDocPicker()">
+    📄
+  </button>
+  <textarea
+    class="chat-input"
+    placeholder="Введите сообщение…"
+    rows="1"
+    [value]="text()"
+    [disabled]="sending()"
+    (input)="text.set($any($event.target).value)"
+    (keydown)="onKeydown($event)"></textarea>
+  <button
+    class="chat-send-btn"
+    type="button"
+    [disabled]="cannotSend()"
+    (click)="send()">
+    @if (sending()) { … } @else { ↑ }
+  </button>
+</div>

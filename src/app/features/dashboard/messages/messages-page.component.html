@@ -1,0 +1,48 @@
+<div class="msg-layout" [class.msg-layout--thread]="!!selectedConv()">
+
+  <app-chat-conversation-list
+    [conversations]="conversations()"
+    [participants]="participants()"
+    [selected]="selectedConv()"
+    [loading]="loadingConvs()"
+    (select)="selectConv($event)" />
+
+  <div class="chat-panel">
+
+    @if (!selectedConv()) {
+
+      <div class="chat-empty">
+        <span class="chat-empty__icon">💬</span>
+        <p class="chat-empty__text">Выберите диалог</p>
+        <p class="chat-empty__sub">Выберите диалог слева, чтобы начать переписку</p>
+      </div>
+
+    } @else {
+
+      <div class="chat-header">
+        <button class="chat-header__back" type="button" (click)="closeThread()" aria-label="Назад к диалогам">‹</button>
+        <app-avatar
+          [avatarId]="participantAvatarId(selectedConv()!.otherParticipantId)"
+          [name]="participantName(selectedConv()!.otherParticipantId)"
+          size="sm"
+          [shape]="selectedConv()!.otherParticipantType === ChatParticipant.Startup ? 'square' : 'circle'" />
+        <span class="chat-header__name">
+          {{ participantName(selectedConv()!.otherParticipantId) }}
+        </span>
+      </div>
+
+      <app-chat-thread
+        [messages]="messages()"
+        [loading]="loadingThread()"
+        [currentUserId]="auth.user()?.id ?? null"
+        [participants]="participants()" />
+
+      <app-chat-composer
+        [conversation]="selectedConv()!"
+        (sent)="onSent($event)" />
+
+    }
+
+  </div>
+
+</div>

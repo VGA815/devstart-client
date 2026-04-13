@@ -1,0 +1,77 @@
+@if (loading) {
+  <div class="chat-thread__loading">
+    <app-skeleton height="40px" width="60%" />
+    <app-skeleton height="40px" width="45%" style="align-self:flex-end" />
+    <app-skeleton height="40px" width="55%" />
+  </div>
+} @else if (messages.length === 0) {
+  <div class="chat-thread__empty">
+    <p>Нет сообщений. Напишите первым!</p>
+  </div>
+} @else {
+  @for (msg of messages; track msg.id) {
+    <div class="chat-msg" [class.chat-msg--mine]="isMine(msg)">
+      @if (!isMine(msg)) {
+        <app-avatar
+          [avatarId]="participantAvatarId(msg.senderId)"
+          [name]="participantName(msg.senderId)"
+          size="sm"
+          [shape]="msg.senderType === ChatParticipant.Startup ? 'square' : 'circle'"
+          class="chat-msg__avatar" />
+      }
+      <div class="chat-msg__bubble">
+        @if (msg.textContent) {
+          <p class="chat-msg__text">{{ msg.textContent }}</p>
+        }
+
+        @if (msg.mediaIds.length > 0) {
+          <div class="chat-msg__images">
+            @for (mid of msg.mediaIds; track mid) {
+              @if (attachments.mediaUrl(mid); as url) {
+                <img [src]="url" class="chat-msg__img" (error)="attachments.refetchMedia(mid)" loading="lazy" alt="" />
+              }
+            }
+          </div>
+        }
+
+        @if (msg.metricIds.length > 0) {
+          <div class="chat-msg__metric-chips">
+            @for (mid of msg.metricIds; track mid) {
+              @if (attachments.metric(mid); as metric) {
+                <span class="chat-msg__metric-chip">
+                  <span class="chat-msg__metric-label">{{ metricLabel(metric.metricType) }}</span>
+                  <span class="chat-msg__metric-value">{{ metricValue(metric) }}</span>
+                </span>
+              }
+            }
+          </div>
+        }
+
+        @if (msg.documentIds.length > 0) {
+          <div class="chat-msg__docs">
+            @for (did of msg.documentIds; track did) {
+              @if (attachments.document(did); as doc) {
+                <a
+                  class="chat-msg__doc"
+                  [href]="doc.presignedUrl"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  <span class="chat-msg__doc-icon">{{ docIcon(doc.documentType) }}</span>
+                  <div class="chat-msg__doc-info">
+                    <span class="chat-msg__doc-name">{{ doc.documentName }}</span>
+                    <span class="chat-msg__doc-meta">
+                      {{ docLabel(doc.documentType) }} · {{ fileSize(doc.fileSize) }}
+                    </span>
+                  </div>
+                  <span class="chat-msg__doc-arrow">↓</span>
+                </a>
+              }
+            }
+          </div>
+        }
+
+        <span class="chat-msg__time">{{ formatTime(msg.createdAt) }}</span>
+      </div>
+    </div>
+  }
+}
