@@ -1,0 +1,66 @@
+<div class="page page--narrow">
+
+  @if (revokeSuccess()) {
+    <div class="toast toast--success">Согласие на cookies отозвано</div>
+  }
+  @if (revokeError()) {
+    <div class="toast toast--error">{{ revokeError() }}</div>
+  }
+
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Мои согласия</span>
+    </div>
+    <div class="card__body card__body--flush consents-list">
+      @if (loading()) {
+        <p class="consents-empty">Загрузка…</p>
+      } @else if (error()) {
+        <p class="consents-empty consents-empty--error">{{ error() }}</p>
+      } @else if (consents().length === 0) {
+        <p class="consents-empty">Согласия не найдены</p>
+      } @else {
+        @for (c of consents(); track c.type) {
+          <div class="consent-item">
+            <div class="consent-item__info">
+              <span class="consent-item__name">{{ TYPE_LABELS[c.type] }}</span>
+              <span class="consent-item__meta">
+                Версия {{ c.documentVersion }} · Принято {{ formatDate(c.acceptedAt) }}
+                @if (!c.isActive && c.revokedAt) {
+                  · Отозвано {{ formatDate(c.revokedAt) }}
+                }
+              </span>
+            </div>
+            <span class="badge"
+                  [class.badge--green]="c.isActive"
+                  [class.badge--mono]="true">
+              {{ c.isActive ? 'Активно' : 'Отозвано' }}
+            </span>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  @if (cookiesConsent()?.isActive) {
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Управление cookies</span>
+      </div>
+      <div class="card__body card__body--lg">
+        <div class="consents-danger-row">
+          <div>
+            <p class="consents-danger-row__label">Отозвать согласие на cookies</p>
+            <p class="consents-danger-row__sub">Аналитика и персонализация будут отключены. Необязательное согласие.</p>
+          </div>
+          <button class="btn btn--danger-soft"
+                  type="button"
+                  [disabled]="revoking()"
+                  (click)="revokeCookies()">
+            {{ revoking() ? 'Отзываем…' : 'Отозвать' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

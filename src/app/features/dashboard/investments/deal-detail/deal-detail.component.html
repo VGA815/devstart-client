@@ -1,0 +1,271 @@
+@if (loading()) {
+  <div class="dd-page">
+    <app-skeleton height="32px" width="240px" />
+    <app-skeleton height="180px" border-radius="6px" />
+    <app-skeleton height="260px" border-radius="6px" />
+    <app-skeleton height="200px" border-radius="6px" />
+  </div>
+
+} @else if (error()) {
+  <div class="dd-page">
+    <div class="dd-alert dd-alert--error">{{ error() }}</div>
+    <a class="dd-btn dd-btn--ghost" routerLink="/dashboard/investments">← Назад к инвестициям</a>
+  </div>
+
+} @else if (deal()) {
+  @let d = deal()!;
+
+  <div class="dd-page">
+
+    <!-- ─── Header ──────────────────────────────────────────────── -->
+    <div class="dd-header">
+      <div class="dd-header__left">
+        <a class="dd-header__back" routerLink="/dashboard/investments">← Инвестиции</a>
+        <h1 class="dd-header__title">{{ d.startupName }}</h1>
+        <span class="dd-header__sub">Сделка с {{ d.investorDisplayName }}</span>
+      </div>
+      <div class="dd-header__badges">
+        <span class="dd-status-badge dd-status-badge--{{ d.status.toLowerCase() }}">
+          {{ {InProgress: 'В процессе', Completed: 'Завершена', Cancelled: 'Отменена'}[d.status] }}
+        </span>
+        @if (d.documentsReady) {
+          <span class="dd-status-badge dd-status-badge--docs">📄 Документы готовы</span>
+        } @else {
+          <span class="dd-status-badge dd-status-badge--pending">⏳ Документы готовятся…</span>
+        }
+      </div>
+    </div>
+
+    <div class="dd-card">
+      <div class="dd-card__header">ПАРАМЕТРЫ СДЕЛКИ</div>
+      <div class="dd-card__grid">
+        <div class="dd-info-row">
+          <span class="dd-info-row__label">Сумма</span>
+          <span class="dd-info-row__value dd-info-row__value--money">{{ formatMoney(d.amount) }}</span>
+        </div>
+        <div class="dd-info-row">
+          <span class="dd-info-row__label">Инструмент</span>
+          <span class="dd-info-row__value">{{ instrumentLabel() }}</span>
+        </div>
+        @if (d.roadmapItemTitle) {
+          <div class="dd-info-row">
+            <span class="dd-info-row__label">Этап роадмапа</span>
+            <span class="dd-info-row__value">{{ d.roadmapItemTitle }}</span>
+          </div>
+        }
+        <div class="dd-info-row">
+          <span class="dd-info-row__label">Создана</span>
+          <span class="dd-info-row__value">{{ formatRelativeTime(d.createdAt) }}</span>
+        </div>
+        @if (d.completedAt) {
+          <div class="dd-info-row">
+            <span class="dd-info-row__label">Завершена</span>
+            <span class="dd-info-row__value">{{ formatRelativeTime(d.completedAt) }}</span>
+          </div>
+        }
+
+        @if (d.instrument === 'Safe') {
+          @if (d.valuationCap) {
+            <div class="dd-info-row">
+              <span class="dd-info-row__label">Valuation Cap</span>
+              <span class="dd-info-row__value">{{ formatMoney(d.valuationCap) }}</span>
+            </div>
+          }
+          @if (d.discount) {
+            <div class="dd-info-row">
+              <span class="dd-info-row__label">Discount</span>
+              <span class="dd-info-row__value">{{ d.discount }}%</span>
+            </div>
+          }
+          <div class="dd-info-row">
+            <span class="dd-info-row__label">Pro-rata rights</span>
+            <span class="dd-info-row__value">{{ d.proRataRights ? '✓ Да' : '— Нет' }}</span>
+          </div>
+        }
+
+        @if (d.instrument === 'ConvertibleLoan') {
+          @if (d.valuationCap) {
+            <div class="dd-info-row">
+              <span class="dd-info-row__label">Valuation Cap</span>
+              <span class="dd-info-row__value">{{ formatMoney(d.valuationCap) }}</span>
+            </div>
+          }
+          @if (d.discount) {
+            <div class="dd-info-row">
+              <span class="dd-info-row__label">Discount</span>
+              <span class="dd-info-row__value">{{ d.discount }}%</span>
+            </div>
+          }
+          @if (d.interestRate) {
+            <div class="dd-info-row">
+              <span class="dd-info-row__label">Ставка</span>
+              <span class="dd-info-row__value">{{ d.interestRate }}% год.</span>
+            </div>
+          }
+          @if (d.termMonths) {
+            <div class="dd-info-row">
+              <span class="dd-info-row__label">Срок</span>
+              <span class="dd-info-row__value">{{ d.termMonths }} мес.</span>
+            </div>
+          }
+        }
+
+        @if (d.instrument === 'PricedRound') {
+          @if (d.preMoneyValuation) {
+            <div class="dd-info-row">
+              <span class="dd-info-row__label">Pre-money valuation</span>
+              <span class="dd-info-row__value">{{ formatMoney(d.preMoneyValuation) }}</span>
+            </div>
+          }
+          @if (d.liquidationPreference) {
+            <div class="dd-info-row">
+              <span class="dd-info-row__label">Liquidation Preference</span>
+              <span class="dd-info-row__value">{{ d.liquidationPreference }}×</span>
+            </div>
+          }
+          <div class="dd-info-row">
+            <span class="dd-info-row__label">Pro-rata rights</span>
+            <span class="dd-info-row__value">{{ d.proRataRights ? '✓ Да' : '— Нет' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="dd-card">
+      <div class="dd-card__header">ПОДТВЕРЖДЕНИЯ</div>
+      <div class="dd-card__body">
+        <div class="dd-confirm-row">
+          <div class="dd-confirm-party" [class.dd-confirm-party--done]="d.confirmedByStartup">
+            <span class="dd-confirm-party__icon">{{ d.confirmedByStartup ? '✓' : '○' }}</span>
+            <div>
+              <span class="dd-confirm-party__name">{{ d.startupName }}</span>
+              <span class="dd-confirm-party__sub">{{ d.confirmedByStartup ? 'Подтверждено' : 'Ожидает подтверждения' }}</span>
+            </div>
+          </div>
+          <div class="dd-confirm-party" [class.dd-confirm-party--done]="d.confirmedByInvestor">
+            <span class="dd-confirm-party__icon">{{ d.confirmedByInvestor ? '✓' : '○' }}</span>
+            <div>
+              <span class="dd-confirm-party__name">{{ d.investorDisplayName }}</span>
+              <span class="dd-confirm-party__sub">{{ d.confirmedByInvestor ? 'Подтверждено' : 'Ожидает подтверждения' }}</span>
+            </div>
+          </div>
+        </div>
+
+        @if (confirmSuccess()) {
+          <div class="dd-alert dd-alert--success">{{ confirmSuccess() }}</div>
+        }
+        @if (confirmError()) {
+          <div class="dd-alert dd-alert--error">{{ confirmError() }}</div>
+        }
+
+        @if (canConfirm()) {
+          <button class="dd-btn dd-btn--primary" type="button" [disabled]="confirming()" (click)="confirmDeal()">
+            {{ confirming() ? 'Подтверждение…' : 'Подтвердить сделку' }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (d.documentsReady && d.termSheet) {
+
+      <div class="dd-ts-file">
+        <div class="dd-ts-file__icon">📄</div>
+        <div class="dd-ts-file__info">
+          <span class="dd-ts-file__name">term-sheet-{{ dealId.slice(0, 8) }}.md</span>
+          <span class="dd-ts-file__meta">Term Sheet · Markdown · {{ termSheetFileSize() }}</span>
+        </div>
+        <div class="dd-ts-file__actions">
+          <button class="dd-btn dd-btn--ghost dd-btn--sm" type="button" (click)="downloadMd()">⬇&nbsp;.md</button>
+          <button class="dd-btn dd-btn--ghost dd-btn--sm" type="button" (click)="downloadPdf()">⬇&nbsp;PDF</button>
+        </div>
+      </div>
+
+      @if (termSheetTitle()) {
+        <h2 class="dd-ts-title">{{ termSheetTitle() }}</h2>
+      }
+
+      @for (section of termSheetSections(); track section.heading) {
+        <div class="dd-card">
+          <div class="dd-card__header">{{ section.heading }}</div>
+          <div class="dd-ts-body" [innerHTML]="section.rawContent | markdown"></div>
+        </div>
+      }
+
+    } @else if (!d.documentsReady) {
+      <div class="dd-card">
+        <div class="dd-card__header">TERM SHEET</div>
+        <div class="dd-card__body">
+          <div class="dd-pending-docs">
+            <span class="dd-pending-docs__icon">⏳</span>
+            <div>
+              <p class="dd-pending-docs__title">Документы генерируются</p>
+              <p class="dd-pending-docs__sub">Term sheet и cap table будут готовы автоматически. Страница обновится, как только они появятся.</p>
+            </div>
+          </div>
+
+          @if (regenSuccess()) {
+            <div class="dd-alert dd-alert--success">{{ regenSuccess() }}</div>
+          }
+          @if (regenError()) {
+            <div class="dd-alert dd-alert--error">{{ regenError() }}</div>
+          }
+          @if (!regenSuccess()) {
+            <button class="dd-btn dd-btn--ghost" type="button"
+                    [disabled]="regenerating()"
+                    (click)="regenerateDocs()">
+              {{ regenerating() ? 'Запускаем…' : '↻ Запустить генерацию вручную' }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (d.documentsReady && d.capTable.length > 0) {
+      <div class="dd-card">
+        <div class="dd-card__header">CAP TABLE</div>
+        <div class="dd-card__body">
+          <div class="dd-captable-bar">
+            @for (row of d.capTable; track row.name) {
+              <div
+                class="dd-captable-bar__segment"
+                [style.width.%]="getBarWidth(row)"
+                [title]="row.name + ': ' + row.percentage.toFixed(1) + '%'">
+              </div>
+            }
+          </div>
+          <div class="dd-captable-legend">
+            @for (row of d.capTable; track row.name; let i = $index) {
+              <div class="dd-captable-legend__item">
+                <span class="dd-captable-legend__dot" [style.background]="'var(--ct-color-' + i + ')'"></span>
+                <span class="dd-captable-legend__name">{{ row.name }}</span>
+                <span class="dd-captable-legend__pct">{{ row.percentage.toFixed(1) }}%</span>
+              </div>
+            }
+          </div>
+
+          <table class="dd-table">
+            <thead>
+              <tr>
+                <th>Акционер</th>
+                <th>Тип</th>
+                <th>До сделки</th>
+                <th>После сделки</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of d.capTable; track row.name) {
+                <tr>
+                  <td class="dd-table__name">{{ row.name }}</td>
+                  <td class="dd-table__mono">{{ row.partyType }}</td>
+                  <td class="dd-table__mono">{{ row.percentageBefore.toFixed(1) }}%</td>
+                  <td class="dd-table__pct">{{ row.percentage.toFixed(1) }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+  </div>
+}

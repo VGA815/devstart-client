@@ -1,0 +1,81 @@
+<div class="page">
+
+  <header class="page__heading page__heading-row">
+    <div class="docs-header__left">
+      <h1 class="page__title page__title--sm">Документы</h1>
+      @if (!loading() && docs().length > 0) {
+        <span class="badge badge--mono">{{ docs().length }}</span>
+      }
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="docs-list">
+      <app-skeleton height="60px" border-radius="6px" />
+      <app-skeleton height="60px" border-radius="6px" />
+      <app-skeleton height="60px" border-radius="6px" />
+    </div>
+
+  } @else if (docs().length === 0) {
+    <div class="empty-state empty-state--card">
+      <span class="empty-state__icon">📁</span>
+      <p class="empty-state__title">Вы ещё не загружали документы</p>
+      <p class="empty-state__sub">Загрузите документы в разделе «Мои стартапы»</p>
+      <a class="btn btn--primary" routerLink="/dashboard/my-startups">Перейти к стартапам →</a>
+    </div>
+
+  } @else {
+    <div class="chips">
+      @for (opt of filterOptions; track opt.value) {
+        <button type="button" class="chip"
+          [class.chip--active]="activeFilter() === opt.value"
+          (click)="setFilter(opt.value)">
+          {{ opt.label }}
+          @if (opt.value !== 'All') {
+            <span class="docs-filter-count">{{ countByType(opt.value) }}</span>
+          }
+        </button>
+      }
+    </div>
+
+    @if (filteredDocs().length === 0) {
+      <div class="empty-state empty-state--card empty-state--compact">
+        <p class="empty-state__title">Нет документов этого типа</p>
+      </div>
+    } @else {
+      <div class="docs-list">
+        @for (doc of filteredDocs(); track doc.id) {
+          <div class="docs-row">
+            <span class="docs-row__icon">{{ getDocumentIcon(doc.documentType) }}</span>
+
+            <div class="docs-row__info">
+              <span class="docs-row__name">{{ doc.documentName }}</span>
+              <div class="docs-row__meta">
+                <span>{{ getDocumentTypeLabel(doc.documentType) }}</span>
+                <span class="docs-row__sep">·</span>
+                <a class="docs-row__startup" [routerLink]="['/startups', doc.startupId]">
+                  {{ getStartupName(doc.startupId) }}
+                </a>
+                <span class="docs-row__sep">·</span>
+                <span>{{ formatFileSize(doc.fileSize) }}</span>
+                <span class="docs-row__sep">·</span>
+                <span>{{ formatRelativeTime(doc.uploadDate) }}</span>
+              </div>
+            </div>
+
+            <div class="docs-row__actions">
+              <a class="btn btn--icon"
+                [href]="doc.presignedUrl" target="_blank" rel="noopener"
+                title="Скачать">⬇</a>
+              <button class="btn btn--icon btn--danger-hover"
+                type="button" title="Удалить"
+                (click)="removeDoc(doc)">✕</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  }
+
+</div>

@@ -1,0 +1,337 @@
+<div class="inv-page">
+
+  <section class="inv-profile-card">
+
+    @if (profileLoading()) {
+      <div class="inv-profile-card__content">
+        <app-skeleton height="20px" width="180px" />
+        <app-skeleton height="14px" width="280px" />
+      </div>
+    } @else if (showProfileForm()) {
+
+      <div class="inv-form">
+        <h3 class="inv-form__title">
+          {{ profile() ? 'Редактировать профиль инвестора' : 'Создать профиль инвестора' }}
+        </h3>
+
+        <div class="inv-form__field">
+          <label class="inv-form__label">Тип</label>
+          <div class="inv-form__radio-group">
+            <label class="inv-form__radio">
+              <input type="radio" name="inv-type" [value]="0" [checked]="formType() === 0" (change)="formType.set(0)" />
+              Физическое лицо
+            </label>
+            <label class="inv-form__radio">
+              <input type="radio" name="inv-type" [value]="1" [checked]="formType() === 1" (change)="formType.set(1)" />
+              Фонд
+            </label>
+          </div>
+        </div>
+
+        <div class="inv-form__field">
+          <label class="inv-form__label">Имя / Название *</label>
+          <input
+            class="inv-form__input"
+            type="text"
+            placeholder="Иван Иванов"
+            [value]="formName()"
+            (input)="formName.set($any($event.target).value)" />
+        </div>
+
+        <div class="inv-form__field">
+          <label class="inv-form__label">О себе</label>
+          <textarea
+            class="inv-form__input inv-form__input--area"
+            placeholder="Краткое описание, специализация, интересы…"
+            rows="3"
+            [value]="formBio()"
+            (input)="formBio.set($any($event.target).value)"></textarea>
+        </div>
+
+        <div class="inv-form__field">
+          <label class="inv-form__label">Сайт</label>
+          <input
+            class="inv-form__input"
+            type="url"
+            placeholder="https://example.com"
+            [value]="formWebsite()"
+            (input)="formWebsite.set($any($event.target).value)" />
+        </div>
+
+        <label class="inv-form__toggle">
+          <input
+            type="checkbox"
+            [checked]="formPublic()"
+            (change)="formPublic.set($any($event.target).checked)" />
+          <span>Публичный профиль</span>
+        </label>
+
+        @if (formError()) {
+          <p class="inv-form__error">{{ formError() }}</p>
+        }
+
+        <div class="inv-form__actions">
+          <button class="inv-btn inv-btn--ghost" type="button" (click)="showProfileForm.set(false)">Отмена</button>
+          <button class="inv-btn inv-btn--primary" type="button" [disabled]="formSaving()" (click)="saveProfile()">
+            {{ formSaving() ? 'Сохранение…' : 'Сохранить' }}
+          </button>
+        </div>
+      </div>
+
+    } @else if (!profile()) {
+
+      <div class="inv-profile-card__empty">
+        <span class="inv-profile-card__empty-icon">💼</span>
+        <div>
+          <p class="inv-profile-card__empty-title">Профиль инвестора не создан</p>
+          <p class="inv-profile-card__empty-sub">Создайте профиль, чтобы подавать заявки на инвестиции</p>
+        </div>
+        <button class="inv-btn inv-btn--primary" type="button" (click)="openProfileForm()">Создать профиль</button>
+      </div>
+
+    } @else {
+
+      <div class="inv-profile-card__content">
+        <div class="inv-profile-card__meta">
+          <span class="inv-profile-card__type-badge">
+            {{ profile()!.type === 'Individual' ? '👤 Физическое лицо' : '🏢 Фонд' }}
+          </span>
+          <h3 class="inv-profile-card__name">{{ profile()!.displayName }}</h3>
+          @if (profile()!.bio) {
+            <p class="inv-profile-card__bio">{{ profile()!.bio }}</p>
+          }
+          @if (profile()!.website) {
+            <a class="inv-profile-card__website" [href]="profile()!.website!" target="_blank" rel="noopener">
+              {{ profile()!.website }}
+            </a>
+          }
+        </div>
+        <button class="inv-btn inv-btn--ghost inv-btn--sm" type="button" (click)="openProfileForm()">Редактировать</button>
+      </div>
+
+    }
+  </section>
+
+  <div class="inv-tabs">
+    <button
+      class="inv-tab"
+      [class.inv-tab--active]="activeTab() === 'my-apps'"
+      type="button"
+      (click)="setTab('my-apps')">
+      Мои заявки
+    </button>
+    <button
+      class="inv-tab"
+      [class.inv-tab--active]="activeTab() === 'incoming'"
+      type="button"
+      (click)="setTab('incoming')">
+      Входящие заявки
+    </button>
+    <button
+      class="inv-tab"
+      [class.inv-tab--active]="activeTab() === 'deals'"
+      type="button"
+      (click)="setTab('deals')">
+      Сделки
+    </button>
+  </div>
+
+  @if (activeTab() === 'my-apps') {
+    <section class="inv-section">
+      @if (!profile()) {
+        <div class="inv-empty">
+          <p>Создайте профиль инвестора, чтобы подавать заявки</p>
+        </div>
+      } @else if (myAppsLoading()) {
+        <div class="inv-table-skeleton">
+          @for (i of [1,2,3]; track i) {
+            <app-skeleton height="44px" />
+          }
+        </div>
+      } @else if (myApps().length === 0) {
+        <div class="inv-empty">
+          <p>Вы ещё не подавали инвестиционных заявок</p>
+          <p class="inv-empty__sub">Найдите интересный стартап и нажмите «Инвестировать»</p>
+        </div>
+      } @else {
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th>Стартап</th>
+              <th>Этап</th>
+              <th>Сумма</th>
+              <th>Статус</th>
+              <th>Дата</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (app of myApps(); track app.id) {
+              <tr>
+                <td class="inv-table__name">{{ app.startupName }}</td>
+                <td class="inv-table__sub">{{ app.roadmapItemTitle ?? '—' }}</td>
+                <td class="inv-table__money">{{ formatMoney(app.amount) }}</td>
+                <td>
+                  <span class="badge" [class]="appStatusClass(app.status)">{{ appStatusLabel(app.status) }}</span>
+                </td>
+                <td class="inv-table__date">{{ formatDate(app.createdAt) }}</td>
+                <td>
+                  @if (app.status === 'Pending') {
+                    <button
+                      class="inv-btn inv-btn--danger inv-btn--sm"
+                      type="button"
+                      [disabled]="withdrawing() === app.id"
+                      (click)="withdraw(app)">
+                      {{ withdrawing() === app.id ? '…' : 'Отозвать' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+
+  @if (activeTab() === 'incoming') {
+    <section class="inv-section">
+      @if (myStartups().length === 0) {
+        <div class="inv-empty">
+          <p>У вас нет стартапов</p>
+          <p class="inv-empty__sub">Создайте стартап, чтобы получать инвестиционные заявки</p>
+        </div>
+      } @else if (incomingLoading()) {
+        <div class="inv-table-skeleton">
+          @for (i of [1,2,3]; track i) { <app-skeleton height="44px" /> }
+        </div>
+      } @else if (incomingApps().length === 0) {
+        <div class="inv-empty">
+          <p>Входящих заявок пока нет</p>
+        </div>
+      } @else {
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th>Инвестор</th>
+              <th>Стартап</th>
+              <th>Этап</th>
+              <th>Сумма</th>
+              <th>Статус</th>
+              <th>Дата</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (app of incomingApps(); track app.id) {
+              <tr>
+                <td class="inv-table__name">{{ app.investorDisplayName }}</td>
+                <td class="inv-table__sub">{{ app.startupName }}</td>
+                <td class="inv-table__sub">{{ app.roadmapItemTitle ?? '—' }}</td>
+                <td class="inv-table__money">{{ formatMoney(app.amount) }}</td>
+                <td>
+                  <span class="badge" [class]="appStatusClass(app.status)">{{ appStatusLabel(app.status) }}</span>
+                </td>
+                <td class="inv-table__date">{{ formatDate(app.createdAt) }}</td>
+                <td>
+                  @if (app.status === 'Pending') {
+                    <div class="inv-actions">
+                      <button
+                        class="inv-btn inv-btn--primary inv-btn--sm"
+                        type="button"
+                        [disabled]="respondingApp() === app.id"
+                        (click)="accept(app)">
+                        Принять
+                      </button>
+                      <button
+                        class="inv-btn inv-btn--danger inv-btn--sm"
+                        type="button"
+                        [disabled]="respondingApp() === app.id"
+                        (click)="reject(app)">
+                        Отклонить
+                      </button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+
+  @if (activeTab() === 'deals') {
+    <section class="inv-section">
+      @if (dealsLoading()) {
+        <div class="inv-table-skeleton">
+          @for (i of [1,2,3]; track i) { <app-skeleton height="44px" /> }
+        </div>
+      } @else if (deals().length === 0) {
+        <div class="inv-empty">
+          <p>Сделок пока нет</p>
+          <p class="inv-empty__sub">Сделка создаётся автоматически при принятии заявки</p>
+        </div>
+      } @else {
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th>Стартап</th>
+              <th>Инвестор</th>
+              <th>Сумма</th>
+              <th>Инструмент</th>
+              <th>Статус</th>
+              <th>Подтверждения</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (deal of deals(); track deal.id) {
+              <tr>
+                <td class="inv-table__name">{{ deal.startupName }}</td>
+                <td class="inv-table__sub">{{ deal.investorDisplayName }}</td>
+                <td class="inv-table__money">{{ formatMoney(deal.amount) }}</td>
+                <td class="inv-table__sub">
+                  <span class="inv-instrument-badge">{{ instrumentLabel(deal.instrument) }}</span>
+                  @if (deal.documentsReady) {
+                    <span class="inv-docs-ready" title="Документы готовы">📄</span>
+                  }
+                </td>
+                <td>
+                  <span class="badge" [class]="dealStatusClass(deal.status)">{{ dealStatusLabel(deal.status) }}</span>
+                </td>
+                <td>
+                  <div class="inv-confirm-icons">
+                    <span [class.inv-confirm-icons__yes]="deal.confirmedByStartup" [class.inv-confirm-icons__no]="!deal.confirmedByStartup" title="Стартап">
+                      {{ deal.confirmedByStartup ? '✓' : '○' }} Стартап
+                    </span>
+                    <span [class.inv-confirm-icons__yes]="deal.confirmedByInvestor" [class.inv-confirm-icons__no]="!deal.confirmedByInvestor" title="Инвестор">
+                      {{ deal.confirmedByInvestor ? '✓' : '○' }} Инвестор
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="inv-actions">
+                    <a class="inv-btn inv-btn--ghost inv-btn--sm" [routerLink]="['/dashboard/investments/deals', deal.id]">
+                      Детали
+                    </a>
+                    @if (canConfirmDeal(deal)) {
+                      <button
+                        class="inv-btn inv-btn--primary inv-btn--sm"
+                        type="button"
+                        [disabled]="confirmingDeal() === deal.id"
+                        (click)="confirmDeal(deal)">
+                        {{ confirmingDeal() === deal.id ? '…' : 'Подтвердить' }}
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+
+</div>

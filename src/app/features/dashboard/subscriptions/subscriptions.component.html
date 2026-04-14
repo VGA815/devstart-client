@@ -1,0 +1,87 @@
+<div class="page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Подписка</h1>
+  </header>
+
+  <div class="subscription-status">
+    @if (subscriptionLoading()) {
+      <app-skeleton height="104px" border-radius="6px" />
+    } @else {
+      @let sub = subscription();
+      <div class="subscription-status__info">
+        <span class="subscription-status__label">Текущий план</span>
+        <span class="subscription-status__title">{{ sub?.isActivePro ? 'DevStart Pro' : 'Free' }}</span>
+        <span class="subscription-status__meta">
+          Статус: {{ statusLabel(sub) }}
+          @if (sub?.expiresAt) { · до {{ formatSubscriptionDate(sub?.expiresAt ?? null) }} }
+        </span>
+      </div>
+
+      <div class="subscription-status__actions">
+        <span class="badge badge--mono"
+          [class.badge--green]="sub?.isActivePro"
+          [class.badge--yellow]="!sub?.isActivePro">
+          {{ statusLabel(sub) }}
+        </span>
+        <a class="btn btn--ghost btn--sm" routerLink="/plans">Планы и оплата →</a>
+      </div>
+
+      @if (subscriptionError()) {
+        <p class="subscription-status__error">{{ subscriptionError() }}</p>
+      }
+    }
+  </div>
+
+  <section class="section">
+    <div class="section__heading-row">
+      <h2 class="section__title section__title--mono">Отслеживаемые стартапы</h2>
+      <a class="btn btn--text" routerLink="/startups">Каталог →</a>
+    </div>
+
+    @if (loading()) {
+      <div class="card card__body--flush">
+        @for (n of skeletons; track n) {
+          <div class="sub-row">
+            <app-skeleton width="32px" height="32px" border-radius="6px" />
+            <div class="sub-row__info">
+              <app-skeleton height="13px" width="160px" />
+              <app-skeleton height="11px" width="80px" />
+            </div>
+          </div>
+        }
+      </div>
+
+    } @else if (startups().length === 0) {
+      <div class="empty-state empty-state--card">
+        <p class="empty-state__sub">Вы ещё не следите ни за одним стартапом.<br>
+          Найдите интересные проекты в <a routerLink="/startups">каталоге</a>.</p>
+      </div>
+
+    } @else {
+      <div class="card card__body--flush">
+        @for (s of startups(); track s.id) {
+          <div class="sub-row">
+            <a [routerLink]="['/startups', s.id]" class="sub-row__link-area">
+              <app-avatar
+                [avatarId]="s.avatarId"
+                [name]="s.name"
+                size="md"
+                shape="square" />
+
+              <div class="sub-row__info">
+                <span class="sub-row__name">{{ s.name }}</span>
+                <span class="sub-row__meta">
+                  {{ s.stage }}
+                  @if (s.location) { · {{ s.location }} }
+                  @if (s.shortDescription) { · {{ s.shortDescription }} }
+                </span>
+              </div>
+            </a>
+
+            <button class="btn btn--ghost btn--sm" (click)="unfollow(s)" title="Отписаться">Отписаться</button>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>
