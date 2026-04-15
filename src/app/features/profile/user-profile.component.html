@@ -1,0 +1,150 @@
+<div class="uprofile-page">
+
+  @if (loading()) {
+
+    <div class="uprofile-main">
+      <div class="card uprofile-banner">
+        <app-skeleton height="72px" width="72px" />
+        <div class="uprofile-banner__skeleton">
+          <app-skeleton height="20px" width="160px" />
+          <app-skeleton height="14px" width="240px" />
+        </div>
+      </div>
+    </div>
+
+  } @else if (notFound()) {
+
+    <div class="empty-state uprofile-not-found">
+      <p class="empty-state__title uprofile-not-found__title">Профиль не найден</p>
+      <p class="empty-state__sub">Пользователь ещё не создал профиль или он скрыт</p>
+      <a class="btn btn--ghost" routerLink="/startups">Вернуться в каталог</a>
+    </div>
+
+  } @else {
+
+    <div class="uprofile-main">
+
+      <!-- Banner -->
+      <div class="card uprofile-banner">
+        <div class="uprofile-banner__top">
+          <app-avatar
+            [avatarId]="profile()?.avatarId ?? null"
+            [name]="displayName()"
+            size="xxl"
+            shape="circle" />
+
+          <div class="uprofile-banner__info">
+            <h1 class="uprofile-banner__name">{{ displayName() }}</h1>
+
+            @if (profile()?.isAvailableForHire) {
+              <span class="badge badge--mono badge--green">Открыт к предложениям</span>
+            }
+          </div>
+
+          <div class="uprofile-banner__actions">
+            @if (isOwn()) {
+              <a class="btn btn--ghost btn--sm" routerLink="/dashboard/settings">
+                Редактировать профиль
+              </a>
+            } @else if (canMessage()) {
+              <button class="btn btn--primary btn--sm" (click)="openChat()">
+                ✉ Написать
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (profile()?.bio) {
+          <p class="uprofile-banner__bio">{{ profile()!.bio }}</p>
+        }
+      </div>
+
+      <div class="uprofile-stats">
+        <div class="uprofile-stat-cell">
+          <span class="uprofile-stat-cell__val">{{ startups().length }}</span>
+          <span class="uprofile-stat-cell__lbl">Стартапов</span>
+        </div>
+        <div class="uprofile-stat-cell">
+          <span class="uprofile-stat-cell__val">{{ socialLinks().length }}</span>
+          <span class="uprofile-stat-cell__lbl">Соц. сетей</span>
+        </div>
+      </div>
+
+      @if (startups().length > 0) {
+        <div class="card">
+          <div class="card__header">
+            <span class="card__title">Стартапы</span>
+          </div>
+          <div class="card__body card__body--lg">
+            @for (startup of startups(); track startup.id) {
+              <a class="uprofile-startup-row" [routerLink]="['/startups', startup.id]">
+                <app-avatar
+                  [avatarId]="startup.avatarId"
+                  [name]="startup.name"
+                  size="md"
+                  shape="square" />
+                <div class="uprofile-startup-row__info">
+                  <span class="uprofile-startup-row__name">{{ startup.name }}</span>
+                  @if (startup.shortDescription) {
+                    <span class="uprofile-startup-row__desc">{{ startup.shortDescription }}</span>
+                  }
+                </div>
+                <span class="sr-badge" [class]="getStageBadgeClass(startup.stage, startup.isStopped)">
+                  {{ getStageBadgeLabel(startup.stage, startup.isStopped) }}
+                </span>
+              </a>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <aside class="uprofile-sidebar">
+
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">Контакты</span>
+        </div>
+        <div class="card__body card__body--lg">
+
+          @if (profile()?.url) {
+            <div class="uprofile-contact-row">
+              <span class="uprofile-contact-row__icon">🔗</span>
+              <a class="uprofile-contact-row__link"
+                 [href]="profile()!.url!"
+                 target="_blank" rel="noopener">
+                {{ socialLinkLabel(profile()!.url!) }}
+              </a>
+            </div>
+          }
+
+          @for (link of socialLinks(); track link) {
+            <div class="uprofile-contact-row">
+              <span class="uprofile-contact-row__icon">↗</span>
+              <a class="uprofile-contact-row__link"
+                 [href]="link"
+                 target="_blank" rel="noopener">
+                {{ socialLinkLabel(link) }}
+              </a>
+            </div>
+          }
+
+          @if (!profile()?.url && socialLinks().length === 0) {
+            <p class="uprofile-empty-text">Ссылки не добавлены</p>
+          }
+
+        </div>
+      </div>
+
+      @if (canMessage()) {
+        <button class="btn btn--primary btn--block" (click)="openChat()">
+          ✉ Написать сообщение
+        </button>
+      }
+
+    </aside>
+
+  }
+
+</div>

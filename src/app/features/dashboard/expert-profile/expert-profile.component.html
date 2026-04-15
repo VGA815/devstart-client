@@ -1,0 +1,223 @@
+<div class="page page--narrow">
+
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Профиль эксперта</h1>
+    <p class="page__sub">
+      @if (profile()) {
+        Управляйте публичным профилем, специализациями и опытом работы.
+      } @else {
+        Создайте профиль эксперта, чтобы стартапы могли пригласить вас.
+      }
+    </p>
+  </header>
+
+  @if (saveSuccess()) {
+    <div class="toast toast--success">Профиль сохранён</div>
+  }
+  @if (saveError()) {
+    <div class="toast toast--error">{{ saveError() }}</div>
+  }
+
+  @if (loading()) {
+    <app-skeleton height="240px" />
+    <app-skeleton height="180px" />
+  } @else {
+
+    <!-- ─── Profile form ─────────────────────────────────────────── -->
+    <div class="card">
+      <div class="card__header"><span class="card__title">Основное</span></div>
+      <form class="card__body card__body--lg" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+
+        <div class="field">
+          <label class="field__label" for="epDisplayName">Имя / название *</label>
+          <input id="epDisplayName" class="field__input"
+            type="text" formControlName="displayName"
+            placeholder="Иван Иванов" />
+          @if (fieldError('profile', 'displayName')) {
+            <span class="field__hint field__hint--error">{{ fieldError('profile', 'displayName') }}</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="epBio">О себе</label>
+          <textarea id="epBio" class="field__textarea"
+            formControlName="bio"
+            placeholder="Расскажите о своём опыте, экспертизе и подходе…"
+            rows="4"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="epWebsite">Сайт</label>
+          <input id="epWebsite" class="field__input"
+            type="url" formControlName="website"
+            placeholder="https://example.com" />
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label class="field__label" for="epLinkedIn">LinkedIn</label>
+            <input id="epLinkedIn" class="field__input"
+              type="url" formControlName="linkedInUrl"
+              placeholder="https://linkedin.com/in/username" />
+          </div>
+          <div class="field">
+            <label class="field__label" for="epTwitter">Twitter / X</label>
+            <input id="epTwitter" class="field__input"
+              type="url" formControlName="twitterUrl"
+              placeholder="https://x.com/username" />
+          </div>
+          <div class="field">
+            <label class="field__label" for="epGitHub">GitHub</label>
+            <input id="epGitHub" class="field__input"
+              type="url" formControlName="gitHubUrl"
+              placeholder="https://github.com/username" />
+          </div>
+          <div class="field">
+            <label class="field__label" for="epTelegram">Telegram</label>
+            <input id="epTelegram" class="field__input"
+              type="url" formControlName="telegramUrl"
+              placeholder="https://t.me/username" />
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-row__info">
+            <span class="toggle-row__label">Публичный профиль</span>
+            <span class="toggle-row__sub">Профиль виден в каталоге экспертов</span>
+          </div>
+          <button class="toggle"
+            [class.toggle--on]="isPublic()"
+            type="button"
+            (click)="isPublic.set(!isPublic())">
+            <span class="toggle__thumb"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card__header"><span class="card__title">Специализации *</span></div>
+      <div class="card__body card__body--lg">
+        <p class="ep-help">Выберите одну или несколько областей, в которых вы консультируете.</p>
+        <div class="chips">
+          @for (spec of specializations; track spec) {
+            <button
+              type="button"
+              class="chip chip--lg chip--pill"
+              [class.chip--active]="isSpecSelected(spec)"
+              (click)="toggleSpecialization(spec)">
+              {{ getSpecializationLabel(spec) }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="ep-actions-row">
+      <button class="btn btn--primary" type="button" [disabled]="saving()" (click)="saveProfile()">
+        {{ saving() ? 'Сохранение…' : (profile() ? 'Сохранить' : 'Создать профиль') }}
+      </button>
+    </div>
+
+    @if (profile()) {
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">Опыт работы</span>
+          @if (!showAddExp() && editingExpId() === null) {
+            <button class="card__action" type="button" (click)="toggleAddExp()">+ Добавить</button>
+          }
+        </div>
+
+        <div class="card__body card__body--lg">
+
+          @if (expError()) {
+            <div class="toast toast--error">{{ expError() }}</div>
+          }
+
+          @if (showAddExp() || editingExpId()) {
+            <form class="ep-exp-form" [formGroup]="expForm" (ngSubmit)="saveExp()">
+              <div class="field-grid">
+                <div class="field">
+                  <label class="field__label" for="epExpCompany">Компания *</label>
+                  <input id="epExpCompany" class="field__input"
+                    type="text" formControlName="company"
+                    placeholder="Яндекс" />
+                  @if (fieldError('exp', 'company')) {
+                    <span class="field__hint field__hint--error">{{ fieldError('exp', 'company') }}</span>
+                  }
+                </div>
+                <div class="field">
+                  <label class="field__label" for="epExpPosition">Должность *</label>
+                  <input id="epExpPosition" class="field__input"
+                    type="text" formControlName="position"
+                    placeholder="Senior Product Manager" />
+                  @if (fieldError('exp', 'position')) {
+                    <span class="field__hint field__hint--error">{{ fieldError('exp', 'position') }}</span>
+                  }
+                </div>
+                <div class="field">
+                  <label class="field__label" for="epExpStart">Дата начала *</label>
+                  <input id="epExpStart" class="field__input"
+                    type="date" formControlName="startDate" />
+                  @if (fieldError('exp', 'startDate')) {
+                    <span class="field__hint field__hint--error">{{ fieldError('exp', 'startDate') }}</span>
+                  }
+                </div>
+                <div class="field">
+                  <label class="field__label" for="epExpEnd">
+                    Дата окончания
+                    <span class="field__hint field__hint--inline">пусто = по настоящее время</span>
+                  </label>
+                  <input id="epExpEnd" class="field__input"
+                    type="date" formControlName="endDate" />
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="epExpDesc">Описание</label>
+                <textarea id="epExpDesc" class="field__textarea"
+                  formControlName="description"
+                  placeholder="Чем занимались, ключевые достижения…"
+                  rows="3"></textarea>
+              </div>
+
+              <div class="ep-form-actions">
+                <button class="btn btn--ghost" type="button" (click)="cancelExpEdit(); showAddExp.set(false)">Отмена</button>
+                <button class="btn btn--primary" type="submit" [disabled]="expSaving()">
+                  {{ expSaving() ? 'Сохранение…' : (editingExpId() ? 'Сохранить' : 'Добавить') }}
+                </button>
+              </div>
+            </form>
+          }
+
+          @if (experiences().length === 0 && !showAddExp() && !editingExpId()) {
+            <div class="card__empty">Опыт работы пока не указан</div>
+          } @else if (experiences().length > 0) {
+            <div class="ep-exp-list">
+              @for (exp of experiences(); track exp.id) {
+                @if (editingExpId() !== exp.id) {
+                  <div class="ep-exp-row">
+                    <div class="ep-exp-row__main">
+                      <span class="ep-exp-row__position">{{ exp.position }}</span>
+                      <span class="ep-exp-row__company">{{ exp.company }}</span>
+                      <span class="ep-exp-row__range">{{ formatExperienceRange(exp.startDate, exp.endDate) }}</span>
+                      @if (exp.description) {
+                        <span class="ep-exp-row__desc">{{ exp.description }}</span>
+                      }
+                    </div>
+                    <div class="ep-exp-row__actions">
+                      <button class="btn btn--ghost btn--sm" type="button" (click)="startEditExp(exp)">Изменить</button>
+                      <button class="btn btn--danger-soft btn--sm" type="button" (click)="removeExp(exp)">Удалить</button>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  }
+
+</div>

@@ -1,0 +1,162 @@
+<div class="profile-page">
+
+  @if (loading()) {
+    <div class="profile-main">
+      <div class="profile-banner card">
+        <app-skeleton height="72px" width="72px" />
+        <div class="profile-banner__skeleton">
+          <app-skeleton height="20px" width="160px" />
+          <app-skeleton height="14px" width="240px" />
+        </div>
+      </div>
+      <div class="card card__body--lg">
+        <app-skeleton height="14px" width="120px" />
+        <app-skeleton height="80px" width="100%" />
+      </div>
+    </div>
+    <div class="profile-sidebar">
+      <div class="card card__body--lg">
+        <app-skeleton height="14px" width="100px" />
+        <app-skeleton height="14px" width="160px" />
+      </div>
+    </div>
+
+  } @else {
+
+    <div class="profile-main">
+
+      <div class="profile-banner card">
+        <div class="profile-banner__top">
+          <app-avatar
+            [avatarId]="profile()?.avatarId ?? null"
+            [name]="displayName()"
+            size="xxl"
+            shape="circle" />
+
+          <div class="profile-banner__info">
+            <h1 class="profile-banner__name">{{ displayName() }}</h1>
+            <p class="profile-banner__username">&#64;{{ auth.user()?.username }}</p>
+
+            @if (profile()?.isAvailableForHire) {
+              <span class="badge badge--mono badge--green">Открыт к предложениям</span>
+            }
+            @if (profile() && !profile()!.isPublic) {
+              <span class="badge badge--mono badge--yellow">Скрытый профиль</span>
+            }
+          </div>
+
+          <a class="btn btn--ghost btn--sm" routerLink="/dashboard/settings">Редактировать</a>
+        </div>
+
+        @if (profile()?.bio) {
+          <p class="profile-banner__bio">{{ profile()!.bio }}</p>
+        } @else {
+          <p class="profile-banner__bio profile-banner__bio--empty">
+            Расскажите о себе — добавьте описание в настройках
+          </p>
+        }
+      </div>
+
+      <div class="profile-stats">
+        <div class="profile-stat-cell">
+          <span class="profile-stat-cell__val">{{ startups().length }}</span>
+          <span class="profile-stat-cell__lbl">Стартапов</span>
+        </div>
+        <div class="profile-stat-cell">
+          <span class="profile-stat-cell__val">{{ socialLinks().length }}</span>
+          <span class="profile-stat-cell__lbl">Соц. сетей</span>
+        </div>
+        <div class="profile-stat-cell">
+          <span class="profile-stat-cell__val">{{ profile()?.isPublic ? 'Да' : 'Нет' }}</span>
+          <span class="profile-stat-cell__lbl">Публичный</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">Стартапы</span>
+          <a class="btn btn--text" routerLink="/dashboard/my-startups">Все →</a>
+        </div>
+        <div class="card__body card__body--lg">
+          @if (startups().length === 0) {
+            <div class="empty-state empty-state--compact">
+              <p class="empty-state__sub">Нет стартапов</p>
+              <a class="btn btn--ghost btn--sm" routerLink="/dashboard/my-startups">Создать стартап</a>
+            </div>
+          } @else {
+            @for (startup of startups(); track startup.id) {
+              <a class="profile-startup-row" [routerLink]="['/startups', startup.id]">
+                <app-avatar
+                  [avatarId]="startup.avatarId"
+                  [name]="startup.name"
+                  size="md"
+                  shape="square" />
+                <div class="profile-startup-row__info">
+                  <span class="profile-startup-row__name">{{ startup.name }}</span>
+                  @if (startup.shortDescription) {
+                    <span class="profile-startup-row__desc">{{ startup.shortDescription }}</span>
+                  }
+                </div>
+                <span class="sr-badge" [class]="getStageBadgeClass(startup.stage, startup.isStopped)">
+                  {{ getStageBadgeLabel(startup.stage, startup.isStopped) }}
+                </span>
+              </a>
+            }
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="profile-sidebar">
+
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">Контакты</span>
+        </div>
+        <div class="card__body card__body--lg">
+
+          <div class="profile-contact-row">
+            <span class="profile-contact-row__icon">✉</span>
+            <span class="profile-contact-row__val">{{ auth.user()?.email }}</span>
+          </div>
+
+          @if (profile()?.url) {
+            <div class="profile-contact-row">
+              <span class="profile-contact-row__icon">🔗</span>
+              <a class="profile-contact-row__link" [href]="profile()!.url!" target="_blank" rel="noopener">
+                {{ socialLinkLabel(profile()!.url!) }}
+              </a>
+            </div>
+          }
+
+          @for (link of socialLinks(); track link) {
+            <div class="profile-contact-row">
+              <span class="profile-contact-row__icon">↗</span>
+              <a class="profile-contact-row__link" [href]="link" target="_blank" rel="noopener">
+                {{ socialLinkLabel(link) }}
+              </a>
+            </div>
+          }
+
+          @if (!profile()?.url && socialLinks().length === 0) {
+            <p class="profile-empty-text">Ссылки не добавлены</p>
+          }
+
+        </div>
+      </div>
+
+      @if (!profile()) {
+        <div class="card profile-hint-card">
+          <p class="profile-hint">
+            Профиль ещё не создан. Заполните данные в
+            <a routerLink="/dashboard/settings">настройках</a>.
+          </p>
+        </div>
+      }
+
+    </aside>
+
+  }
+
+</div>

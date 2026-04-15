@@ -1,0 +1,262 @@
+<div class="page page--narrow">
+
+  @if (saveSuccess()) {
+    <div class="toast toast--success">Изменения сохранены</div>
+  }
+  @if (saveError()) {
+    <div class="toast toast--error">{{ saveError() }}</div>
+  }
+
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Профиль</span>
+    </div>
+
+    <form class="card__body card__body--lg" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+
+      <div class="field">
+        <label class="field__label">Фото профиля</label>
+        <app-avatar-upload
+          [avatarId]="selectedAvatarId()"
+          [name]="profileForm.get('name')?.value || auth.user()?.username || ''"
+          (avatarIdChange)="selectedAvatarId.set($event)" />
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="sName">Имя</label>
+        <input id="sName" class="field__input"
+          type="text" formControlName="name"
+          placeholder="Иван Иванов" />
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="sUsername">Имя пользователя</label>
+        <input id="sUsername" class="field__input"
+          [class.field__input--error]="fieldError('profile', 'username')"
+          type="text" formControlName="username"
+          placeholder="ivan_ivanov" />
+        @if (fieldError('profile', 'username')) {
+          <span class="field__hint field__hint--error">{{ fieldError('profile', 'username') }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="sBio">О себе</label>
+        <textarea id="sBio" class="field__textarea"
+          formControlName="bio"
+          placeholder="Расскажите о себе…"
+          rows="3"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="sUrl">Сайт / профиль</label>
+        <input id="sUrl" class="field__input"
+          type="url" formControlName="url"
+          placeholder="https://example.com" />
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="sSocial">Ссылки на соцсети
+          <span class="field__hint field__hint--inline">по одной на строку</span>
+        </label>
+        <textarea id="sSocial" class="field__textarea"
+          [value]="socialLinksRaw()"
+          (input)="socialLinksRaw.set($any($event.target).value)"
+          placeholder="https://t.me/username&#10;https://github.com/username"
+          rows="3"></textarea>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-row__info">
+          <span class="toggle-row__label">Публичный профиль</span>
+          <span class="toggle-row__sub">Профиль виден всем пользователям</span>
+        </div>
+        <button
+          class="toggle"
+          [class.toggle--on]="isPublic()"
+          type="button"
+          (click)="isPublic.set(!isPublic())">
+          <span class="toggle__thumb"></span>
+        </button>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-row__info">
+          <span class="toggle-row__label">Открыт для предложений</span>
+          <span class="toggle-row__sub">Инвесторы и основатели могут вас пригласить</span>
+        </div>
+        <button
+          class="toggle"
+          [class.toggle--on]="isAvailableForHire()"
+          type="button"
+          (click)="isAvailableForHire.set(!isAvailableForHire())">
+          <span class="toggle__thumb"></span>
+        </button>
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn btn--primary" type="submit" [disabled]="loading()">
+          {{ loading() ? 'Сохранение…' : 'Сохранить изменения' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Уведомления</span>
+    </div>
+
+    <div class="card__body card__body--lg">
+
+      <div class="toggle-row">
+        <div class="toggle-row__info">
+          <span class="toggle-row__label">Заявки и отклики</span>
+          <span class="toggle-row__sub">Уведомления о новых заявках</span>
+        </div>
+        <button class="toggle" [class.toggle--on]="notifyApplications()" type="button"
+          (click)="notifyApplications.set(!notifyApplications())">
+          <span class="toggle__thumb"></span>
+        </button>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-row__info">
+          <span class="toggle-row__label">Сообщения</span>
+          <span class="toggle-row__sub">Новые сообщения от пользователей</span>
+        </div>
+        <button class="toggle" [class.toggle--on]="notifyMessages()" type="button"
+          (click)="notifyMessages.set(!notifyMessages())">
+          <span class="toggle__thumb"></span>
+        </button>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-row__info">
+          <span class="toggle-row__label">Новости платформы</span>
+          <span class="toggle-row__sub">Обновления и анонсы DevStart</span>
+        </div>
+        <button class="toggle" [class.toggle--on]="notifyPlatform()" type="button"
+          (click)="notifyPlatform.set(!notifyPlatform())">
+          <span class="toggle__thumb"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Привязанные аккаунты</span>
+    </div>
+
+    <div class="card__body card__body--lg">
+
+      @if (oauthMessage(); as msg) {
+        <div class="toast"
+             [class.toast--success]="msg.kind === 'ok'"
+             [class.toast--error]="msg.kind === 'err'">
+          {{ msg.text }}
+        </div>
+      }
+
+      @for (provider of ['google', 'github']; track provider) {
+        <div class="settings-linked-row">
+          <div class="settings-linked-row__info">
+            <span class="settings-linked-row__label">{{ providerLabel($any(provider)) }}</span>
+            <span class="settings-linked-row__sub">
+              @if (provider === 'google') {
+                Вход и быстрая регистрация через Google
+              } @else {
+                Вход для разработчиков через GitHub
+              }
+            </span>
+          </div>
+          <div class="settings-linked-row__actions">
+            <button class="btn btn--ghost"
+              type="button"
+              [disabled]="oauthBusy() !== null"
+              (click)="linkProvider($any(provider))">
+              @if (oauthBusy() === provider) { Открываем… } @else { Привязать }
+            </button>
+            <button class="btn btn--danger-soft"
+              type="button"
+              [disabled]="oauthBusy() !== null"
+              (click)="unlinkProvider($any(provider))">
+              Отвязать
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Безопасность</span>
+    </div>
+
+    <form class="card__body card__body--lg" [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+
+      <div class="field">
+        <label class="field__label" for="sCurrentPw">Текущий пароль</label>
+        <input id="sCurrentPw" class="field__input"
+          [class.field__input--error]="fieldError('password', 'currentPassword')"
+          type="password" formControlName="currentPassword"
+          placeholder="••••••••" autocomplete="current-password" />
+        @if (fieldError('password', 'currentPassword')) {
+          <span class="field__hint field__hint--error">{{ fieldError('password', 'currentPassword') }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="sNewPw">Новый пароль</label>
+        <input id="sNewPw" class="field__input"
+          [class.field__input--error]="fieldError('password', 'newPassword')"
+          type="password" formControlName="newPassword"
+          placeholder="Минимум 8 символов" autocomplete="new-password" />
+        @if (fieldError('password', 'newPassword')) {
+          <span class="field__hint field__hint--error">{{ fieldError('password', 'newPassword') }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="sConfirmPw">Повторите пароль</label>
+        <input id="sConfirmPw" class="field__input"
+          [class.field__input--error]="passwordMismatch"
+          type="password" formControlName="confirmPassword"
+          placeholder="••••••••" autocomplete="new-password" />
+        @if (passwordMismatch) {
+          <span class="field__hint field__hint--error">Пароли не совпадают</span>
+        }
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn btn--primary" type="submit">
+          Изменить пароль
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="card card--danger">
+    <div class="card__header">
+      <span class="card__title">Опасная зона</span>
+    </div>
+    <div class="card__body card__body--lg">
+      <div class="settings-danger-row">
+        <div>
+          <p class="settings-danger-row__label">Удалить аккаунт</p>
+          <p class="settings-danger-row__sub">Необратимое действие. Все данные будут удалены.</p>
+        </div>
+        <button class="btn btn--danger" type="button">
+          Удалить аккаунт
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

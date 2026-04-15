@@ -1,0 +1,28 @@
+<div class="legal-page">
+  <div class="legal-page__inner">
+
+    <a class="btn btn--text legal-back" routerLink="/">← Назад</a>
+
+    @if (loading()) {
+      <div class="legal-skeleton">
+        <div class="legal-skeleton__title"></div>
+        <div class="legal-skeleton__meta"></div>
+        <div class="legal-skeleton__body"></div>
+      </div>
+    } @else if (error()) {
+      <div class="toast toast--error">{{ error() }}</div>
+    } @else {
+      @if (document(); as doc) {
+        <div class="legal-header">
+          <h1 class="legal-header__title">{{ doc.title }}</h1>
+          <div class="legal-header__meta">
+            Версия {{ doc.version }} · Действует с {{ formatDate(doc.createdAt) }}
+          </div>
+        </div>
+
+        <article class="legal-content" [innerHTML]="doc.content | markdown"></article>
+      }
+    }
+
+  </div>
+</div>

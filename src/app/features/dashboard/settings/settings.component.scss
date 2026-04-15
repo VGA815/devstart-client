@@ -1,0 +1,59 @@
+:host { display: block; }
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.settings-linked-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  flex-wrap: wrap;
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.settings-danger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  &__label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin: 0 0 2px;
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+  }
+}

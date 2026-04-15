@@ -1,0 +1,78 @@
+<div class="invite-page">
+  <div class="invite-card">
+
+    @switch (state()) {
+
+      @case ('loading') {
+        <div class="invite-card__spinner"></div>
+        <p class="invite-card__sub">Проверяем ссылку…</p>
+      }
+
+      @case ('valid') {
+        <div class="invite-card__icon">🤝</div>
+        <h1 class="invite-card__title">Приглашение в стартап</h1>
+        <p class="invite-card__sub">
+          Вас пригласили стать участником команды на DevStart.
+        </p>
+        @if (auth.isAuthenticated()) {
+          <button class="btn btn--primary btn--lg btn--block" type="button" (click)="accept()">
+            Принять приглашение
+          </button>
+        } @else {
+          <p class="invite-card__hint">Для принятия приглашения необходимо войти в аккаунт</p>
+          <a class="btn btn--primary btn--lg btn--block"
+             routerLink="/login"
+             [queryParams]="{ returnUrl: '/invite/' + tokenId }">
+            Войти и принять
+          </a>
+          <a class="btn btn--ghost btn--lg btn--block" routerLink="/register">
+            Зарегистрироваться
+          </a>
+        }
+      }
+
+      @case ('joining') {
+        <div class="invite-card__spinner"></div>
+        <p class="invite-card__sub">Вступаем в стартап…</p>
+      }
+
+      @case ('joined') {
+        <div class="invite-card__icon invite-card__icon--success">✓</div>
+        <h1 class="invite-card__title">Добро пожаловать!</h1>
+        <p class="invite-card__sub">Вы успешно вступили в команду стартапа.</p>
+        <a class="btn btn--primary btn--lg btn--block"
+           [routerLink]="['/startups', joinedStartupId()]">
+          Открыть стартап →
+        </a>
+        <a class="btn btn--ghost btn--lg btn--block" routerLink="/dashboard">
+          Мой дашборд
+        </a>
+      }
+
+      @case ('invalid') {
+        <div class="invite-card__icon invite-card__icon--error">✕</div>
+        <h1 class="invite-card__title">Ссылка недействительна</h1>
+        <p class="invite-card__sub">
+          Приглашение истекло, уже было использовано или не существует.<br>
+          Попросите организатора создать новую ссылку.
+        </p>
+        <a class="btn btn--ghost btn--lg btn--block" routerLink="/">На главную</a>
+      }
+
+      @case ('error') {
+        <div class="invite-card__icon invite-card__icon--warn">⚠</div>
+        <h1 class="invite-card__title">Не удалось вступить</h1>
+        <p class="invite-card__sub">
+          Возможно, вы уже являетесь участником этого стартапа,<br>
+          или произошла ошибка сервера.
+        </p>
+        <a class="btn btn--primary btn--lg btn--block" routerLink="/dashboard/my-startups">
+          Мои стартапы
+        </a>
+        <a class="btn btn--ghost btn--lg btn--block" routerLink="/">На главную</a>
+      }
+
+    }
+
+  </div>
+</div>

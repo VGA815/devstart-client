@@ -1,0 +1,68 @@
+<section class="plans-page">
+  <header class="page__heading plans-page__header">
+    <span class="plans-page__eyebrow">Планы DevStart</span>
+    <h1 class="page__title">Выберите уровень доступа</h1>
+    <p class="page__sub">
+      Free покрывает базовую работу с платформой. Pro открывает аналитику, которая помогает быстрее оценивать проекты.
+    </p>
+  </header>
+
+  <div class="plans-grid">
+    <article class="plan-card">
+      <div class="plan-card__top">
+        <div>
+          <span class="plan-card__name">Free</span>
+          <p class="plan-card__desc">Для просмотра проектов и базового взаимодействия.</p>
+        </div>
+        <span class="plan-card__price">0 ₽</span>
+      </div>
+
+      <div class="plan-card__features">
+        @for (feature of freeFeatures; track feature) {
+          <span class="plan-card__feature">✓ {{ feature }}</span>
+        }
+      </div>
+
+      <a class="btn btn--ghost btn--lg btn--block" routerLink="/startups">Перейти в каталог</a>
+    </article>
+
+    <article class="plan-card plan-card--pro">
+      <div class="plan-card__top">
+        <div>
+          <span class="plan-card__name">Pro</span>
+          <p class="plan-card__desc">Для инвесторов, экспертов и активного анализа стартапов.</p>
+        </div>
+        <div class="plan-card__price-wrap">
+          <span class="plan-card__price">2 000 ₽</span>
+          <span class="plan-card__period">30 дней</span>
+        </div>
+      </div>
+
+      <div class="plan-card__features">
+        @for (feature of proFeatures; track feature) {
+          <span class="plan-card__feature">✓ {{ feature }}</span>
+        }
+      </div>
+
+      @if (auth.user() && subscriptionLoading()) {
+        <app-skeleton height="34px" border-radius="6px" />
+      } @else if (subscription()?.isActivePro) {
+        <div class="plan-card__active">
+          <span>Pro активен</span>
+          <span>до {{ formatSubscriptionDate(subscription()?.expiresAt ?? null) }}</span>
+        </div>
+      } @else {
+        <button class="btn btn--primary btn--lg btn--block" type="button" [disabled]="checkoutLoading()" (click)="checkout()">
+          {{ checkoutLoading() ? 'Открываем оплату…' : (auth.user() ? 'Подключить Pro' : 'Войти и подключить') }}
+        </button>
+      }
+
+      @if (subscriptionError()) {
+        <p class="plan-card__error">{{ subscriptionError() }}</p>
+      }
+      @if (checkoutError()) {
+        <p class="plan-card__error">{{ checkoutError() }}</p>
+      }
+    </article>
+  </div>
+</section>
