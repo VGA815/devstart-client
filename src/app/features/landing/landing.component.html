@@ -1,7 +1,7 @@
 <section class="hero">
   <div class="hero__badge">
     <span class="hero__badge-dot"></span>
-    <span class="hero__badge-text">Открытая бета · 1 248 стартапов</span>
+    <span class="hero__badge-text">Открытая бета · {{ startupsCount() }} стартапов</span>
   </div>
 
   <div class="hero__heading">
@@ -25,7 +25,7 @@
 </section>
 
 <div class="stats-bar">
-  @for (stat of stats; track stat.label; let last = $last) {
+  @for (stat of stats(); track stat.label; let last = $last) {
     <div class="stats-bar__item" [class.stats-bar__item--last]="last">
       <span class="stats-bar__value">{{ stat.value }}</span>
       <span class="stats-bar__label">{{ stat.label }}</span>
