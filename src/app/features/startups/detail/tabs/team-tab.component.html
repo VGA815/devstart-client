@@ -1,0 +1,97 @@
+@if (facade.myMember() && editingMemberProfile()) {
+  <div class="sd-member-edit">
+    <div class="sd-member-edit__header">Редактирование профиля в команде</div>
+    <div class="sd-member-edit__body">
+      <div class="field">
+        <label class="field__label field__label--mono">Должность</label>
+        <select class="field__select field__select--sm"
+          [value]="memberPositionEdit()"
+          (change)="memberPositionEdit.set(+$any($event.target).value)">
+          @for (opt of positionOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label field__label--mono">О себе / Bio</label>
+        <textarea class="field__textarea"
+          rows="3"
+          placeholder="Кратко о своём опыте и роли в стартапе…"
+          [value]="memberBioEdit()"
+          (input)="memberBioEdit.set($any($event.target).value)"></textarea>
+      </div>
+      <div class="field">
+        <label class="field__label field__label--mono">Лет опыта</label>
+        <input class="field__input field__input--sm"
+          type="number" min="0" max="60"
+          placeholder="5"
+          [value]="memberYearsEdit()"
+          (input)="memberYearsEdit.set($any($event.target).value)" />
+      </div>
+      <div class="field">
+        <label class="field__label field__label--checkbox">
+          <input type="checkbox"
+            [checked]="memberHasPriorExit()"
+            (change)="memberHasPriorExit.set($any($event.target).checked)" />
+          <span>Есть успешный выход (prior exit)</span>
+        </label>
+      </div>
+      <div class="field">
+        <label class="field__label field__label--mono">Предыдущих стартапов</label>
+        <input class="field__input field__input--sm"
+          type="number" min="0" max="50"
+          placeholder="0"
+          [value]="memberPrevStartups()"
+          (input)="memberPrevStartups.set($any($event.target).value)" />
+      </div>
+      @if (memberProfileError()) {
+        <p class="field__hint field__hint--error">{{ memberProfileError() }}</p>
+      }
+      <div class="sd-member-edit__actions">
+        <button class="btn btn--ghost btn--sm" type="button" (click)="cancelMemberProfileEdit()">Отмена</button>
+        <button class="btn btn--primary btn--sm" type="button" [disabled]="memberProfileSaving()" (click)="saveMemberProfile()">
+          {{ memberProfileSaving() ? 'Сохранение…' : 'Сохранить' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (facade.membersLoading()) {
+  <app-skeleton height="48px" /><app-skeleton height="48px" />
+} @else if (facade.members().length === 0) {
+  <div class="empty-state empty-state--card"><p class="empty-state__title">Команда не указана</p></div>
+} @else {
+  <div class="card card__body--flush">
+    @for (member of facade.members(); track member.profileId) {
+      <div class="sd-team-row" [class.sd-team-row--mine]="facade.myMember()?.profileId === member.profileId">
+        <a [routerLink]="['/profile', member.profileId]" class="sd-team-row__link">
+          <app-avatar
+            [avatarId]="getMemberAvatarId(member.profileId)"
+            [name]="getMemberDisplayName(member.profileId)"
+            size="md"
+            shape="circle"
+            [color]="getMemberColor(member.role)" />
+          <div class="sd-team-row__info">
+            <div class="sd-team-row__name-row">
+              <span class="sd-team-row__name">{{ getMemberDisplayName(member.profileId) }}</span>
+              @if (member.position) {
+                <span class="sd-team-row__position">{{ getPositionLabel(member.position) }}</span>
+              }
+            </div>
+            <span class="sd-team-row__role">{{ member.role }}</span>
+            @if (member.bio) {
+              <p class="sd-team-row__bio">{{ member.bio }}</p>
+            }
+            @if (member.yearsOfExperience) {
+              <span class="sd-team-row__years">{{ member.yearsOfExperience }} лет опыта</span>
+            }
+          </div>
+        </a>
+        @if (facade.myMember()?.profileId === member.profileId && !editingMemberProfile()) {
+          <button class="sd-team-row__edit-btn" type="button" title="Редактировать профиль" (click)="openMemberProfileEdit()">✎</button>
+        }
+      </div>
+    }
+  </div>
+}

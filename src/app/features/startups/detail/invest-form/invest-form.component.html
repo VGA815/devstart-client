@@ -1,0 +1,141 @@
+@if (investSuccess()) {
+  <div class="toast toast--success">
+    ✓ Заявка отправлена! Следите за статусом в разделе <a routerLink="/dashboard/investments">Инвестиции</a>.
+  </div>
+  <button class="btn btn--ghost btn--block" type="button" (click)="close.emit()">Закрыть</button>
+} @else if (facade.investorProfile() === null) {
+  <div class="toast toast--info">
+    Для подачи заявки создайте <a routerLink="/dashboard/investments">профиль инвестора</a>.
+  </div>
+  <button class="btn btn--ghost btn--block" type="button" (click)="close.emit()">Отмена</button>
+} @else if (facade.investorProfile() === undefined) {
+  <app-skeleton height="80px" />
+} @else {
+  <div class="sd-invest-form">
+    @if (facade.roadmap().length > 0) {
+      <div class="field">
+        <label class="field__label field__label--mono">Этап (опционально)</label>
+        <select class="field__select field__select--sm" [value]="investRoadmapId()" (change)="investRoadmapId.set($any($event.target).value)">
+          <option value="">— Без привязки к этапу —</option>
+          @for (item of facade.roadmap(); track item.id) {
+            <option [value]="item.id">{{ item.title }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="field">
+      <label class="field__label field__label--mono">Инструмент</label>
+      <div class="chips">
+        @for (ins of [{v:0,l:'SAFE'},{v:1,l:'Конвертируемый заём'},{v:2,l:'Priced Round'}]; track ins.v) {
+          <button type="button"
+            class="chip"
+            [class.chip--active]="investInstrument() === ins.v"
+            (click)="investInstrument.set(ins.v)">{{ ins.l }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label field__label--mono">Сумма ($) *</label>
+      <div class="sd-invest-form__amount-row">
+        <input
+          class="field__input field__input--sm"
+          type="number"
+          placeholder="50000"
+          min="1"
+          [value]="investAmount()"
+          (input)="investAmount.set($any($event.target).value)" />
+        <button type="button" class="sd-invest-form__suggest-btn"
+          [disabled]="suggestedTermsLoading() || !investAmount()"
+          (click)="loadSuggestedTerms()">
+          {{ suggestedTermsLoading() ? '…' : '⚡ Авто-условия' }}
+        </button>
+      </div>
+    </div>
+
+    @if (investInstrument() === 0) {
+      <div class="sd-invest-form__terms-grid">
+        <div class="field">
+          <label class="field__label field__label--mono">Valuation Cap ($)</label>
+          <input class="field__input field__input--sm" type="number" min="0" placeholder="2000000"
+            [value]="investValuationCap()" (input)="investValuationCap.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Discount (%)</label>
+          <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="20"
+            [value]="investDiscount()" (input)="investDiscount.set($any($event.target).value)" />
+        </div>
+      </div>
+      <label class="field__label field__label--checkbox">
+        <input type="checkbox" [checked]="investProRata()" (change)="investProRata.set($any($event.target).checked)" />
+        <span>Pro-rata rights</span>
+      </label>
+    }
+
+    @if (investInstrument() === 1) {
+      <div class="sd-invest-form__terms-grid">
+        <div class="field">
+          <label class="field__label field__label--mono">Valuation Cap ($)</label>
+          <input class="field__input field__input--sm" type="number" min="0" placeholder="2000000"
+            [value]="investValuationCap()" (input)="investValuationCap.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Discount (%)</label>
+          <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="20"
+            [value]="investDiscount()" (input)="investDiscount.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Ставка (% год.)</label>
+          <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="8"
+            [value]="investInterestRate()" (input)="investInterestRate.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Срок (мес.)</label>
+          <input class="field__input field__input--sm" type="number" min="1" max="120" placeholder="24"
+            [value]="investTermMonths()" (input)="investTermMonths.set($any($event.target).value)" />
+        </div>
+      </div>
+    }
+
+    @if (investInstrument() === 2) {
+      <div class="sd-invest-form__terms-grid">
+        <div class="field">
+          <label class="field__label field__label--mono">Pre-money valuation ($)</label>
+          <input class="field__input field__input--sm" type="number" min="0" placeholder="5000000"
+            [value]="investPreMoney()" (input)="investPreMoney.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Liquidation Preference (×)</label>
+          <input class="field__input field__input--sm" type="number" min="1" max="5" step="0.5" placeholder="1"
+            [value]="investLiquidationPref()" (input)="investLiquidationPref.set($any($event.target).value)" />
+        </div>
+      </div>
+      <label class="field__label field__label--checkbox">
+        <input type="checkbox" [checked]="investProRata()" (change)="investProRata.set($any($event.target).checked)" />
+        <span>Pro-rata rights</span>
+      </label>
+    }
+
+    <div class="field">
+      <label class="field__label field__label--mono">Сообщение</label>
+      <textarea
+        class="field__textarea"
+        placeholder="Расскажите о себе и своих ожиданиях…"
+        rows="3"
+        [value]="investMessage()"
+        (input)="investMessage.set($any($event.target).value)"></textarea>
+    </div>
+
+    @if (investError()) {
+      <p class="field__hint field__hint--error">{{ investError() }}</p>
+    }
+
+    <div class="sd-invest-form__actions">
+      <button class="btn btn--ghost btn--sm" type="button" (click)="close.emit()">Отмена</button>
+      <button class="btn btn--success-soft btn--sm" type="button" [disabled]="investSubmitting()" (click)="submit()">
+        {{ investSubmitting() ? 'Отправка…' : 'Отправить' }}
+      </button>
+    </div>
+  </div>
+}

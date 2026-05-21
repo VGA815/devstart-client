@@ -1,0 +1,34 @@
+@if (facade.roadmapLoading()) {
+  <app-skeleton height="48px" /><app-skeleton height="48px" /><app-skeleton height="48px" />
+} @else if (facade.roadmap().length === 0) {
+  <div class="empty-state empty-state--card"><p class="empty-state__title">Дорожная карта не опубликована</p></div>
+} @else {
+  <div class="card card__body--flush">
+    @for (item of facade.roadmap(); track item.id) {
+      <div class="sd-roadmap-row"
+        [class.sd-roadmap-row--expanded]="expandedRoadmapId() === item.id"
+        [class.sd-roadmap-row--clickable]="!!item.description"
+        (click)="item.description && toggleRoadmapExpand(item)">
+        <span class="sd-roadmap-row__dot sd-roadmap-row__dot--{{ getRoadmapStatusClass(item.status) }}"></span>
+        <div class="sd-roadmap-row__info">
+          <div class="sd-roadmap-row__top">
+            <span class="sd-roadmap-row__title">{{ item.title }}</span>
+            @if (item.description) {
+              <span class="sd-roadmap-row__chevron">{{ expandedRoadmapId() === item.id ? '▲' : '▼' }}</span>
+            }
+          </div>
+          <span class="sd-roadmap-row__quarter">
+            {{ formatTargetDate(item.targetDate) }} ·
+            <span class="sd-roadmap-row__status--{{ getRoadmapStatusClass(item.status) }}">{{ getRoadmapStatusLabel(item.status) }}</span>
+            @if (item.targetAmount) {
+              · <span class="sd-roadmap-row__amount">{{ formatMoney(item.targetAmount) }}</span>
+            }
+          </span>
+          @if (expandedRoadmapId() === item.id && item.description) {
+            <span class="sd-roadmap-row__desc">{{ item.description }}</span>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

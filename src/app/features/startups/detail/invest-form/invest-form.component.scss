@@ -1,0 +1,45 @@
+:host { display: contents; }
+
+.sd-invest-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &__actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+
+    button { flex: 1; }
+  }
+
+  &__terms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  &__amount-row {
+    display: flex;
+    gap: 6px;
+    align-items: stretch;
+
+    input { flex: 1; }
+  }
+
+  &__suggest-btn {
+    flex-shrink: 0;
+    padding: 0 10px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(47, 129, 247, 0.3);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-size: 11px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+
+    &:hover:not(:disabled) { background: rgba(47, 129, 247, 0.2); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+}

@@ -2,6 +2,7 @@ import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from
 import { inject } from '@angular/core';
 import { Observable, catchError, switchMap, throwError, BehaviorSubject, filter, take } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 
 
 
@@ -27,11 +28,13 @@ export const authInterceptor: HttpInterceptorFn = (
   const auth = inject(AuthService);
 
   const token   = auth.getAccessToken();
-  const authReq = token ? attachToken(req, token) : req;
+
+  const sameApi = req.url.startsWith(environment.apiUrl);
+  const authReq = token && sameApi ? attachToken(req, token) : req;
 
   return next(authReq).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 && token && !isAuthEndpoint(req.url)) {
+      if (err.status === 401 && token && sameApi && !isAuthEndpoint(req.url)) {
         return handle401(auth, req, next);
       }
       if (err.status === 401 && token && isAuthEndpoint(req.url) && req.url.includes('/auth/refresh')) {

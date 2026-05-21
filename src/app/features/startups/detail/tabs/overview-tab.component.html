@@ -1,0 +1,51 @@
+@if (facade.startup(); as s) {
+  @if (s.description) {
+    <div class="sd-desc-wrap" [class.sd-desc-wrap--expanded]="descExpanded()">
+      <div class="sd-markdown" [innerHTML]="s.description | markdown"></div>
+      @if (!descExpanded()) {
+        <div class="sd-desc-wrap__fade"></div>
+      }
+    </div>
+    <button class="sd-desc-toggle" type="button" (click)="toggleDesc()">
+      {{ descExpanded() ? '▲ Свернуть' : '▼ Читать полностью' }}
+    </button>
+  }
+
+  @if (facade.score(); as sc) {
+    <div class="sd-score-badge" (click)="facade.setTab('scoring')" role="button" tabindex="0" (keydown.enter)="facade.setTab('scoring')">
+      <div class="sd-score-badge__ring">
+        <svg viewBox="0 0 36 36" class="sd-score-badge__svg">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--bg3)" stroke-width="2.8"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--accent)" stroke-width="2.8"
+            [attr.stroke-dasharray]="(sc.totalScore / 100) * 100 + ' 100'"
+            stroke-dashoffset="25" stroke-linecap="round" pathLength="100"/>
+        </svg>
+        <span class="sd-score-badge__num">{{ sc.totalScore }}</span>
+      </div>
+      <div class="sd-score-badge__info">
+        <span class="sd-score-badge__label">Скоринг DevStart</span>
+        <span class="sd-score-badge__range">{{ formatMoney(sc.valuationLow) }} — {{ formatMoney(sc.valuationHigh) }}</span>
+        <span class="sd-score-badge__link">Подробнее →</span>
+      </div>
+    </div>
+  }
+
+  @if (facade.metricsLoading()) {
+    <div class="sd-metrics-grid">
+      @for (n of [1,2,3,4]; track n) {
+        <app-skeleton height="72px" border-radius="5px" />
+      }
+    </div>
+  } @else if (facade.metrics().length > 0) {
+    <div class="sd-metrics-grid">
+      @for (m of facade.metrics(); track m.id) {
+        <div class="sd-metric-tile">
+          <span class="sd-metric-tile__value" [class]="getMetricColor(m.metricType)">{{ formatMetricValue(m) }}</span>
+          <span class="sd-metric-tile__label">{{ getMetricLabel(m.metricType) }}</span>
+        </div>
+      }
+    </div>
+  } @else if (!s.description) {
+    <div class="empty-state empty-state--card"><p class="empty-state__title">Информация не заполнена</p></div>
+  }
+}

@@ -1,0 +1,25 @@
+@if (facade.docsLoading()) {
+  <app-skeleton height="52px" />
+  <app-skeleton height="52px" />
+  <app-skeleton height="52px" />
+} @else if (facade.docs().length === 0) {
+  <div class="empty-state empty-state--card"><p class="empty-state__title">Документы не загружены</p></div>
+} @else {
+  <div class="card card__body--flush">
+    @for (doc of facade.docs(); track doc.id) {
+      <div class="sd-doc-row">
+        <span class="sd-doc-row__icon">{{ getDocumentIcon(doc.documentType) }}</span>
+        <div class="sd-doc-row__info">
+          <span class="sd-doc-row__name">{{ doc.documentName }}</span>
+          <span class="sd-doc-row__meta">
+            {{ getDocumentTypeLabel(doc.documentType) }} · {{ formatFileSize(doc.fileSize) }}
+          </span>
+        </div>
+        <a class="btn btn--ghost btn--sm" [href]="doc.presignedUrl"
+          target="_blank" rel="noopener" title="Скачать">
+          ⬇ Скачать
+        </a>
+      </div>
+    }
+  </div>
+}

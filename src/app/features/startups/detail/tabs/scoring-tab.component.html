@@ -1,0 +1,76 @@
+@if (facade.scoreLoading()) {
+  <app-skeleton height="220px" border-radius="6px" />
+} @else if (!facade.score()) {
+  @if (facade.scoreErrorStatus() === 403) {
+    <div class="sd-pro-lock">
+      <div class="sd-pro-lock__badge">PRO</div>
+      <div class="sd-pro-lock__body">
+        <span class="sd-pro-lock__title">Скоринг доступен в DevStart Pro</span>
+        <span class="sd-pro-lock__text">Подписка открывает оценку проекта, диапазон valuation и расширенные метрики для внешних зрителей.</span>
+      </div>
+      <a class="btn btn--primary btn--sm" routerLink="/plans">Подключить Pro</a>
+    </div>
+  } @else {
+    <div class="empty-state empty-state--card"><p class="empty-state__title">Скоринг недоступен — заполните данные стартапа</p></div>
+  }
+} @else {
+  @let sc = facade.score()!;
+
+  <div class="sc-hero">
+    <div class="sc-hero__ring">
+      <svg viewBox="0 0 80 80" class="sc-hero__svg">
+        <circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg3)" stroke-width="5"/>
+        <circle cx="40" cy="40" r="34" fill="none" stroke="var(--accent)" stroke-width="5"
+          [attr.stroke-dasharray]="(sc.totalScore / 100) * 213.6 + ' 213.6'"
+          stroke-dashoffset="53.4" stroke-linecap="round"/>
+      </svg>
+      <div class="sc-hero__label">
+        <span class="sc-hero__num">{{ sc.totalScore }}</span>
+        <span class="sc-hero__max">/100</span>
+      </div>
+    </div>
+    <div class="sc-hero__meta">
+      <span class="sc-hero__title">Итоговый скоринг</span>
+      <span class="sc-hero__valuation">{{ formatMoney(sc.valuationLow) }} — {{ formatMoney(sc.valuationHigh) }}</span>
+      <span class="sc-hero__sub">Оценка стоимости (DCF/Scorecard/VC)</span>
+      <span class="sc-hero__updated">Рассчитано: {{ formatRelativeTime(sc.calculatedAt) }}</span>
+    </div>
+  </div>
+
+  <div class="sc-axes">
+    @for (row of [
+      {label: 'Команда',       icon: '👥', value: sc.teamScore,        max: 100, desc: 'Опыт, экспертиза, предыдущие стартапы'},
+      {label: 'Рынок',         icon: '📈', value: sc.marketScore,       max: 100, desc: 'TAM, темп роста, конкуренция'},
+      {label: 'Продукт',       icon: '⚙️', value: sc.productScore,      max: 100, desc: 'MVP, патенты, уникальность'},
+      {label: 'Traction',      icon: '🚀', value: sc.tractionScore,     max: 100, desc: 'Метрики, клиенты, рост'},
+      {label: 'Конкуренция',   icon: '🏆', value: sc.competitionScore,  max: 100, desc: 'Позиция относительно конкурентов'}
+    ]; track row.label) {
+      <div class="sc-axis">
+        <div class="sc-axis__top">
+          <span class="sc-axis__icon">{{ row.icon }}</span>
+          <span class="sc-axis__name">{{ row.label }}</span>
+          <span class="sc-axis__score">{{ row.value }}<span class="sc-axis__max">/{{ row.max }}</span></span>
+        </div>
+        <div class="sc-axis__track">
+          <div class="sc-axis__fill"
+            [style.width.%]="(row.value / row.max) * 100"
+            [class.sc-axis__fill--high]="row.value / row.max >= 0.75"
+            [class.sc-axis__fill--mid]="row.value / row.max >= 0.4 && row.value / row.max < 0.75"
+            [class.sc-axis__fill--low]="row.value / row.max < 0.4"></div>
+        </div>
+        <span class="sc-axis__desc">{{ row.desc }}</span>
+      </div>
+    }
+  </div>
+
+  @if (sc.methodsUsed.length > 0) {
+    <div class="sc-methods">
+      <span class="sc-methods__label">Методы оценки</span>
+      <div class="sc-methods__chips">
+        @for (m of sc.methodsUsed; track m) {
+          <span class="sc-methods__chip">{{ m }}</span>
+        }
+      </div>
+    </div>
+  }
+}

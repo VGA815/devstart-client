@@ -1,0 +1,118 @@
+@if (facade.isFounderOrAdmin() && !showCompetitorForm()) {
+  <div class="sd-competitors-toolbar">
+    <button class="btn btn--ghost btn--sm" type="button" (click)="openNewCompetitorForm()">
+      + Добавить конкурента
+    </button>
+  </div>
+}
+
+@if (showCompetitorForm()) {
+  <div class="sd-competitor-form">
+    <div class="sd-competitor-form__header">
+      {{ editingCompetitor() ? 'Редактировать конкурента' : 'Новый конкурент' }}
+    </div>
+    <div class="sd-competitor-form__body">
+      <div class="field">
+        <label class="field__label field__label--mono">Название *</label>
+        <input class="field__input field__input--sm"
+          type="text" placeholder="Название компании"
+          [value]="competitorName()"
+          (input)="competitorName.set($any($event.target).value)" />
+      </div>
+      <div class="field">
+        <label class="field__label field__label--mono">Сайт</label>
+        <input class="field__input field__input--sm"
+          type="url" placeholder="https://competitor.com"
+          [value]="competitorWebsite()"
+          (input)="competitorWebsite.set($any($event.target).value)" />
+      </div>
+      <div class="field">
+        <label class="field__label field__label--mono">Описание</label>
+        <textarea class="field__textarea"
+          rows="2" placeholder="Краткое описание конкурента"
+          [value]="competitorDesc()"
+          (input)="competitorDesc.set($any($event.target).value)"></textarea>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label class="field__label field__label--mono">Наши преимущества</label>
+          <textarea class="field__textarea"
+            rows="2" placeholder="Чем мы лучше"
+            [value]="competitorStrengths()"
+            (input)="competitorStrengths.set($any($event.target).value)"></textarea>
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Их преимущества</label>
+          <textarea class="field__textarea"
+            rows="2" placeholder="Где они сильнее"
+            [value]="competitorWeaknesses()"
+            (input)="competitorWeaknesses.set($any($event.target).value)"></textarea>
+        </div>
+      </div>
+      @if (competitorError()) {
+        <p class="field__hint field__hint--error">{{ competitorError() }}</p>
+      }
+      <div class="sd-competitor-form__actions">
+        <button class="btn btn--ghost btn--sm" type="button" (click)="cancelCompetitorForm()">Отмена</button>
+        <button class="btn btn--primary btn--sm" type="button" [disabled]="competitorSaving()" (click)="saveCompetitor()">
+          {{ competitorSaving() ? 'Сохранение…' : 'Сохранить' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (facade.competitorsLoading()) {
+  <app-skeleton height="80px" /><app-skeleton height="80px" />
+} @else if (!facade.isAuthenticated()) {
+  <div class="empty-state empty-state--card"><p class="empty-state__title">Войдите, чтобы увидеть анализ конкурентов</p></div>
+} @else if (facade.competitors().length === 0 && !showCompetitorForm()) {
+  <div class="empty-state empty-state--card"><p class="empty-state__title">Анализ конкурентов не добавлен</p></div>
+} @else {
+  <div class="sd-competitors">
+    @for (c of facade.competitors(); track c.id) {
+      <div class="sd-competitor-card">
+        <div class="sd-competitor-card__header">
+          <div class="sd-competitor-card__title-row">
+            <span class="sd-competitor-card__name">{{ c.name }}</span>
+            @if (c.website) {
+              <a [href]="c.website" target="_blank" rel="noopener" class="sd-competitor-card__link">
+                🌐 {{ c.website }}
+              </a>
+            }
+          </div>
+          @if (facade.isFounderOrAdmin()) {
+            <div class="sd-competitor-card__actions">
+              <button class="sd-competitor-card__btn" type="button" (click)="openEditCompetitorForm(c)">✎</button>
+              <button class="sd-competitor-card__btn sd-competitor-card__btn--danger"
+                type="button"
+                [disabled]="facade.deletingCompetitorId() === c.id"
+                (click)="deleteCompetitor(c)">
+                {{ facade.deletingCompetitorId() === c.id ? '…' : '✕' }}
+              </button>
+            </div>
+          }
+        </div>
+        @if (c.description) {
+          <p class="sd-competitor-card__desc">{{ c.description }}</p>
+        }
+        @if (c.strengthsVsUs || c.weaknessesVsUs) {
+          <div class="sd-competitor-card__analysis">
+            @if (c.strengthsVsUs) {
+              <div class="sd-competitor-card__col sd-competitor-card__col--green">
+                <span class="sd-competitor-card__col-label">✓ Наши преимущества</span>
+                <p class="sd-competitor-card__col-text">{{ c.strengthsVsUs }}</p>
+              </div>
+            }
+            @if (c.weaknessesVsUs) {
+              <div class="sd-competitor-card__col sd-competitor-card__col--red">
+                <span class="sd-competitor-card__col-label">⚡ Их преимущества</span>
+                <p class="sd-competitor-card__col-text">{{ c.weaknessesVsUs }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

@@ -1,0 +1,14 @@
+@if (facade.metricsLoading()) {
+  <app-skeleton height="80px" /><app-skeleton height="80px" />
+} @else if (facade.metrics().length === 0) {
+  <div class="empty-state empty-state--card"><p class="empty-state__title">Метрики не опубликованы</p></div>
+} @else {
+  <div class="sd-metrics">
+    @for (m of facade.metrics(); track m.id) {
+      <div class="sd-metric">
+        <span class="sd-metric__value">{{ formatMetricValue(m) }}</span>
+        <span class="sd-metric__label">{{ getMetricLabel(m.metricType) }}</span>
+      </div>
+    }
+  </div>
+}
