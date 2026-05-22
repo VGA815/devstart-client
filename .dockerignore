@@ -1,0 +1,18 @@
+# Keep the build context small and reproducible.
+# Do NOT ignore nginx.conf — the runtime stage copies it from here.
+node_modules
+dist
+.angular
+coverage
+.git
+.gitignore
+.vscode
+.idea
+*.log
+.DS_Store
+Thumbs.db
+Dockerfile
+.dockerignore
+Makefile
+README.md
+.claude
