@@ -1,0 +1,30 @@
+<section class="legal-details">
+  <div class="legal-details__inner">
+    <a class="btn btn--text legal-details__back" routerLink="/">← Назад</a>
+
+    <header class="legal-details__header">
+      <h1 class="legal-details__title">Юридические данные</h1>
+      <p class="legal-details__sub">
+        Основная информация о платформе и ссылки на документы, регулирующие использование DevStart.
+      </p>
+    </header>
+
+    <dl class="legal-details__list">
+      @for (item of details; track item.label) {
+        <div class="legal-details__row">
+          <dt>{{ item.label }}</dt>
+          <dd>{{ item.value }}</dd>
+        </div>
+      }
+    </dl>
+
+    <section class="legal-details__docs" aria-labelledby="legal-docs-title">
+      <h2 id="legal-docs-title">Документы</h2>
+      <div class="legal-details__links">
+        <a routerLink="/legal/1">Политика конфиденциальности</a>
+        <a routerLink="/legal/2">Пользовательское соглашение</a>
+        <a routerLink="/legal/0">Согласие на обработку персональных данных</a>
+      </div>
+    </section>
+  </div>
+</section>

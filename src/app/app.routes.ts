@@ -73,6 +73,11 @@ export const routes: Routes = [
       import('./features/invite/invite.component').then(m => m.InviteComponent),
   },
   {
+    path: 'legal-details',
+    loadComponent: () =>
+      import('./features/legal/legal-details/legal-details.component').then(m => m.LegalDetailsComponent),
+  },
+  {
     path: 'legal/:type',
     loadComponent: () =>
       import('./features/legal/legal-document/legal-document.component').then(m => m.LegalDocumentComponent),

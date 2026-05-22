@@ -1,0 +1,115 @@
+@use '../../../../styles/mixins' as *;
+
+.legal-details {
+  min-height: calc(100vh - 56px - 63px);
+  padding: 40px 16px;
+
+  @include mobile { padding: 24px 16px; }
+
+  &__inner {
+    width: 100%;
+    max-width: 740px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  &__back {
+    align-self: flex-start;
+    color: var(--text-muted);
+
+    &:hover { color: var(--text); }
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.2;
+    margin: 0;
+
+    @include mobile { font-size: 24px; }
+  }
+
+  &__sub {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  &__list,
+  &__docs {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  &__list {
+    margin: 0;
+    overflow: hidden;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+
+    &:last-child { border-bottom: 0; }
+
+    @include mobile {
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding: 16px;
+    }
+
+    dt {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    dd {
+      margin: 0;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+  }
+
+  &__docs {
+    padding: 20px;
+
+    @include mobile { padding: 16px; }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+  }
+
+  &__links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+
+    a {
+      color: var(--accent);
+      font-size: 14px;
+
+      &:hover { text-decoration: underline; }
+    }
+  }
+}
