@@ -9,7 +9,7 @@ export interface ConsentVersionsDto {
   privacy_policy: string;
   terms_of_service: string;
   cookies: string;
-  offer_agreement: string;
+  public_offer: string;
 }
 
 export interface UserConsentDto {

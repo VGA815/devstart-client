@@ -111,7 +111,7 @@ export class RegisterComponent implements OnInit {
       { type: 0, document_version: versions.personal_data_processing, accepted: true },
       { type: 1, document_version: versions.privacy_policy,           accepted: true },
       { type: 2, document_version: versions.terms_of_service,         accepted: true },
-      { type: 4, document_version: versions.offer_agreement,          accepted: true },
+      { type: 4, document_version: versions.public_offer,          accepted: true },
       { type: 3, document_version: versions.cookies,                  accepted: !!v.consentCookies },
     ];
     this.auth.register({
