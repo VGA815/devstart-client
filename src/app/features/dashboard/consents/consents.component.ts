@@ -27,6 +27,7 @@ export class ConsentsComponent implements OnInit {
     1: 'Политика конфиденциальности',
     2: 'Пользовательское соглашение',
     3: 'Использование cookies',
+    4: 'Публичная оферта',
   };
 
   readonly cookiesConsent = computed(() =>

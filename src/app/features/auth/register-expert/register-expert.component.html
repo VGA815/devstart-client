@@ -129,6 +129,17 @@
           }
 
           <label class="auth-consent-row">
+            <input type="checkbox" class="auth-consent-row__check" formControlName="consentOffer" />
+            <span class="auth-consent-row__label">
+              <a routerLink="/legal/4" target="_blank" class="auth-consent-row__link">Публичная оферта (договор оказания услуг)</a>
+              <span class="auth-consent-row__badge">Обязательно</span>
+            </span>
+          </label>
+          @if (fieldError('consentOffer')) {
+            <span class="field__hint field__hint--error">{{ fieldError('consentOffer') }}</span>
+          }
+
+          <label class="auth-consent-row">
             <input type="checkbox" class="auth-consent-row__check" formControlName="consentCookies" />
             <span class="auth-consent-row__label">
               <a routerLink="/legal/3" target="_blank" class="auth-consent-row__link">Использование cookies для аналитики</a>
