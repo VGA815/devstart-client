@@ -103,7 +103,7 @@ export const routes: Routes = [
       import('./features/auth/register-expert/register-expert.component').then(m => m.RegisterExpertComponent),
   },
   {
-    path: 'api/auth/oauth/:provider/callback/',
+    path: 'auth/callback/:provider',
     loadComponent: () =>
       import('./features/auth/oauth-callback/oauth-callback.component').then(m => m.OAuthCallbackComponent),
   },
