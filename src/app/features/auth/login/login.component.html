@@ -64,6 +64,8 @@
             }
           </div>
 
+          <a class="auth-forgot" routerLink="/forgot-password">Забыли пароль?</a>
+
           <button class="btn btn--primary btn--lg btn--block" type="submit"
             [disabled]="loading() || oauthLoading() !== null">
             @if (loading()) { Входим… } @else { Войти }

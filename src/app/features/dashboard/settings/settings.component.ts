@@ -28,6 +28,10 @@ export class SettingsComponent implements OnInit {
   readonly loading          = signal(false);
   readonly selectedAvatarId = signal<string | null>(null);
 
+  readonly passwordLoading  = signal(false);
+  readonly passwordSuccess  = signal(false);
+  readonly passwordError    = signal<string | null>(null);
+
   readonly oauthBusy        = signal<OAuthProvider | null>(null);
   readonly oauthMessage     = signal<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
@@ -167,7 +171,30 @@ export class SettingsComponent implements OnInit {
       this.passwordForm.markAllAsTouched();
       return;
     }
-    // TODO: call AuthService.changePassword()
+    const { currentPassword, newPassword } = this.passwordForm.getRawValue();
+    this.passwordLoading.set(true);
+    this.passwordError.set(null);
+    this.passwordSuccess.set(false);
+
+    this.auth.changePassword(currentPassword!, newPassword!).subscribe({
+      next: () => {
+        this.passwordLoading.set(false);
+        this.passwordSuccess.set(true);
+        this.passwordForm.reset();
+        setTimeout(() => this.passwordSuccess.set(false), 4000);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.passwordLoading.set(false);
+        const code = err.error?.code ?? err.error?.error?.code ?? '';
+        if (code === 'InvalidCurrentPassword' || err.status === 400) {
+          this.passwordError.set('Текущий пароль неверен.');
+        } else if (code === 'PasswordNotSet' || err.status === 409) {
+          this.passwordError.set('Пароль ещё не задан — войдите через провайдера и используйте «Забыли пароль?», чтобы создать его.');
+        } else {
+          this.passwordError.set('Не удалось изменить пароль. Попробуйте позже.');
+        }
+      },
+    });
   }
 
   constructor() {

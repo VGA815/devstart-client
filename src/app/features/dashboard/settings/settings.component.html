@@ -200,6 +200,13 @@
 
     <form class="card__body card__body--lg" [formGroup]="passwordForm" (ngSubmit)="savePassword()">
 
+      @if (passwordSuccess()) {
+        <div class="toast toast--success">Пароль изменён</div>
+      }
+      @if (passwordError()) {
+        <div class="toast toast--error">{{ passwordError() }}</div>
+      }
+
       <div class="field">
         <label class="field__label" for="sCurrentPw">Текущий пароль</label>
         <input id="sCurrentPw" class="field__input"
@@ -234,8 +241,8 @@
       </div>
 
       <div class="settings-actions">
-        <button class="btn btn--primary" type="submit">
-          Изменить пароль
+        <button class="btn btn--primary" type="submit" [disabled]="passwordLoading()">
+          {{ passwordLoading() ? 'Сохранение…' : 'Изменить пароль' }}
         </button>
       </div>
 

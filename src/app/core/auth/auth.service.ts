@@ -5,7 +5,15 @@ import { Observable, switchMap, tap, map, throwError, finalize, of, catchError }
 import { environment } from '../../../environments/environment';
 import { BYPASS_403 } from '../http/error.interceptor';
 import { User } from '../../shared/models/user.model';
-import { UserDto, LoginRequestDto, RegisterRequestDto, mapUserDto } from '../../shared/models/dto/user.dto';
+import {
+  UserDto,
+  LoginRequestDto,
+  RegisterRequestDto,
+  ForgotPasswordRequestDto,
+  ResetPasswordRequestDto,
+  ChangePasswordRequestDto,
+  mapUserDto,
+} from '../../shared/models/dto/user.dto';
 import { TokenPairDto } from '../../shared/models/dto/auth.dto';
 
 const ACCESS_KEY  = 'devstart_access';
@@ -116,6 +124,25 @@ export class AuthService {
       null,
       { params: new HttpParams().set('email', email) }
     );
+  }
+
+  // Always resolves with 204 regardless of whether the email is registered
+  // (backend is enumeration-safe), so callers should show the same "check your inbox" state.
+  forgotPassword(email: string): Observable<void> {
+    const body: ForgotPasswordRequestDto = { email };
+    return this.http.post<void>(`${environment.apiUrl}/users/forgot-password`, body);
+  }
+
+  // 404 → token missing/expired/already used.
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    const body: ResetPasswordRequestDto = { token, new_password: newPassword };
+    return this.http.post<void>(`${environment.apiUrl}/users/reset-password`, body);
+  }
+
+  // Authenticated (Bearer added by authInterceptor). 400 → wrong current password, 409 → password not set.
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    const body: ChangePasswordRequestDto = { current_password: currentPassword, new_password: newPassword };
+    return this.http.post<void>(`${environment.apiUrl}/users/change-password`, body);
   }
 
   
