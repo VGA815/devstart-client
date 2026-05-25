@@ -7,6 +7,20 @@ export interface LoginRequestDto {
   password: string;
 }
 
+export interface ForgotPasswordRequestDto {
+  email: string;
+}
+
+export interface ResetPasswordRequestDto {
+  token: string;
+  new_password: string;
+}
+
+export interface ChangePasswordRequestDto {
+  current_password: string;
+  new_password: string;
+}
+
 export interface RegisterRequestDto {
   email: string;
   username: string;
