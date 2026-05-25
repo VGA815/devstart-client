@@ -7,4 +7,5 @@ export interface Profile {
   isPublic: boolean;
   isAvailableForHire: boolean;
   avatarId: string | null;
+  viewCount: number;
 }

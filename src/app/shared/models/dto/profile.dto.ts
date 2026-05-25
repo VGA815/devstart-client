@@ -10,6 +10,7 @@ export interface ProfileDto {
   isPublic: boolean;
   isAvailableForHire: boolean;
   avatarId: string | null;
+  viewCount: number;
 }
 
 export interface CreateProfileRequestDto {
@@ -35,5 +36,6 @@ export function mapProfileDto(dto: ProfileDto): Profile {
     isPublic: dto.isPublic,
     isAvailableForHire: dto.isAvailableForHire,
     avatarId: dto.avatarId,
+    viewCount: dto.viewCount ?? 0,
   };
 }

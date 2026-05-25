@@ -43,11 +43,34 @@
   <div class="filter-bar">
     <div class="filter-bar__search">
       <span class="filter-bar__search-icon">🔍</span>
-      <span class="filter-bar__placeholder">Поиск по стартапам...</span>
+      <input
+        class="filter-bar__input"
+        type="text"
+        placeholder="Поиск по стартапам..."
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+        (keyup.enter)="goToCatalog()" />
     </div>
-    <div class="filter-bar__chip">Все стадии</div>
-    <div class="filter-bar__chip">Все отрасли</div>
-    <div class="filter-bar__chip">Любой город</div>
+
+    <select class="filter-bar__select" [value]="stage()" (change)="onStage($any($event.target).value)">
+      <option value="">Все стадии</option>
+      <option value="Idea">Идея</option>
+      <option value="PreSeed">Pre-Seed</option>
+      <option value="Mvp">MVP</option>
+      <option value="Seed">Seed</option>
+      <option value="SeriesA">Series A</option>
+    </select>
+
+    <select class="filter-bar__select" [value]="location()" (change)="onLocation($any($event.target).value)">
+      <option value="">Любой регион</option>
+      <option value="Russia">Россия</option>
+      <option value="USA">США</option>
+      <option value="China">Китай</option>
+      <option value="India">Индия</option>
+      <option value="Other">Другое</option>
+    </select>
+
+    <button class="filter-bar__btn" type="button" (click)="goToCatalog()">Найти →</button>
   </div>
 
   <div class="startup-list">

@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit, signal, computed } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Title, Meta } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/auth.service';
 import { StartupCatalogFacade } from '../startups/catalog/startup-catalog.facade';
@@ -24,7 +25,7 @@ function formatRaised(amount: number): string {
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [RouterLink, TagComponent, SkeletonComponent, AvatarComponent],
+  imports: [RouterLink, FormsModule, TagComponent, SkeletonComponent, AvatarComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,11 +33,17 @@ function formatRaised(amount: number): string {
 export class LandingComponent implements OnInit {
   protected readonly auth = inject(AuthService);
   protected readonly catalog = inject(StartupCatalogFacade);
+  private readonly router = inject(Router);
   private readonly titleSvc = inject(Title);
   private readonly metaSvc = inject(Meta);
   private readonly statsSvc = inject(StatsService);
 
   readonly skeletons = Array(5);
+
+  // Filter-bar state — applied by navigating to the full catalog with query params.
+  readonly query = signal('');
+  readonly stage = signal('');
+  readonly location = signal('');
 
   private readonly platformStats = signal<PlatformStats | null>(null);
 
@@ -91,6 +98,25 @@ export class LandingComponent implements OnInit {
     this.statsSvc.getStats().subscribe({
       next: stats => this.platformStats.set(stats),
     });
+  }
+
+  goToCatalog(): void {
+    const queryParams: Record<string, string> = {};
+    const q = this.query().trim();
+    if (q) { queryParams['q'] = q; }
+    if (this.stage()) { queryParams['stage'] = this.stage(); }
+    if (this.location()) { queryParams['location'] = this.location(); }
+    this.router.navigate(['/startups'], { queryParams });
+  }
+
+  onStage(value: string): void {
+    this.stage.set(value);
+    this.goToCatalog();
+  }
+
+  onLocation(value: string): void {
+    this.location.set(value);
+    this.goToCatalog();
   }
 
   protected readonly getStageColor = getStageColor;

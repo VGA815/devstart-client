@@ -196,14 +196,18 @@
 
   &__search-icon { font-size: 12px; }
 
-  &__placeholder {
+  &__input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: var(--text);
     font-size: 13px;
-    color: var(--text-dim);
+    &:focus { outline: none; }
+    &::placeholder { color: var(--text-dim); }
   }
 
-  &__chip {
-    display: inline-flex;
-    align-items: center;
+  &__select {
     padding: 5px 10px;
     background: var(--bg2);
     border: 1px solid var(--border);
@@ -213,6 +217,22 @@
     cursor: pointer;
     transition: var(--transition);
     &:hover { background: var(--bg3); color: var(--text); }
+    &:focus { outline: none; border-color: var(--accent); }
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 14px;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: var(--transition);
+    &:hover { opacity: 0.88; }
   }
 }
 

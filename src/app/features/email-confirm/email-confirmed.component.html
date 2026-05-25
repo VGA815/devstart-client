@@ -1,0 +1,52 @@
+<div class="status-page">
+  <div class="status-page__card">
+
+    @if (isSuccess) {
+      <div class="status-page__icon status-page__icon--ok">✓</div>
+      <h1 class="status-page__title">Почта подтверждена</h1>
+      <p class="status-page__sub">
+        Ваш адрес электронной почты успешно подтверждён. Теперь вы можете войти в аккаунт.
+      </p>
+      <div class="status-page__actions">
+        <a class="status-page__btn status-page__btn--primary" routerLink="/login">Войти</a>
+      </div>
+    } @else {
+      <div class="status-page__icon status-page__icon--err">!</div>
+      <h1 class="status-page__title">Ссылка недействительна</h1>
+      <p class="status-page__sub">
+        Ссылка для подтверждения недействительна или устарела (срок действия — 20 минут).
+        Запросите новое письмо.
+      </p>
+
+      @if (resendSuccess()) {
+        <p class="status-page__note status-page__note--ok">
+          Письмо отправлено. Проверьте почту и перейдите по ссылке.
+        </p>
+      } @else {
+        <div class="status-page__resend">
+          <input
+            class="status-page__input"
+            type="email"
+            placeholder="you@example.com"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)" />
+          <button
+            class="status-page__btn status-page__btn--primary"
+            type="button"
+            [disabled]="resending() || !email()"
+            (click)="resend()">
+            @if (resending()) { Отправляем… } @else { Отправить снова }
+          </button>
+        </div>
+        @if (resendError()) {
+          <p class="status-page__note status-page__note--err">{{ resendError() }}</p>
+        }
+      }
+
+      <div class="status-page__actions">
+        <a class="status-page__btn" routerLink="/login">Ко входу</a>
+      </div>
+    }
+
+  </div>
+</div>

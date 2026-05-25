@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, switchMap, tap, map, throwError, finalize, of, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { BYPASS_403 } from '../http/error.interceptor';
 import { User } from '../../shared/models/user.model';
 import { UserDto, LoginRequestDto, RegisterRequestDto, mapUserDto } from '../../shared/models/dto/user.dto';
 import { TokenPairDto } from '../../shared/models/dto/auth.dto';
@@ -57,9 +58,12 @@ export class AuthService {
 
   login(body: LoginRequestDto): Observable<User> {
     this._loading.set(true);
+    // 403 here means "email not verified" — surfaced inline by the login/register forms,
+    // so opt out of the global /403 redirect.
     return this.http.post<TokenPairDto>(
       `${environment.apiUrl}/users/login`,
-      body
+      body,
+      { context: new HttpContext().set(BYPASS_403, true) }
     ).pipe(
       switchMap(pair => this.completeSession(pair)),
       finalize(() => this._loading.set(false)),
@@ -72,7 +76,8 @@ export class AuthService {
     this._loading.set(true);
     return this.http.post<string>(
       `${environment.apiUrl}/users/register`,
-      body
+      body,
+      { context: new HttpContext().set(BYPASS_403, true) }
     ).pipe(
       switchMap(() => this.login({ email: body.email, password: body.password })),
       finalize(() => this._loading.set(false)),
@@ -105,9 +110,11 @@ export class AuthService {
   }
 
   resendEmailVerification(email: string): Observable<void> {
+    // Backend binds the address from the query string ([FromQuery] string email).
     return this.http.post<void>(
       `${environment.apiUrl}/email-verification/resend`,
-      { email }
+      null,
+      { params: new HttpParams().set('email', email) }
     );
   }
 

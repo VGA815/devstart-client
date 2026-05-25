@@ -36,13 +36,17 @@ export class DashboardOverviewComponent implements OnInit {
   readonly unreadCount = signal<number | null>(null);
   readonly incomingCount = signal<number | null>(null);
   readonly profileAvatarId = signal<string | null>(null);
+  readonly profileViews = signal<number | null>(null);
 
   ngOnInit(): void {
     const user = this.auth.user();
     if (!user) { this.loading.set(false); return; }
 
     this.profileSvc.getProfile(user.id).subscribe({
-      next: p => this.profileAvatarId.set(p.avatarId),
+      next: p => {
+        this.profileAvatarId.set(p.avatarId);
+        this.profileViews.set(p.viewCount);
+      },
       error: () => {},
     });
 

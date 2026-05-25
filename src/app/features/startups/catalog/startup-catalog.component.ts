@@ -2,7 +2,7 @@ import {
   Component, ChangeDetectionStrategy, inject, OnInit,
   signal, computed, effect, untracked,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -54,6 +54,7 @@ function formatCatalogMetric(m: StartupMetric): string {
 export class StartupCatalogComponent implements OnInit {
   protected readonly facade      = inject(StartupCatalogFacade);
   private readonly metricsSvc    = inject(StartupMetricsService);
+  private readonly route         = inject(ActivatedRoute);
   private readonly title         = inject(Title);
   private readonly meta          = inject(Meta);
 
@@ -92,7 +93,20 @@ export class StartupCatalogComponent implements OnInit {
   ngOnInit(): void {
     this.title.setTitle('Каталог стартапов — DevStart');
     this.meta.updateTag({ name: 'description', content: 'Каталог стартапов на платформе DevStart' });
-    this.facade.load({ page: 1, pageSize: 50 });
+
+    // Seed search & filters from the URL (e.g. when arriving from the landing filter bar).
+    const params = this.route.snapshot.queryParamMap;
+    const stage = params.get('stage') as StartupStage | null;
+    const location = params.get('location') as StartupLocation | null;
+    this.searchQuery.set(params.get('q') ?? '');
+    this.selectedStage.set(stage);
+    this.selectedLocation.set(location);
+
+    this.facade.load({
+      page: 1, pageSize: 50,
+      ...(stage ? { stage } : {}),
+      ...(location ? { location } : {}),
+    });
   }
 
   private loadMetrics(ids: string[]): void {

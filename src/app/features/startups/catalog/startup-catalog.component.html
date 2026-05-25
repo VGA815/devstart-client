@@ -19,7 +19,7 @@
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)" />
 
-    <select class="field__select field__select--sm catalog-filters__select" (change)="selectStage($any($event.target).value)">
+    <select class="field__select field__select--sm catalog-filters__select" [value]="selectedStage() ?? ''" (change)="selectStage($any($event.target).value)">
       <option value="">Все стадии</option>
       <option value="Idea">Идея</option>
       <option value="PreSeed">Pre-Seed</option>
@@ -28,7 +28,7 @@
       <option value="SeriesA">Series A</option>
     </select>
 
-    <select class="field__select field__select--sm catalog-filters__select" (change)="selectLocation($any($event.target).value)">
+    <select class="field__select field__select--sm catalog-filters__select" [value]="selectedLocation() ?? ''" (change)="selectLocation($any($event.target).value)">
       <option value="">Любой регион</option>
       <option value="Russia">Россия</option>
       <option value="USA">США</option>

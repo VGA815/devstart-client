@@ -1,0 +1,116 @@
+.status-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 56px - 63px);
+  padding: 24px 16px;
+
+  &__card {
+    width: 440px;
+    max-width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 44px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 13px;
+    text-align: center;
+  }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+
+    &--ok  { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+    &--err { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+  }
+
+  &__title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  &__sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 360px;
+  }
+
+  &__resend {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  &__input {
+    flex: 1;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  }
+
+  &__note {
+    font-size: 12.5px;
+    line-height: 1.5;
+
+    &--ok  { color: var(--green); }
+    &--err { color: var(--red); }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  &__btn {
+    height: 38px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    border-radius: var(--radius);
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+
+    &:hover { border-color: var(--accent); }
+    &:disabled { opacity: 0.55; cursor: default; }
+
+    &--primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+
+      &:hover { opacity: 0.88; border-color: var(--accent); }
+    }
+  }
+}

@@ -17,8 +17,10 @@
   <div class="stats-grid">
     <div class="stat-card">
       <span class="stat-card__label">Просмотры профиля</span>
-      <span class="stat-card__value stat-card__value--accent">—</span>
-      <span class="stat-card__sub">Нет данных</span>
+      <span class="stat-card__value stat-card__value--accent">
+        @if (profileViews() === null) { … } @else { {{ profileViews() }} }
+      </span>
+      <span class="stat-card__sub">Всего</span>
     </div>
     <div class="stat-card">
       <span class="stat-card__label">Входящих заявок</span>

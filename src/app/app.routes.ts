@@ -108,7 +108,23 @@ export const routes: Routes = [
       import('./features/auth/oauth-callback/oauth-callback.component').then(m => m.OAuthCallbackComponent),
   },
   {
+    path: 'email/confirmed',
+    loadComponent: () =>
+      import('./features/email-confirm/email-confirmed.component').then(m => m.EmailConfirmedComponent),
+  },
+  {
+    path: 'billing/return',
+    loadComponent: () =>
+      import('./features/billing/billing-return.component').then(m => m.BillingReturnComponent),
+  },
+  {
+    path: '403',
+    loadComponent: () =>
+      import('./features/forbidden/forbidden.component').then(m => m.ForbiddenComponent),
+  },
+  {
     path: '**',
-    redirectTo: '',
+    loadComponent: () =>
+      import('./features/not-found/not-found.component').then(m => m.NotFoundComponent),
   },
 ];
