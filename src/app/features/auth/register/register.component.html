@@ -116,21 +116,6 @@
           }
         </div>
 
-        <div class="field">
-          <label class="field__label">Роль</label>
-          <div class="chips">
-            <button type="button" class="chip chip--lg"
-              [class.chip--active]="selectedRole() === 'founder'"
-              (click)="setRole('founder')">Стартапер</button>
-            <button type="button" class="chip chip--lg"
-              [class.chip--active]="selectedRole() === 'investor'"
-              (click)="setRole('investor')">Инвестор</button>
-            <button type="button" class="chip chip--lg"
-              [class.chip--active]="selectedRole() === 'expert'"
-              (click)="setRole('expert')">Эксперт</button>
-          </div>
-        </div>
-
         <div class="auth-consents">
           <div class="auth-consents__header">
             <span class="auth-consents__title">Согласия</span>

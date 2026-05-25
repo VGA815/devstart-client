@@ -8,8 +8,6 @@ import { OAuthProvider } from '../../../shared/models/dto/auth.dto';
 import { ConsentService } from '../../../core/consents/consent.service';
 import { ConsentItemDto, ConsentVersionsDto } from '../../../shared/models/dto/consent.dto';
 
-type Role = 'founder' | 'investor' | 'expert';
-
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -28,7 +26,6 @@ export class RegisterComponent implements OnInit {
   readonly loading      = this.auth.loading;
   readonly oauthLoading = signal<OAuthProvider | null>(null);
   readonly error        = signal<string | null>(null);
-  readonly selectedRole = signal<Role>('founder');
   readonly consentVersions = signal<ConsentVersionsDto | null>(null);
 
   readonly registered = signal(false);
@@ -87,12 +84,6 @@ export class RegisterComponent implements OnInit {
         this.resendError.set('Не удалось отправить письмо. Попробуйте позже.');
       },
     });
-  }
-
-  setRole(role: Role): void {
-    this.selectedRole.set(role);
-    if (role === 'investor') { this.router.navigate(['/register/investor']); }
-    if (role === 'expert')   { this.router.navigate(['/register/expert']);   }
   }
 
   submit(): void {
