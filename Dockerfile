@@ -23,6 +23,12 @@ RUN sed -i \
       -e "s|wsUrl: '[^']*'|wsUrl: '${WS_URL}'|" \
       src/environments/environment.ts
 
+# Inject the absolute public site URL into the crawler files (robots.txt / sitemap.xml).
+# These require absolute URLs and have no same-origin default (like WS_URL), so prod must
+# pass SITE_URL=https://<domain> (no trailing slash). Defaults to the local docker-run host.
+ARG SITE_URL=http://localhost:8080
+RUN sed -i "s|__SITE_URL__|${SITE_URL}|g" public/robots.txt public/sitemap.xml
+
 RUN npm run build -- --configuration=production
 
 # --- Runtime stage ------------------------------------------------------

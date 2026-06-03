@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Angular Dev Server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start", "--", "--host", "0.0.0.0"],
+      "port": 4200
+    },
+    {
+      "name": "Karma Test Runner",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["test"],
+      "port": 9876
+    }
+  ]
+}

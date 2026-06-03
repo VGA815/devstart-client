@@ -5,12 +5,9 @@ IMAGE     ?= devstart-client
 TAG       ?= latest
 CONTAINER ?= devstart-client
 HOST_PORT ?= 8080
-
-# Backend URLs baked into the image at build time. Empty = use Dockerfile defaults.
-# Override per environment, e.g.:
-#   make docker-build API_URL=https://api.example.com/api WS_URL=wss://ws.example.com/connection/websocket
 API_URL ?=
 WS_URL  ?=
+SITE_URL ?=
 
 BUILD_ARGS :=
 ifneq ($(API_URL),)
@@ -18,6 +15,9 @@ BUILD_ARGS += --build-arg API_URL=$(API_URL)
 endif
 ifneq ($(WS_URL),)
 BUILD_ARGS += --build-arg WS_URL=$(WS_URL)
+endif
+ifneq ($(SITE_URL),)
+BUILD_ARGS += --build-arg SITE_URL=$(SITE_URL)
 endif
 
 .DEFAULT_GOAL := help

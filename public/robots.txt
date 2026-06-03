@@ -1,0 +1,19 @@
+# DevStart — crawl directives.
+# The Sitemap host (__SITE_URL__) is substituted at build time from the SITE_URL
+# build-arg (see Dockerfile / Makefile). Public pages are crawlable by default;
+# private, transient, and token-bearing routes are blocked below.
+
+User-agent: *
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /email/
+Disallow: /invite/
+Disallow: /auth/
+Disallow: /billing/
+Disallow: /startups/new
+Disallow: /403
+
+Sitemap: __SITE_URL__/sitemap.xml

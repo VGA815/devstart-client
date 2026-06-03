@@ -16,7 +16,6 @@ export class EmailConfirmedComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly title = inject(Title);
 
-  // Bound from the ?status= query param (provideRouter withComponentInputBinding).
   @Input() status = '';
 
   readonly email = signal('');
