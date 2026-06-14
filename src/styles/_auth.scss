@@ -134,6 +134,26 @@
     height: 16px;
     flex-shrink: 0;
   }
+
+  &__notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin: 0;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-dim);
+
+    svg {
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: var(--text-dim);
+    }
+  }
 }
 
 .auth-divider {
