@@ -1,0 +1,138 @@
+.consent-challenge {
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px;
+
+  &__card {
+    width: 640px;
+    max-width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  &__sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  &__spinner {
+    align-self: center;
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  &__doc {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  &__doc-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__doc-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  &__doc-version {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  &__doc-body {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-muted);
+
+    :is(h1, h2, h3) { color: var(--text); }
+    a { color: var(--accent); }
+  }
+
+  &__accept {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+
+    input {
+      margin-top: 2px;
+      accent-color: var(--accent);
+    }
+  }
+
+  &__error {
+    font-size: 13px;
+    color: var(--red);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  &__btn {
+    height: 38px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+
+    &--primary {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #fff;
+
+      &:hover:not(:disabled) { opacity: 0.88; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    &--ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+
+      &:hover { background: var(--bg3); color: var(--text); }
+    }
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

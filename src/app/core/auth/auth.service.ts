@@ -14,7 +14,13 @@ import {
   ChangePasswordRequestDto,
   mapUserDto,
 } from '../../shared/models/dto/user.dto';
-import { TokenPairDto } from '../../shared/models/dto/auth.dto';
+import {
+  TokenPairDto,
+  AuthResultDto,
+  ConsentChallengeDto,
+  CompleteConsentRequestDto,
+} from '../../shared/models/dto/auth.dto';
+import { ConsentItemDto } from '../../shared/models/dto/consent.dto';
 
 const ACCESS_KEY  = 'devstart_access';
 const REFRESH_KEY = 'devstart_refresh';
@@ -26,6 +32,11 @@ interface JwtClaims {
   jti?: string;
 }
 
+/** Result of a sign-in attempt: either fully authenticated, or a consent challenge to satisfy. */
+export type AuthOutcome =
+  | { kind: 'authenticated'; user: User }
+  | { kind: 'consent'; challenge: ConsentChallengeDto };
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http   = inject(HttpClient);
@@ -33,10 +44,13 @@ export class AuthService {
 
   private readonly _user    = signal<User | null>(null);
   private readonly _loading = signal(false);
+  private readonly _pendingChallenge = signal<ConsentChallengeDto | null>(null);
 
   readonly user             = this._user.asReadonly();
   readonly loading          = this._loading.asReadonly();
   readonly isAuthenticated  = computed(() => this._user() !== null);
+  /** Set when login/OAuth returned a consent challenge instead of tokens. */
+  readonly pendingChallenge = this._pendingChallenge.asReadonly();
 
 
   getAccessToken():  string | null { return localStorage.getItem(ACCESS_KEY); }
@@ -64,23 +78,24 @@ export class AuthService {
   }
 
 
-  login(body: LoginRequestDto): Observable<User> {
+  // Returns either an authenticated user or a consent challenge to satisfy.
+  // 403 here means "email not verified" — surfaced inline by the login/register
+  // forms, so opt out of the global /403 redirect.
+  login(body: LoginRequestDto): Observable<AuthOutcome> {
     this._loading.set(true);
-    // 403 here means "email not verified" — surfaced inline by the login/register forms,
-    // so opt out of the global /403 redirect.
-    return this.http.post<TokenPairDto>(
+    return this.http.post<AuthResultDto>(
       `${environment.apiUrl}/users/login`,
       body,
       { context: new HttpContext().set(BYPASS_403, true) }
     ).pipe(
-      switchMap(pair => this.completeSession(pair)),
+      switchMap(res => this.processAuthResult(res)),
       finalize(() => this._loading.set(false)),
     );
   }
 
 
   
-  register(body: RegisterRequestDto): Observable<User> {
+  register(body: RegisterRequestDto): Observable<AuthOutcome> {
     this._loading.set(true);
     return this.http.post<string>(
       `${environment.apiUrl}/users/register`,
@@ -102,6 +117,57 @@ export class AuthService {
       map(mapUserDto),
       tap(user => this._user.set(user)),
     );
+  }
+
+  // Normalize a login/OAuth response — the documented `{ tokens, consent }` envelope,
+  // or (defensively) a bare token pair — into an AuthOutcome.
+  private processAuthResult(res: AuthResultDto | TokenPairDto): Observable<AuthOutcome> {
+    const bare = res as TokenPairDto;
+    if (bare.accessToken) return this.toAuthenticated(bare);
+
+    const env = res as AuthResultDto;
+    if (env.tokens) return this.toAuthenticated(env.tokens);
+    if (env.consent) {
+      this._pendingChallenge.set(env.consent);
+      return of<AuthOutcome>({ kind: 'consent', challenge: env.consent });
+    }
+    return throwError(() => new Error('Malformed auth result'));
+  }
+
+  private toAuthenticated(pair: TokenPairDto): Observable<AuthOutcome> {
+    this._pendingChallenge.set(null);
+    return this.completeSession(pair).pipe(
+      map(user => ({ kind: 'authenticated', user }) as AuthOutcome),
+    );
+  }
+
+  // Process an OAuth callback envelope (tokens or a consent challenge).
+  handleAuthResult(res: AuthResultDto): Observable<AuthOutcome> {
+    return this.processAuthResult(res);
+  }
+
+  // Finish a consent-gated sign-in (password OR OAuth) using the stored pending
+  // challenge — the same /auth/oauth/complete endpoint serves both. → token pair → session.
+  completeConsent(consents: ConsentItemDto[]): Observable<AuthOutcome> {
+    const challenge = this._pendingChallenge();
+    if (!challenge) return throwError(() => new Error('No pending consent challenge'));
+
+    this._loading.set(true);
+    const body: CompleteConsentRequestDto = {
+      pending_token: challenge.pendingToken,
+      consents,
+    };
+    return this.http.post<AuthResultDto>(
+      `${environment.apiUrl}/auth/oauth/complete`,
+      body,
+    ).pipe(
+      switchMap(res => this.processAuthResult(res)),
+      finalize(() => this._loading.set(false)),
+    );
+  }
+
+  clearPendingChallenge(): void {
+    this._pendingChallenge.set(null);
   }
 
   loadCurrentUser(): Observable<User> {

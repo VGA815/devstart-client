@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 import {
   OAuthProvider,
   OAuthStartResponseDto,
-  TokenPairDto,
+  AuthResultDto,
 } from '../../shared/models/dto/auth.dto';
 
 @Injectable({ providedIn: 'root' })
@@ -32,8 +32,9 @@ export class OAuthService {
   }
 
 
-  handleCallback(provider: OAuthProvider, code: string, state: string): Observable<TokenPairDto> {
-    return this.http.get<TokenPairDto>(
+  // Returns the `{ tokens, consent }` envelope — feed it to AuthService.handleAuthResult().
+  handleCallback(provider: OAuthProvider, code: string, state: string): Observable<AuthResultDto> {
+    return this.http.get<AuthResultDto>(
       `${this.base}/${provider}/callback`,
       { params: new HttpParams().set('code', code).set('state', state) }
     );

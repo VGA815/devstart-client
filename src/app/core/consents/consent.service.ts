@@ -28,4 +28,10 @@ export class ConsentService {
   getDocument(type: number): Observable<ConsentDocumentDto> {
     return this.http.get<ConsentDocumentDto>(`${environment.apiUrl}/consent-documents/${type}`);
   }
+
+  // A specific version (used by the consent-challenge screen, which is told the
+  // exact version it must show — see api.md `GET api/consent-documents/{type}/{version}`).
+  getDocumentVersion(type: number, version: string): Observable<ConsentDocumentDto> {
+    return this.http.get<ConsentDocumentDto>(`${environment.apiUrl}/consent-documents/${type}/${version}`);
+  }
 }

@@ -118,6 +118,11 @@ export const routes: Routes = [
       import('./features/auth/oauth-callback/oauth-callback.component').then(m => m.OAuthCallbackComponent),
   },
   {
+    path: 'consent',
+    loadComponent: () =>
+      import('./features/auth/consent/consent-challenge.component').then(m => m.ConsentChallengeComponent),
+  },
+  {
     path: 'email/confirmed',
     loadComponent: () =>
       import('./features/email-confirm/email-confirmed.component').then(m => m.EmailConfirmedComponent),

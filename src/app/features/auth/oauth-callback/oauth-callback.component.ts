@@ -49,9 +49,13 @@ export class OAuthCallbackComponent implements OnInit {
     }
 
     this.oauth.handleCallback(this.provider, code, state).subscribe({
-      next: pair => {
-        this.auth.completeSession(pair).subscribe({
-          next: () => {
+      next: res => {
+        this.auth.handleAuthResult(res).subscribe({
+          next: outcome => {
+            if (outcome.kind === 'consent') {
+              this.router.navigate(['/consent']);
+              return;
+            }
             this.status.set('success');
             setTimeout(() => this.router.navigate(['/dashboard']), 600);
           },

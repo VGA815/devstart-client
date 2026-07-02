@@ -114,7 +114,8 @@ export class RegisterComponent implements OnInit {
       is_public:          true,
       consents,
     }).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: (outcome) =>
+        this.router.navigate([outcome.kind === 'consent' ? '/consent' : '/dashboard']),
       error: (err: HttpErrorResponse) => {
         if (err.status === 403) {
           this.verifyEmail.set(v.email!);

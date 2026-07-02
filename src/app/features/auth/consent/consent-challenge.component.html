@@ -1,0 +1,63 @@
+<div class="consent-challenge">
+  <div class="consent-challenge__card">
+
+    <h1 class="consent-challenge__title">Обновились правовые документы</h1>
+    <p class="consent-challenge__sub">
+      Чтобы продолжить вход, ознакомьтесь с обновлёнными документами и подтвердите согласие.
+    </p>
+
+    @if (loading()) {
+      <div class="consent-challenge__spinner" aria-hidden="true"></div>
+    } @else if (error() && rows().length === 0) {
+      <p class="consent-challenge__error">{{ error() }}</p>
+      <div class="consent-challenge__actions">
+        <button type="button" class="consent-challenge__btn consent-challenge__btn--ghost" (click)="cancel()">
+          Вернуться ко входу
+        </button>
+      </div>
+    } @else {
+
+      @for (row of rows(); track row.type) {
+        <section class="consent-challenge__doc">
+          <header class="consent-challenge__doc-head">
+            <h2 class="consent-challenge__doc-title">{{ row.title }}</h2>
+            <span class="consent-challenge__doc-version">v{{ row.documentVersion }}</span>
+          </header>
+          <div class="consent-challenge__doc-body" [innerHTML]="row.content | markdown"></div>
+          <label class="consent-challenge__accept">
+            <input
+              type="checkbox"
+              [checked]="row.accepted"
+              (change)="toggle(row.type, $any($event.target).checked)"
+            />
+            <span>Я прочитал(а) и принимаю «{{ row.title }}»</span>
+          </label>
+        </section>
+      }
+
+      @if (error()) {
+        <p class="consent-challenge__error">{{ error() }}</p>
+      }
+
+      <div class="consent-challenge__actions">
+        <button
+          type="button"
+          class="consent-challenge__btn consent-challenge__btn--ghost"
+          (click)="cancel()"
+        >
+          Отмена
+        </button>
+        <button
+          type="button"
+          class="consent-challenge__btn consent-challenge__btn--primary"
+          [disabled]="!allAccepted() || submitting()"
+          (click)="submit()"
+        >
+          {{ submitting() ? 'Сохраняем…' : 'Принять и продолжить' }}
+        </button>
+      </div>
+
+    }
+
+  </div>
+</div>
