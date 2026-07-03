@@ -1,0 +1,122 @@
+<div class="adm-page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Бенчмарки оценки</h1>
+    <p class="page__sub">Актуальные значения, используемые движком оценки стоимости. Новая запись становится новой версией — история сохраняется.</p>
+  </header>
+
+  <div class="adm-filters">
+    <button class="btn btn--ghost btn--sm" type="button" (click)="load()">Обновить</button>
+    @if (!formOpen()) {
+      <button class="btn btn--primary btn--sm" type="button" (click)="formOpen.set(true)">+ Добавить версию</button>
+    }
+  </div>
+
+  @if (formOpen()) {
+    <div class="card adm-form-card">
+      <div class="card__header"><span class="card__title">Новая версия бенчмарка</span></div>
+      <div class="card__body">
+        <div class="adm-inline-form__row">
+          <div class="field">
+            <label class="field__label">Метрика</label>
+            <select class="field__select field__select--sm"
+              [value]="metricType()" (change)="metricType.set($any($event.target).value)">
+              @for (opt of metricOptions; track opt[0]) {
+                <option [value]="opt[0]">{{ opt[1] }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label class="field__label">Индустрия</label>
+            <select class="field__select field__select--sm"
+              [value]="industry()" (change)="industry.set($any($event.target).value)">
+              @for (opt of industryOptions; track opt[0]) {
+                <option [value]="opt[0]">{{ opt[1] }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label class="field__label">Стадия</label>
+            <select class="field__select field__select--sm"
+              [value]="stage()" (change)="stage.set($any($event.target).value)">
+              <option value="">Все стадии</option>
+              @for (opt of stageOptions; track opt[0]) {
+                <option [value]="opt[0]">{{ opt[1] }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="adm-inline-form__row">
+          <div class="field">
+            <label class="field__label">Значение
+              <span class="field__hint field__hint--inline">₽ для pre-money, множитель для мультипликатора</span>
+            </label>
+            <input class="field__input field__input--sm" type="text" inputmode="decimal"
+              [value]="value()" (input)="value.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Действует с</label>
+            <input class="field__input field__input--sm" type="date"
+              [value]="effectiveFrom()" (input)="effectiveFrom.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Источник</label>
+            <input class="field__input field__input--sm" type="text" placeholder="Отчёт, исследование, ссылка"
+              [value]="source()" (input)="source.set($any($event.target).value)" />
+          </div>
+        </div>
+        @if (formError()) { <p class="adm-error">{{ formError() }}</p> }
+        <div class="adm-inline-form__actions">
+          <button class="btn btn--ghost btn--sm" type="button" (click)="formOpen.set(false)">Отмена</button>
+          <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="busy()" (click)="submitAdd()">
+            {{ busy() ? 'Сохранение…' : 'Добавить' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <app-skeleton height="48px" /><app-skeleton height="48px" />
+  } @else if (error()) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">{{ error() }}</p></div>
+  } @else if (benchmarks().length === 0) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">Бенчмарков нет.</p></div>
+  } @else {
+    <div class="card card__body--flush">
+      @for (b of benchmarks(); track b.id) {
+        <div class="adm-row">
+          <div class="adm-row__info">
+            <span class="adm-row__title">
+              {{ metricLabel(b.metricType) }} · {{ industryLabel(b.industry) }} · {{ stageLabel(b.stage) }}
+            </span>
+            <span class="adm-row__sub">
+              {{ formatValue(b) }} · действует с {{ formatDate(b.effectiveFrom) }} · {{ b.source }}
+            </span>
+          </div>
+          <div class="adm-row__actions">
+            <button class="btn btn--ghost btn--sm" type="button" (click)="toggleHistory(b)">
+              {{ isHistoryOpen(b) ? 'Скрыть историю' : 'История' }}
+            </button>
+          </div>
+        </div>
+
+        @if (isHistoryOpen(b)) {
+          <div class="adm-inline-form">
+            @if (historyLoading()) {
+              <app-skeleton height="32px" />
+            } @else if (history().length === 0) {
+              <p class="adm-mono">История пуста.</p>
+            } @else {
+              @for (h of history(); track h.id) {
+                <p class="adm-mono">
+                  {{ formatDate(h.effectiveFrom) }} → {{ formatValue(h) }} ({{ h.source }})
+                </p>
+              }
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

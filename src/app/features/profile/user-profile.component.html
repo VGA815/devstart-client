@@ -36,9 +36,17 @@
           <div class="uprofile-banner__info">
             <h1 class="uprofile-banner__name">{{ displayName() }}</h1>
 
-            @if (profile()?.isAvailableForHire) {
-              <span class="badge badge--mono badge--green">Открыт к предложениям</span>
-            }
+            <div class="uprofile-banner__badges">
+              @if (profile()?.isAvailableForHire) {
+                <span class="badge badge--mono badge--green">Открыт к предложениям</span>
+              }
+              @if (overview()?.statistics?.isInvestor) {
+                <a class="badge badge--mono badge--accent" [routerLink]="['/investors', overview()!.id]">Инвестор</a>
+              }
+              @if (overview()?.statistics?.isExpert) {
+                <a class="badge badge--mono badge--purple" [routerLink]="['/experts', overview()!.id]">Эксперт</a>
+              }
+            </div>
           </div>
 
           <div class="uprofile-banner__actions">
@@ -68,6 +76,24 @@
           <span class="uprofile-stat-cell__val">{{ socialLinks().length }}</span>
           <span class="uprofile-stat-cell__lbl">Соц. сетей</span>
         </div>
+        @if (overview()?.statistics; as stats) {
+          @if (stats.isInvestor) {
+            <div class="uprofile-stat-cell">
+              <span class="uprofile-stat-cell__val">{{ stats.completedDealsCount }}</span>
+              <span class="uprofile-stat-cell__lbl">Закрытых сделок</span>
+            </div>
+          }
+          @if (stats.isExpert) {
+            <div class="uprofile-stat-cell">
+              <span class="uprofile-stat-cell__val">{{ stats.acceptedCollaborationsCount }}</span>
+              <span class="uprofile-stat-cell__lbl">Коллабораций</span>
+            </div>
+            <div class="uprofile-stat-cell">
+              <span class="uprofile-stat-cell__val">{{ stats.experiencesCount }}</span>
+              <span class="uprofile-stat-cell__lbl">Мест опыта</span>
+            </div>
+          }
+        }
       </div>
 
       @if (startups().length > 0) {

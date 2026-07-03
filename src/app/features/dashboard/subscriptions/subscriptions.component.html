@@ -34,6 +34,46 @@
 
   <section class="section">
     <div class="section__heading-row">
+      <h2 class="section__title section__title--mono">История платежей</h2>
+    </div>
+
+    @if (paymentsLoading()) {
+      <app-skeleton height="64px" border-radius="6px" />
+    } @else if (paymentsError()) {
+      <div class="empty-state empty-state--card">
+        <p class="empty-state__sub">{{ paymentsError() }}</p>
+      </div>
+    } @else if (payments().length === 0) {
+      <div class="empty-state empty-state--card">
+        <p class="empty-state__sub">Платежей пока нет.</p>
+      </div>
+    } @else {
+      <div class="card card__body--flush">
+        @for (p of payments(); track p.id) {
+          <div class="card-row">
+            <div class="card-row__info">
+              <span class="card-row__title">
+                {{ p.plan === 'Pro' ? 'DevStart Pro' : 'Free' }} · {{ formatAmount(p) }}
+              </span>
+              <span class="card-row__sub">
+                {{ formatSubscriptionDate(p.paidAt ?? p.createdAt) }}
+                @if (p.refundedAmount > 0) { · возврат {{ p.refundedAmount }} {{ p.currency }} }
+              </span>
+            </div>
+            <span class="badge badge--mono"
+              [class.badge--green]="p.status === 'Succeeded'"
+              [class.badge--yellow]="p.status === 'Pending'"
+              [class.badge--red]="p.status === 'Failed' || p.status === 'Cancelled'">
+              {{ paymentStatusLabel(p.status) }}
+            </span>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="section">
+    <div class="section__heading-row">
       <h2 class="section__title section__title--mono">Отслеживаемые стартапы</h2>
       <a class="btn btn--text" routerLink="/startups">Каталог →</a>
     </div>

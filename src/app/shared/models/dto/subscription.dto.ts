@@ -1,6 +1,8 @@
 import {
   CheckoutSession,
   CurrentSubscription,
+  PaymentHistoryItem,
+  PaymentStatus,
   SubscriptionPlan,
   SubscriptionStatus,
 } from '../subscription.model';
@@ -17,6 +19,14 @@ const STATUS_MAP: Record<number, SubscriptionStatus> = {
   3: 'Expired',
 };
 
+const PAYMENT_STATUS_MAP: Record<number, PaymentStatus> = {
+  0: 'Pending',
+  1: 'Succeeded',
+  2: 'Cancelled',
+  3: 'Failed',
+  4: 'Refunded',
+};
+
 export interface CurrentSubscriptionDto {
   subscriptionId: string | null;
   plan: number;
@@ -29,7 +39,20 @@ export interface CurrentSubscriptionDto {
 export interface CheckoutSessionDto {
   subscriptionId: string;
   paymentId: string;
-  confirmationUrl: string;
+  confirmationUrl: string | null;
+  activated: boolean;
+}
+
+export interface PaymentHistoryDto {
+  id: string;
+  subscriptionId: string;
+  plan: number;
+  amount: number;
+  refundedAmount: number;
+  currency: string;
+  status: number;
+  createdAt: string;
+  paidAt: string | null;
 }
 
 export function mapCurrentSubscriptionDto(dto: CurrentSubscriptionDto): CurrentSubscription {
@@ -48,5 +71,20 @@ export function mapCheckoutSessionDto(dto: CheckoutSessionDto): CheckoutSession 
     subscriptionId: dto.subscriptionId,
     paymentId: dto.paymentId,
     confirmationUrl: dto.confirmationUrl,
+    activated: dto.activated,
+  };
+}
+
+export function mapPaymentHistoryDto(dto: PaymentHistoryDto): PaymentHistoryItem {
+  return {
+    id: dto.id,
+    subscriptionId: dto.subscriptionId,
+    plan: PLAN_MAP[dto.plan] ?? 'Pro',
+    amount: dto.amount,
+    refundedAmount: dto.refundedAmount,
+    currency: dto.currency,
+    status: PAYMENT_STATUS_MAP[dto.status] ?? 'Pending',
+    createdAt: dto.createdAt,
+    paidAt: dto.paidAt,
   };
 }

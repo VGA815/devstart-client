@@ -4,9 +4,11 @@ import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
 import { OAuthService } from '../../../core/auth/oauth.service';
+import { UserPreferencesService } from '../../../core/preferences/user-preferences.service';
 import { ProfileService } from '../../startups/profile.service';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { OAuthProvider } from '../../../shared/models/dto/auth.dto';
+import { ThemePreference } from '../../../shared/models/user-preference.model';
 
 @Component({
   selector: 'app-settings',
@@ -22,6 +24,7 @@ export class SettingsComponent implements OnInit {
   protected readonly auth         = inject(AuthService);
   private readonly oauth          = inject(OAuthService);
   private readonly profileService = inject(ProfileService);
+  private readonly prefsService   = inject(UserPreferencesService);
 
   readonly saveSuccess      = signal(false);
   readonly saveError        = signal<string | null>(null);
@@ -91,9 +94,18 @@ export class SettingsComponent implements OnInit {
 
   readonly socialLinksRaw = signal('');
 
-  readonly notifyApplications = signal(true);
-  readonly notifyMessages     = signal(true);
-  readonly notifyPlatform     = signal(false);
+  // Backed by api/users/preferences: one receive-notifications flag + a theme choice.
+  readonly prefsLoaded          = signal(false);
+  readonly prefsSaving          = signal(false);
+  readonly prefsError           = signal<string | null>(null);
+  readonly receiveNotifications = signal(true);
+  readonly theme                = signal<ThemePreference>('Dark');
+
+  readonly themeOptions: { value: ThemePreference; label: string }[] = [
+    { value: 'Dark',   label: 'Тёмная' },
+    { value: 'Light',  label: 'Светлая' },
+    { value: 'System', label: 'Как в системе' },
+  ];
 
   readonly profileForm = this.fb.group({
     name:     [''],
@@ -209,9 +221,45 @@ export class SettingsComponent implements OnInit {
     return providerLabel(p);
   }
 
+  toggleNotifications(): void {
+    this.receiveNotifications.set(!this.receiveNotifications());
+    this.savePreferences();
+  }
+
+  setTheme(theme: ThemePreference): void {
+    if (this.theme() === theme) return;
+    this.theme.set(theme);
+    this.savePreferences();
+  }
+
+  private savePreferences(): void {
+    const user = this.auth.user();
+    if (!user) return;
+
+    this.prefsSaving.set(true);
+    this.prefsError.set(null);
+
+    this.prefsService.update(user.id, this.theme(), this.receiveNotifications()).subscribe({
+      next: () => this.prefsSaving.set(false),
+      error: () => {
+        this.prefsSaving.set(false);
+        this.prefsError.set('Не удалось сохранить настройки. Попробуйте снова.');
+      },
+    });
+  }
+
   ngOnInit(): void {
     const user = this.auth.user();
     if (!user) return;
+    this.prefsService.get(user.id).subscribe({
+      next: pref => {
+        this.receiveNotifications.set(pref.receiveNotifications);
+        this.theme.set(pref.theme);
+        this.prefsLoaded.set(true);
+      },
+      // Preferences may not exist yet — keep the defaults editable.
+      error: () => this.prefsLoaded.set(true),
+    });
     this.profileService.getProfile(user.id).subscribe({
       next: profile => {
         this.profileExists = true;

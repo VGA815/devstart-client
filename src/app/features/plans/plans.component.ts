@@ -27,6 +27,7 @@ export class PlansComponent implements OnInit {
   readonly subscription = signal<CurrentSubscription | null>(null);
   readonly subscriptionError = signal('');
   readonly checkoutError = signal('');
+  readonly promoCode = signal('');
 
   readonly proFeatures = [
     'Скоринг DevStart по ключевым осям проекта',
@@ -65,13 +66,26 @@ export class PlansComponent implements OnInit {
     this.checkoutLoading.set(true);
     this.checkoutError.set('');
 
-    this.billingSvc.checkout().subscribe({
+    const promoCode = this.promoCode().trim() || undefined;
+
+    this.billingSvc.checkout(promoCode).subscribe({
       next: session => {
-        window.location.assign(session.confirmationUrl);
-      },
-      error: () => {
+        if (session.confirmationUrl) {
+          window.location.assign(session.confirmationUrl);
+          return;
+        }
+        // A free promo activated the subscription without a payment redirect —
+        // the return page confirms the Active status and shows the success state.
+        if (session.activated) {
+          this.router.navigate(['/billing/return']);
+          return;
+        }
         this.checkoutLoading.set(false);
         this.checkoutError.set('Не удалось открыть оплату. Попробуйте ещё раз.');
+      },
+      error: (err) => {
+        this.checkoutLoading.set(false);
+        this.checkoutError.set(checkoutErrorMessage(err?.error?.title));
         this.loadSubscription();
       },
     });
@@ -100,4 +114,18 @@ export class PlansComponent implements OnInit {
       year: 'numeric',
     }).format(new Date(value));
   }
+}
+
+const PROMO_ERRORS: Record<string, string> = {
+  'PromoCodes.InvalidCode':          'Промокод недействителен.',
+  'PromoCodes.Inactive':             'Промокод больше не активен.',
+  'PromoCodes.NotYetValid':          'Промокод ещё не начал действовать.',
+  'PromoCodes.Expired':              'Срок действия промокода истёк.',
+  'PromoCodes.GlobalLimitReached':   'Лимит использований промокода исчерпан.',
+  'PromoCodes.AlreadyRedeemedByUser':'Вы уже использовали этот промокод.',
+  'PromoCodes.PlanMismatch':         'Промокод не подходит для этого плана.',
+};
+
+function checkoutErrorMessage(title?: string): string {
+  return (title && PROMO_ERRORS[title]) ?? 'Не удалось открыть оплату. Попробуйте ещё раз.';
 }

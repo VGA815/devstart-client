@@ -40,6 +40,10 @@ export class StartupDetailFacade {
   readonly competitorsLoading   = this.store.competitorsLoading;
   readonly deletingCompetitorId = this.store.deletingCompetitorId;
 
+  readonly investors           = this.store.investors;
+  readonly investorsLoading    = this.store.investorsLoading;
+  readonly investorProfilesMap = this.store.investorProfilesMap;
+
   readonly investorProfile = this.store.investorProfile;
 
   readonly isFounderOrAdmin = this.store.isFounderOrAdmin;
@@ -74,5 +78,13 @@ export class StartupDetailFacade {
 
   saveMemberProfile(payload: MemberProfilePayload): Observable<void> {
     return this.store.saveMemberProfile(payload);
+  }
+
+  addInvestor(profileId: string, isPublic: boolean): Observable<unknown> {
+    return this.store.addInvestor(profileId, isPublic);
+  }
+
+  changeMyInvestorVisibility(isPublic: boolean): Observable<void> {
+    return this.store.changeMyInvestorVisibility(isPublic);
   }
 }

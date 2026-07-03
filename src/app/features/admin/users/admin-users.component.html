@@ -1,0 +1,99 @@
+<div class="adm-page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Пользователи</h1>
+  </header>
+
+  <div class="adm-filters">
+    <div class="field field--grow">
+      <label class="field__label" for="uSearch">Поиск</label>
+      <input id="uSearch" class="field__input field__input--sm" type="text"
+        placeholder="email или имя пользователя"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+        (keydown.enter)="load()" />
+    </div>
+    <div class="field">
+      <label class="field__label" for="uBanned">Статус</label>
+      <select id="uBanned" class="field__select field__select--sm"
+        [value]="bannedFilter()"
+        (change)="setBannedFilter($any($event.target).value)">
+        <option value="all">Все</option>
+        <option value="active">Без бана</option>
+        <option value="banned">Забаненные</option>
+      </select>
+    </div>
+    <button class="btn btn--ghost btn--sm" type="button" (click)="load()">Найти</button>
+  </div>
+
+  @if (actionError()) { <p class="adm-error">{{ actionError() }}</p> }
+
+  @if (loading()) {
+    <app-skeleton height="48px" /><app-skeleton height="48px" /><app-skeleton height="48px" />
+  } @else if (error()) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">{{ error() }}</p></div>
+  } @else if (users().length === 0) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">Пользователи не найдены.</p></div>
+  } @else {
+    <div class="card card__body--flush">
+      @for (u of users(); track u.id) {
+        <div class="adm-row">
+          <div class="adm-row__info">
+            <span class="adm-row__title">
+              <a [routerLink]="['/admin/users', u.id]">{{ u.username }}</a>
+            </span>
+            <span class="adm-row__sub">{{ u.email }} · с {{ formatDate(u.createdAt) }}</span>
+            @if (u.isBanned && u.banReason) {
+              <span class="adm-row__sub">Причина бана: {{ u.banReason }}
+                @if (u.banExpiresAt) { (до {{ formatDate(u.banExpiresAt) }}) }
+              </span>
+            }
+          </div>
+          <div class="adm-row__badges">
+            @if (u.role === 1) { <span class="badge badge--mono badge--purple">Admin</span> }
+            @if (!u.isVerified) { <span class="badge badge--mono badge--yellow">Не подтверждён</span> }
+            @if (u.isBanned) { <span class="badge badge--mono badge--red">Бан</span> }
+          </div>
+          <div class="adm-row__actions">
+            @if (u.isBanned) {
+              <button class="btn btn--ghost btn--sm" type="button"
+                [disabled]="actionBusy()" (click)="unban(u)">Разбанить</button>
+            } @else {
+              <button class="btn btn--danger-soft btn--sm" type="button"
+                (click)="openBanForm(u)">Бан</button>
+            }
+          </div>
+        </div>
+
+        @if (banFormFor() === u.id) {
+          <div class="adm-inline-form">
+            <div class="adm-inline-form__row">
+              <div class="field">
+                <label class="field__label">Причина бана</label>
+                <input class="field__input field__input--sm" type="text"
+                  placeholder="Обязательное поле"
+                  [value]="banReason()"
+                  (input)="banReason.set($any($event.target).value)" />
+              </div>
+              <div class="field">
+                <label class="field__label">До даты
+                  <span class="field__hint field__hint--inline">пусто = бессрочно</span>
+                </label>
+                <input class="field__input field__input--sm" type="date"
+                  [value]="banUntil()"
+                  (input)="banUntil.set($any($event.target).value)" />
+              </div>
+            </div>
+            <div class="adm-inline-form__actions">
+              <button class="btn btn--ghost btn--sm" type="button" (click)="closeBanForm()">Отмена</button>
+              <button class="btn btn--danger btn--sm" type="button"
+                [disabled]="!banReason().trim() || actionBusy()"
+                (click)="submitBan(u)">
+                {{ actionBusy() ? 'Сохранение…' : 'Забанить' }}
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

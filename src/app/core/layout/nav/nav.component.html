@@ -31,6 +31,13 @@
           Планы
         </a>
       </li>
+      @if (auth.role() === 'Admin') {
+        <li>
+          <a class="nav__link" routerLink="/admin" routerLinkActive="nav__link--active">
+            Админ
+          </a>
+        </li>
+      }
     </ul>
 
     <div class="nav__actions">
@@ -85,6 +92,11 @@
         <a class="nav__mobile-link" routerLink="/dashboard/overview" (click)="closeMenu()">
           Личный кабинет
         </a>
+        @if (auth.role() === 'Admin') {
+          <a class="nav__mobile-link" routerLink="/admin" (click)="closeMenu()">
+            Админ-панель
+          </a>
+        }
       } @else {
         <div class="nav__mobile-auth">
           <a class="nav__btn nav__btn--ghost" routerLink="/login" (click)="closeMenu()">Войти</a>

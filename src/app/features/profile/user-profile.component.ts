@@ -8,6 +8,7 @@ import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/auth.service';
 import { ProfileService } from '../startups/profile.service';
 import { StartupService } from '../startups/startup.service';
+import { UserOverviewDto, UserOverviewService } from './user-overview.service';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { Profile } from '../../shared/models/profile.model';
@@ -26,14 +27,16 @@ export class UserProfileComponent implements OnInit {
   private readonly route      = inject(ActivatedRoute);
   private readonly router     = inject(Router);
   private readonly auth       = inject(AuthService);
-  private readonly profileSvc = inject(ProfileService);
-  private readonly startupSvc = inject(StartupService);
-  private readonly title      = inject(Title);
+  private readonly profileSvc  = inject(ProfileService);
+  private readonly startupSvc  = inject(StartupService);
+  private readonly overviewSvc = inject(UserOverviewService);
+  private readonly title       = inject(Title);
 
   readonly loading  = signal(true);
   readonly notFound = signal(false);
   readonly profile  = signal<Profile | null>(null);
   readonly startups = signal<Startup[]>([]);
+  readonly overview = signal<UserOverviewDto | null>(null);
 
   readonly canMessage = computed(() => {
     const user = this.auth.user();
@@ -49,6 +52,12 @@ export class UserProfileComponent implements OnInit {
 
   ngOnInit(): void {
     const userId = this.route.snapshot.paramMap.get('id')!;
+
+    // The aggregate needs auth; anonymous viewers keep the base profile view.
+    if (this.auth.getAccessToken()) {
+      this.overviewSvc.get(userId).pipe(catchError(() => of(null)))
+        .subscribe(o => this.overview.set(o));
+    }
 
     forkJoin({
       profile:  this.profileSvc.getProfile(userId).pipe(catchError(() => of(null))),

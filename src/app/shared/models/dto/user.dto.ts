@@ -39,6 +39,7 @@ export interface UserDto {
   email: string;
   username: string;
   isVerified: boolean;
+  role: number; // UserSystemRole: 0 = User, 1 = Admin
 }
 
 
@@ -48,5 +49,6 @@ export function mapUserDto(dto: UserDto): User {
     email: dto.email,
     username: dto.username,
     isVerified: dto.isVerified,
+    role: dto.role === 1 ? 'Admin' : 'User',
   };
 }

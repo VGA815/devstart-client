@@ -49,6 +49,7 @@ export class AuthService {
   readonly user             = this._user.asReadonly();
   readonly loading          = this._loading.asReadonly();
   readonly isAuthenticated  = computed(() => this._user() !== null);
+  readonly role             = computed(() => this._user()?.role ?? null);
   /** Set when login/OAuth returned a consent challenge instead of tokens. */
   readonly pendingChallenge = this._pendingChallenge.asReadonly();
 
@@ -217,9 +218,10 @@ export class AuthService {
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) return throwError(() => new Error('No refresh token'));
 
+    // Request body is snake_case (backend declares JsonPropertyName("refresh_token")).
     return this.http.post<TokenPairDto>(
       `${environment.apiUrl}/auth/refresh`,
-      { refreshToken }
+      { refresh_token: refreshToken }
     ).pipe(
       tap(pair => this.setSession(pair)),
     );
@@ -238,7 +240,7 @@ export class AuthService {
 
     this.http.post<void>(
       `${environment.apiUrl}/auth/logout`,
-      { refreshToken }
+      { refresh_token: refreshToken }
     ).pipe(
       catchError(() => of(void 0)),
     ).subscribe({ next: finishLocal, error: finishLocal });

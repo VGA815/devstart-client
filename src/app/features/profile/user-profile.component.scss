@@ -48,6 +48,14 @@
     margin: 0;
   }
 
+  &__badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+
+    a.badge { text-decoration: none; }
+  }
+
   &__bio {
     font-size: 13px;
     color: var(--text-muted);
@@ -73,6 +81,7 @@
 .uprofile-stats {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .uprofile-stat-cell {

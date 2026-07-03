@@ -1,0 +1,120 @@
+<div class="adm-page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Промокоды</h1>
+  </header>
+
+  <div class="adm-filters">
+    <label class="field__label field__label--checkbox">
+      <input type="checkbox" [checked]="activeOnly()" (change)="toggleActiveOnly()" />
+      <span>Только активные</span>
+    </label>
+    <button class="btn btn--ghost btn--sm" type="button" (click)="load()">Обновить</button>
+    @if (!formOpen()) {
+      <button class="btn btn--primary btn--sm" type="button" (click)="formOpen.set(true)">+ Создать промокод</button>
+    }
+  </div>
+
+  @if (formOpen()) {
+    <div class="card adm-form-card">
+      <div class="card__header"><span class="card__title">Новый промокод</span></div>
+      <div class="card__body">
+        <div class="adm-inline-form__row">
+          <div class="field">
+            <label class="field__label">Код</label>
+            <input class="field__input field__input--sm" type="text" placeholder="LAUNCH2026"
+              [value]="code()" (input)="code.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Тип скидки</label>
+            <select class="field__select field__select--sm"
+              [value]="discountType()"
+              (change)="discountType.set($any($event.target).value)">
+              <option value="0">Процент</option>
+              <option value="1">Фиксированная сумма</option>
+              <option value="2">Бесплатный период</option>
+            </select>
+          </div>
+          @if (discountType() !== '2') {
+            <div class="field">
+              <label class="field__label">{{ discountType() === '0' ? 'Процент (1–100)' : 'Сумма, ₽' }}</label>
+              <input class="field__input field__input--sm" type="text" inputmode="decimal"
+                [value]="discountValue()" (input)="discountValue.set($any($event.target).value)" />
+            </div>
+          } @else {
+            <div class="field">
+              <label class="field__label">Дней бесплатно</label>
+              <input class="field__input field__input--sm" type="number" min="1"
+                [value]="freeDays()" (input)="freeDays.set($any($event.target).value)" />
+            </div>
+          }
+        </div>
+        <div class="adm-inline-form__row">
+          <div class="field">
+            <label class="field__label">Лимит использований
+              <span class="field__hint field__hint--inline">пусто = без лимита</span>
+            </label>
+            <input class="field__input field__input--sm" type="number" min="1"
+              [value]="maxRedemptions()" (input)="maxRedemptions.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Действует с</label>
+            <input class="field__input field__input--sm" type="date"
+              [value]="validFrom()" (input)="validFrom.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Действует до</label>
+            <input class="field__input field__input--sm" type="date"
+              [value]="validUntil()" (input)="validUntil.set($any($event.target).value)" />
+          </div>
+        </div>
+        @if (formError()) { <p class="adm-error">{{ formError() }}</p> }
+        <div class="adm-inline-form__actions">
+          <button class="btn btn--ghost btn--sm" type="button" (click)="formOpen.set(false)">Отмена</button>
+          <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="!code().trim() || busy()"
+            (click)="submitCreate()">
+            {{ busy() ? 'Создание…' : 'Создать' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (actionError()) { <p class="adm-error">{{ actionError() }}</p> }
+
+  @if (loading()) {
+    <app-skeleton height="48px" /><app-skeleton height="48px" />
+  } @else if (error()) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">{{ error() }}</p></div>
+  } @else if (codes().length === 0) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">Промокодов нет.</p></div>
+  } @else {
+    <div class="card card__body--flush">
+      @for (c of codes(); track c.id) {
+        <div class="adm-row">
+          <div class="adm-row__info">
+            <span class="adm-row__title">{{ c.code }} · {{ discountLabel(c) }}</span>
+            <span class="adm-row__sub">
+              {{ planLabel(c.plan) }} ·
+              использован {{ c.redeemedCount }}{{ c.maxRedemptions != null ? ' / ' + c.maxRedemptions : '' }}
+              @if (c.validFrom || c.validUntil) {
+                · {{ formatDate(c.validFrom) }} — {{ formatDate(c.validUntil) }}
+              }
+            </span>
+          </div>
+          <span class="badge badge--mono"
+            [class.badge--green]="c.isActive"
+            [class.badge--red]="!c.isActive">
+            {{ c.isActive ? 'Активен' : 'Неактивен' }}
+          </span>
+          <div class="adm-row__actions">
+            @if (c.isActive) {
+              <button class="btn btn--danger-soft btn--sm" type="button"
+                [disabled]="busy()" (click)="deactivate(c)">Деактивировать</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

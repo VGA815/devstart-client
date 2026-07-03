@@ -1,0 +1,54 @@
+<div class="adm-page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Аудит-лог</h1>
+    <p class="page__sub">Все действия администраторов: баны, подписки, промокоды, бенчмарки.</p>
+  </header>
+
+  <div class="adm-filters">
+    <div class="field">
+      <label class="field__label" for="aTarget">Объект</label>
+      <select id="aTarget" class="field__select field__select--sm"
+        [value]="targetTypeFilter()"
+        (change)="setFilter($any($event.target).value)">
+        <option value="">Все</option>
+        @for (opt of targetTypeOptions; track opt[0]) {
+          <option [value]="opt[0]">{{ opt[1] }}</option>
+        }
+      </select>
+    </div>
+    <button class="btn btn--ghost btn--sm" type="button" (click)="load()">Обновить</button>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton height="48px" /><app-skeleton height="48px" /><app-skeleton height="48px" />
+  } @else if (error()) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">{{ error() }}</p></div>
+  } @else if (entries().length === 0) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">Записей нет.</p></div>
+  } @else {
+    <div class="card card__body--flush">
+      @for (e of entries(); track e.id) {
+        <div class="adm-row">
+          <div class="adm-row__info">
+            <span class="adm-row__title">{{ actionLabel(e.actionType) }}</span>
+            <span class="adm-row__sub">
+              {{ targetLabel(e.targetType) }} {{ e.targetId }} · {{ e.reason }}
+            </span>
+            <span class="adm-row__sub">
+              {{ formatDateTime(e.createdAt) }}
+              @if (e.adminUserId) { · админ {{ e.adminUserId }} }
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="adm-filters">
+      <button class="btn btn--ghost btn--sm" type="button"
+        [disabled]="page() <= 1" (click)="prevPage()">← Назад</button>
+      <span class="adm-mono">Страница {{ page() }}</span>
+      <button class="btn btn--ghost btn--sm" type="button"
+        [disabled]="entries().length < 50" (click)="nextPage()">Вперёд →</button>
+    </div>
+  }
+</div>

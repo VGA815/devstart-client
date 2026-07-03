@@ -1,0 +1,154 @@
+<div class="adm-page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">
+      <a routerLink="/admin/users" class="adm-mono">← Пользователи</a>
+    </h1>
+  </header>
+
+  @if (loading()) {
+    <app-skeleton height="120px" border-radius="6px" />
+  } @else if (notFound()) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">Пользователь не найден.</p></div>
+  } @else {
+    @let u = user()!;
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">{{ u.username }}</span>
+        <div class="adm-row__badges">
+          @if (u.role === 1) { <span class="badge badge--mono badge--purple">Admin</span> }
+          @if (!u.isVerified) { <span class="badge badge--mono badge--yellow">Не подтверждён</span> }
+          @if (u.isBanned) { <span class="badge badge--mono badge--red">Бан</span> }
+        </div>
+      </div>
+      <div class="card__body card__body--lg">
+        <dl class="adm-kv">
+          <dt>Email</dt><dd>{{ u.email }}</dd>
+          <dt>Роль</dt><dd>{{ roleLabel(u.role) }}</dd>
+          <dt>Регистрация</dt><dd>{{ formatDate(u.createdAt) }}</dd>
+          @if (u.isBanned) {
+            <dt>Причина бана</dt><dd>{{ u.banReason ?? '—' }}</dd>
+            <dt>Бан до</dt><dd>{{ u.banExpiresAt ? formatDate(u.banExpiresAt) : 'бессрочно' }}</dd>
+          }
+        </dl>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Подписка</span>
+        @if (!grantOpen()) {
+          <button class="card__action" type="button" (click)="grantOpen.set(true)">Выдать Pro вручную</button>
+        }
+      </div>
+      <div class="card__body card__body--lg">
+        @if (u.currentSubscription; as sub) {
+          <dl class="adm-kv">
+            <dt>План</dt><dd>{{ planLabel(sub.plan) }}</dd>
+            <dt>Статус</dt><dd>{{ subStatusLabel(sub.status) }}</dd>
+            <dt>Источник</dt><dd>{{ sourceLabel(sub.source) }}</dd>
+            <dt>Период</dt><dd>{{ formatDate(sub.startedAt) }} — {{ formatDate(sub.expiresAt) }}</dd>
+          </dl>
+        } @else {
+          <p class="adm-mono">Активной подписки нет (Free).</p>
+        }
+
+        @if (grantOk()) { <p class="adm-ok">Подписка выдана.</p> }
+
+        @if (grantOpen()) {
+          <div class="adm-inline-form">
+            <div class="adm-inline-form__row">
+              <div class="field">
+                <label class="field__label">Дней
+                  <span class="field__hint field__hint--inline">пусто = срок по умолчанию</span>
+                </label>
+                <input class="field__input field__input--sm" type="number" min="1"
+                  [value]="grantDays()"
+                  (input)="grantDays.set($any($event.target).value)" />
+              </div>
+              <div class="field">
+                <label class="field__label">Причина</label>
+                <input class="field__input field__input--sm" type="text"
+                  placeholder="Обязательное поле"
+                  [value]="grantReason()"
+                  (input)="grantReason.set($any($event.target).value)" />
+              </div>
+            </div>
+            @if (grantError()) { <p class="adm-error">{{ grantError() }}</p> }
+            <div class="adm-inline-form__actions">
+              <button class="btn btn--ghost btn--sm" type="button" (click)="grantOpen.set(false)">Отмена</button>
+              <button class="btn btn--primary btn--sm" type="button"
+                [disabled]="!grantReason().trim() || grantBusy()"
+                (click)="submitGrant()">
+                {{ grantBusy() ? 'Сохранение…' : 'Выдать' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Платежи</span>
+      </div>
+      @if (paymentsLoading()) {
+        <div class="card__skeleton"><app-skeleton height="40px" /><app-skeleton height="40px" /></div>
+      } @else if (payments().length === 0) {
+        <p class="card__empty">Платежей нет.</p>
+      } @else {
+        <div class="card__body card__body--flush">
+          @for (p of payments(); track p.id) {
+            <div class="adm-row">
+              <div class="adm-row__info">
+                <span class="adm-row__title">{{ formatMoney(p.amount, p.currency) }}
+                  @if (p.discountAmount > 0) { <span class="adm-mono">(скидка {{ formatMoney(p.discountAmount, p.currency) }})</span> }
+                </span>
+                <span class="adm-row__sub">
+                  {{ formatDate(p.paidAt ?? p.createdAt) }}
+                  @if (p.refundedAmount > 0) { · возвращено {{ formatMoney(p.refundedAmount, p.currency) }} }
+                </span>
+              </div>
+              <span class="badge badge--mono"
+                [class.badge--green]="p.status === 1"
+                [class.badge--yellow]="p.status === 0"
+                [class.badge--red]="p.status === 2 || p.status === 3"
+                [class.badge--purple]="p.status === 4">
+                {{ payStatusLabel(p.status) }}
+              </span>
+              @if (canRefund(p)) {
+                <div class="adm-row__actions">
+                  <button class="btn btn--ghost btn--sm" type="button" (click)="openRefund(p)">Возврат</button>
+                </div>
+              }
+            </div>
+
+            @if (refundFor() === p.id) {
+              <div class="adm-inline-form">
+                <div class="adm-inline-form__row">
+                  <div class="field">
+                    <label class="field__label">Сумма возврата
+                      <span class="field__hint field__hint--inline">пусто = полный возврат</span>
+                    </label>
+                    <input class="field__input field__input--sm" type="text" inputmode="decimal"
+                      [value]="refundAmount()"
+                      (input)="refundAmount.set($any($event.target).value)" />
+                  </div>
+                </div>
+                @if (refundError()) { <p class="adm-error">{{ refundError() }}</p> }
+                <div class="adm-inline-form__actions">
+                  <button class="btn btn--ghost btn--sm" type="button" (click)="refundFor.set(null)">Отмена</button>
+                  <button class="btn btn--danger btn--sm" type="button"
+                    [disabled]="refundBusy()"
+                    (click)="submitRefund(p)">
+                    {{ refundBusy() ? 'Выполняем…' : 'Вернуть деньги' }}
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

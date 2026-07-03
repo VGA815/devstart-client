@@ -1,0 +1,148 @@
+<div class="adm-page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Подписки</h1>
+  </header>
+
+  <div class="adm-filters">
+    <div class="field">
+      <label class="field__label" for="subStatus">Статус</label>
+      <select id="subStatus" class="field__select field__select--sm"
+        [value]="statusFilter()"
+        (change)="statusFilter.set($any($event.target).value); load()">
+        <option value="">Все</option>
+        <option value="0">Ожидает оплаты</option>
+        <option value="1">Активна</option>
+        <option value="2">Отменена</option>
+        <option value="3">Истекла</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field__label" for="subPlan">План</label>
+      <select id="subPlan" class="field__select field__select--sm"
+        [value]="planFilter()"
+        (change)="planFilter.set($any($event.target).value); load()">
+        <option value="">Все</option>
+        <option value="0">Free</option>
+        <option value="1">Pro</option>
+      </select>
+    </div>
+    <button class="btn btn--ghost btn--sm" type="button" (click)="load()">Обновить</button>
+    @if (!grantOpen()) {
+      <button class="btn btn--primary btn--sm" type="button" (click)="grantOpen.set(true)">+ Выдать подписку</button>
+    }
+  </div>
+
+  @if (grantOpen()) {
+    <div class="card">
+      <div class="card__header"><span class="card__title">Выдать подписку вручную</span></div>
+      <div class="card__body">
+        <div class="adm-inline-form__row">
+          <div class="field">
+            <label class="field__label">ID пользователя (GUID)</label>
+            <input class="field__input field__input--sm" type="text"
+              placeholder="00000000-0000-0000-0000-000000000000"
+              [value]="grantUserId()"
+              (input)="grantUserId.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Дней
+              <span class="field__hint field__hint--inline">пусто = срок по умолчанию</span>
+            </label>
+            <input class="field__input field__input--sm" type="number" min="1"
+              [value]="grantDays()"
+              (input)="grantDays.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Причина</label>
+            <input class="field__input field__input--sm" type="text"
+              placeholder="Обязательное поле"
+              [value]="grantReason()"
+              (input)="grantReason.set($any($event.target).value)" />
+          </div>
+        </div>
+        <div class="adm-inline-form__actions">
+          <button class="btn btn--ghost btn--sm" type="button" (click)="grantOpen.set(false)">Отмена</button>
+          <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="!grantUserId().trim() || !grantReason().trim() || busy()"
+            (click)="submitGrant()">
+            {{ busy() ? 'Сохранение…' : 'Выдать' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (actionError()) { <p class="adm-error">{{ actionError() }}</p> }
+
+  @if (loading()) {
+    <app-skeleton height="48px" /><app-skeleton height="48px" /><app-skeleton height="48px" />
+  } @else if (error()) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">{{ error() }}</p></div>
+  } @else if (subs().length === 0) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">Подписок не найдено.</p></div>
+  } @else {
+    <div class="card card__body--flush">
+      @for (sub of subs(); track sub.id) {
+        <div class="adm-row">
+          <div class="adm-row__info">
+            <span class="adm-row__title">
+              @if (sub.userEmail) {
+                <a [routerLink]="['/admin/users', sub.userId]">{{ sub.userEmail }}</a>
+              } @else {
+                <a [routerLink]="['/admin/users', sub.userId]">{{ sub.userId }}</a>
+              }
+            </span>
+            <span class="adm-row__sub">
+              {{ planLabel(sub.plan) }} · {{ sourceLabel(sub.source) }} ·
+              {{ formatDate(sub.startedAt) }} — {{ formatDate(sub.expiresAt) }}
+            </span>
+          </div>
+          <span class="badge badge--mono"
+            [class.badge--green]="sub.status === 1"
+            [class.badge--yellow]="sub.status === 0"
+            [class.badge--red]="sub.status === 2 || sub.status === 3">
+            {{ statusLabel(sub.status) }}
+          </span>
+          <div class="adm-row__actions">
+            @if (sub.status === 1) {
+              <button class="btn btn--ghost btn--sm" type="button" (click)="openRowAction(sub, 'extend')">Продлить</button>
+              <button class="btn btn--danger-soft btn--sm" type="button" (click)="openRowAction(sub, 'revoke')">Отозвать</button>
+            }
+          </div>
+        </div>
+
+        @if (rowAction()?.id === sub.id) {
+          <div class="adm-inline-form">
+            <div class="adm-inline-form__row">
+              @if (rowAction()?.action === 'extend') {
+                <div class="field">
+                  <label class="field__label">Дней добавить</label>
+                  <input class="field__input field__input--sm" type="number" min="1"
+                    [value]="extendDays()"
+                    (input)="extendDays.set($any($event.target).value)" />
+                </div>
+              }
+              <div class="field">
+                <label class="field__label">Причина</label>
+                <input class="field__input field__input--sm" type="text"
+                  placeholder="Обязательное поле"
+                  [value]="reason()"
+                  (input)="reason.set($any($event.target).value)" />
+              </div>
+            </div>
+            <div class="adm-inline-form__actions">
+              <button class="btn btn--ghost btn--sm" type="button" (click)="rowAction.set(null)">Отмена</button>
+              <button class="btn btn--sm" type="button"
+                [class.btn--primary]="rowAction()?.action === 'extend'"
+                [class.btn--danger]="rowAction()?.action === 'revoke'"
+                [disabled]="!reason().trim() || busy()"
+                (click)="submitRowAction(sub)">
+                {{ busy() ? 'Сохранение…' : (rowAction()?.action === 'extend' ? 'Продлить' : 'Отозвать') }}
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

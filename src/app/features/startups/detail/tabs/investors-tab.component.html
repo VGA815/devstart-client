@@ -1,0 +1,104 @@
+@if (facade.isFounderOrAdmin()) {
+  <div class="sd-investors-actions">
+    @if (!addFormOpen()) {
+      <button class="btn btn--ghost btn--sm" type="button" (click)="openAddForm()">+ Добавить инвестора</button>
+    }
+  </div>
+}
+
+@if (addFormOpen()) {
+  <div class="sd-investor-add">
+    <div class="sd-investor-add__header">Добавление инвестора</div>
+    <div class="sd-investor-add__body">
+      <div class="field">
+        <label class="field__label field__label--mono">Инвестор</label>
+        @if (catalogLoading()) {
+          <app-skeleton height="36px" border-radius="6px" />
+        } @else {
+          <select class="field__select field__select--sm"
+            [value]="selectedProfileId()"
+            (change)="selectedProfileId.set($any($event.target).value)">
+            <option value="">— Выберите из каталога —</option>
+            @for (inv of catalog(); track inv.userId) {
+              <option [value]="inv.userId">{{ inv.displayName }}{{ inv.type === 'Fund' ? ' (фонд)' : '' }}</option>
+            }
+          </select>
+        }
+      </div>
+      <div class="field">
+        <label class="field__label field__label--checkbox">
+          <input type="checkbox"
+            [checked]="addAsPublic()"
+            (change)="addAsPublic.set($any($event.target).checked)" />
+          <span>Показывать в публичном списке</span>
+        </label>
+      </div>
+      @if (addError()) {
+        <p class="field__hint field__hint--error">{{ addError() }}</p>
+      }
+      <div class="sd-investor-add__actions">
+        <button class="btn btn--ghost btn--sm" type="button" (click)="closeAddForm()">Отмена</button>
+        <button class="btn btn--primary btn--sm" type="button"
+          [disabled]="!selectedProfileId() || addSaving()"
+          (click)="submitAdd()">
+          {{ addSaving() ? 'Добавление…' : 'Добавить' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (facade.investorsLoading()) {
+  <app-skeleton height="48px" /><app-skeleton height="48px" />
+} @else if (facade.investors().length === 0) {
+  <div class="empty-state empty-state--card">
+    <p class="empty-state__title">Публичных инвесторов нет</p>
+    <p class="empty-state__sub">Инвесторы могут скрывать своё участие — в списке видны только те, кто открыл его.</p>
+  </div>
+} @else {
+  <div class="card card__body--flush">
+    @for (inv of facade.investors(); track inv.profileId) {
+      <div class="sd-investor-row" [class.sd-investor-row--mine]="inv.profileId === facade.currentUserId">
+        <a [routerLink]="['/profile', inv.profileId]" class="sd-investor-row__link">
+          <app-avatar
+            [avatarId]="getInvestorAvatarId(inv.profileId)"
+            [name]="getInvestorName(inv.profileId)"
+            size="md"
+            shape="circle" />
+          <div class="sd-investor-row__info">
+            <span class="sd-investor-row__name">{{ getInvestorName(inv.profileId) }}</span>
+            <span class="sd-investor-row__meta">Инвестор · с {{ sinceLabel(inv.createdAt) }}</span>
+          </div>
+        </a>
+      </div>
+    }
+  </div>
+}
+
+@if (facade.isAuthenticated()) {
+  <div class="sd-investor-visibility">
+    <span class="sd-investor-visibility__label">Вы инвестор этого стартапа?</span>
+    <div class="sd-investor-visibility__actions">
+      @if (amIListed) {
+        <button class="btn btn--ghost btn--sm" type="button"
+          [disabled]="visibilitySaving()"
+          (click)="setMyVisibility(false)">
+          Скрыть меня из списка
+        </button>
+      } @else {
+        <button class="btn btn--ghost btn--sm" type="button"
+          [disabled]="visibilitySaving()"
+          (click)="setMyVisibility(true)">
+          Показать меня в списке
+        </button>
+      }
+    </div>
+    @if (visibilityMessage(); as msg) {
+      <p class="sd-investor-visibility__msg"
+        [class.sd-investor-visibility__msg--ok]="msg.kind === 'ok'"
+        [class.sd-investor-visibility__msg--err]="msg.kind === 'err'">
+        {{ msg.text }}
+      </p>
+    }
+  </div>
+}

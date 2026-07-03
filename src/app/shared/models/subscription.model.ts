@@ -1,5 +1,6 @@
 export type SubscriptionPlan = 'Free' | 'Pro';
 export type SubscriptionStatus = 'Pending' | 'Active' | 'Cancelled' | 'Expired';
+export type PaymentStatus = 'Pending' | 'Succeeded' | 'Cancelled' | 'Failed' | 'Refunded';
 
 export interface CurrentSubscription {
   subscriptionId: string | null;
@@ -13,5 +14,19 @@ export interface CurrentSubscription {
 export interface CheckoutSession {
   subscriptionId: string;
   paymentId: string;
-  confirmationUrl: string;
+  // null when a free promo activated the subscription without a payment redirect
+  confirmationUrl: string | null;
+  activated: boolean;
+}
+
+export interface PaymentHistoryItem {
+  id: string;
+  subscriptionId: string;
+  plan: SubscriptionPlan;
+  amount: number;
+  refundedAmount: number;
+  currency: string;
+  status: PaymentStatus;
+  createdAt: string;
+  paidAt: string | null;
 }

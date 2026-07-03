@@ -8,7 +8,7 @@ import { SubscriptionService } from '../../../shared/services/subscription.servi
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { Startup } from '../../../shared/models/startup.model';
-import { CurrentSubscription } from '../../../shared/models/subscription.model';
+import { CurrentSubscription, PaymentHistoryItem, PaymentStatus } from '../../../shared/models/subscription.model';
 import { getStageColor } from '../../../shared/utils/startup.utils';
 
 @Component({
@@ -30,6 +30,9 @@ export class SubscriptionsComponent implements OnInit {
   readonly subscription = signal<CurrentSubscription | null>(null);
   readonly subscriptionError = signal('');
   readonly unfollowing = signal<Set<string>>(new Set());
+  readonly payments        = signal<PaymentHistoryItem[]>([]);
+  readonly paymentsLoading = signal(true);
+  readonly paymentsError   = signal('');
 
   constructor() { inject(Title).setTitle('Подписка — DevStart'); }
 
@@ -49,6 +52,19 @@ export class SubscriptionsComponent implements OnInit {
       });
 
     this.loadSubscription();
+    this.loadPayments();
+  }
+
+  private loadPayments(): void {
+    this.billingSvc.getPayments().pipe(
+      catchError(() => {
+        this.paymentsError.set('Не удалось загрузить историю платежей.');
+        return of([] as PaymentHistoryItem[]);
+      })
+    ).subscribe(list => {
+      this.payments.set(list);
+      this.paymentsLoading.set(false);
+    });
   }
 
   private loadSubscription(): void {
@@ -101,6 +117,21 @@ export class SubscriptionsComponent implements OnInit {
       Expired: 'Истекла',
     };
     return map[subscription.status] ?? subscription.status;
+  }
+
+  paymentStatusLabel(status: PaymentStatus): string {
+    const map: Record<PaymentStatus, string> = {
+      Pending:   'Ожидает',
+      Succeeded: 'Оплачен',
+      Cancelled: 'Отменён',
+      Failed:    'Ошибка',
+      Refunded:  'Возврат',
+    };
+    return map[status] ?? status;
+  }
+
+  formatAmount(p: PaymentHistoryItem): string {
+    return `${new Intl.NumberFormat('ru-RU').format(p.amount)} ${p.currency === 'RUB' ? '₽' : p.currency}`;
   }
 
   protected readonly getStageColor  = getStageColor;

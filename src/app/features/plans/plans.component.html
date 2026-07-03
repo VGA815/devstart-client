@@ -52,6 +52,18 @@
           <span>до {{ formatSubscriptionDate(subscription()?.expiresAt ?? null) }}</span>
         </div>
       } @else {
+        @if (auth.user()) {
+          <div class="field">
+            <label class="field__label" for="promoCode">Промокод
+              <span class="field__hint field__hint--inline">необязательно</span>
+            </label>
+            <input id="promoCode" class="field__input" type="text"
+              [value]="promoCode()"
+              (input)="promoCode.set($any($event.target).value)"
+              placeholder="PROMO2026"
+              autocomplete="off" />
+          </div>
+        }
         <button class="btn btn--primary btn--lg btn--block" type="button" [disabled]="checkoutLoading()" (click)="checkout()">
           {{ checkoutLoading() ? 'Открываем оплату…' : (auth.user() ? 'Подключить Pro' : 'Войти и подключить') }}
         </button>

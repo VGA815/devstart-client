@@ -11,6 +11,7 @@ import { StartupMetricsService } from '../startup-metrics.service';
 import { StartupMembersService } from '../startup-members.service';
 import { StartupFollowersService } from '../startup-followers.service';
 import { StartupCompetitorsService } from '../startup-competitors.service';
+import { StartupInvestorsService } from '../startup-investors.service';
 import { StartupScoreService } from '../startup-score.service';
 import { ProfileService } from '../profile.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -24,11 +25,12 @@ import { StartupRoadmapItem } from '../../../shared/models/startup-roadmap.model
 import { StartupMetric } from '../../../shared/models/startup-metric.model';
 import { StartupDocument } from '../../../shared/models/startup-document.model';
 import { StartupCompetitor } from '../../../shared/models/startup-competitor.model';
+import { StartupInvestor } from '../../../shared/models/startup-investor.model';
 import { StartupScore, SuggestedTerms } from '../../../shared/models/startup-score.model';
 import { CreateInvestmentApplicationRequestDto } from '../../../shared/models/dto/investment-application.dto';
 import { UpdateStartupMemberProfileRequestDto } from '../../../shared/models/dto/startup.dto';
 
-export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'documents' | 'competitors' | 'scoring';
+export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'investors' | 'documents' | 'competitors' | 'scoring';
 
 export interface CompetitorPayload {
   name: string;
@@ -71,6 +73,10 @@ interface StartupDetailState {
   competitorsLoading: boolean;
   deletingCompetitorId: string | null;
 
+  investors: StartupInvestor[];
+  investorsLoading: boolean;
+  investorProfilesMap: Map<string, Profile>;
+
   // undefined = not yet loaded; null = no profile; InvestorProfile = has profile
   investorProfile: InvestorProfile | null | undefined;
 }
@@ -98,6 +104,9 @@ const initialState: StartupDetailState = {
   competitors: [],
   competitorsLoading: false,
   deletingCompetitorId: null,
+  investors: [],
+  investorsLoading: false,
+  investorProfilesMap: new Map(),
   investorProfile: undefined,
 };
 
@@ -127,6 +136,7 @@ export const StartupDetailStore = signalStore(
     const membersSvc         = inject(StartupMembersService);
     const followersSvc       = inject(StartupFollowersService);
     const competitorsSvc     = inject(StartupCompetitorsService);
+    const startupInvestorsSvc = inject(StartupInvestorsService);
     const scoreSvc           = inject(StartupScoreService);
     const profileSvc         = inject(ProfileService);
     const authSvc            = inject(AuthService);
@@ -219,6 +229,29 @@ export const StartupDetailStore = signalStore(
             catchError(() => of([]))
           ).subscribe(items => {
             patchState(store, { competitors: items, competitorsLoading: false });
+          });
+          break;
+
+        case 'investors':
+          patchState(store, { investorsLoading: true });
+          startupInvestorsSvc.getByStartup(store.id()).pipe(
+            catchError(() => of([] as StartupInvestor[]))
+          ).subscribe(items => {
+            patchState(store, { investors: items, investorsLoading: false });
+            const ids = items.map(i => i.profileId).filter(id => !!id);
+            if (ids.length > 0) {
+              forkJoin(
+                Object.fromEntries(
+                  ids.map(id => [id, profileSvc.getProfile(id).pipe(catchError(() => of(null)))])
+                )
+              ).subscribe(profileMap => {
+                const map = new Map<string, Profile>();
+                for (const [id, profile] of Object.entries(profileMap)) {
+                  if (profile) map.set(id, profile as Profile);
+                }
+                patchState(store, { investorProfilesMap: map });
+              });
+            }
           });
           break;
       }
@@ -322,6 +355,26 @@ export const StartupDetailStore = signalStore(
           tap(() => {
             loaded.delete('team');
             loadTab('team');
+          })
+        );
+      },
+
+      addInvestor(profileId: string, isPublic: boolean): Observable<unknown> {
+        return startupInvestorsSvc.create(store.id(), profileId, isPublic).pipe(
+          tap(() => {
+            loaded.delete('investors');
+            loadTab('investors');
+          })
+        );
+      },
+
+      // Changes the CURRENT USER's visibility in this startup's investor list;
+      // the backend answers 404 when the caller is not an investor of the startup.
+      changeMyInvestorVisibility(isPublic: boolean): Observable<void> {
+        return startupInvestorsSvc.changeVisibility(store.id(), isPublic).pipe(
+          tap(() => {
+            loaded.delete('investors');
+            loadTab('investors');
           })
         );
       },

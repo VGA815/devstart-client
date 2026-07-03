@@ -14,6 +14,7 @@ import { OverviewTabComponent } from './tabs/overview-tab.component';
 import { RoadmapTabComponent } from './tabs/roadmap-tab.component';
 import { MetricsTabComponent } from './tabs/metrics-tab.component';
 import { TeamTabComponent } from './tabs/team-tab.component';
+import { InvestorsTabComponent } from './tabs/investors-tab.component';
 import { DocumentsTabComponent } from './tabs/documents-tab.component';
 import { CompetitorsTabComponent } from './tabs/competitors-tab.component';
 import { ScoringTabComponent } from './tabs/scoring-tab.component';
@@ -25,7 +26,8 @@ import { InvestFormComponent } from './invest-form/invest-form.component';
   imports: [
     TagComponent, SkeletonComponent, AvatarComponent,
     OverviewTabComponent, RoadmapTabComponent, MetricsTabComponent, TeamTabComponent,
-    DocumentsTabComponent, CompetitorsTabComponent, ScoringTabComponent, InvestFormComponent,
+    InvestorsTabComponent, DocumentsTabComponent, CompetitorsTabComponent, ScoringTabComponent,
+    InvestFormComponent,
   ],
   providers: [StartupDetailStore, StartupDetailFacade],
   templateUrl: './startup-detail.component.html',
@@ -48,6 +50,7 @@ export class StartupDetailComponent implements OnInit {
     { key: 'roadmap',      label: 'Дорожная карта' },
     { key: 'metrics',      label: 'Метрики' },
     { key: 'team',         label: 'Команда' },
+    { key: 'investors',    label: 'Инвесторы' },
     { key: 'documents',    label: 'Документы' },
     { key: 'competitors',  label: 'Конкуренты' },
     { key: 'scoring',      label: '★ Скоринг' },

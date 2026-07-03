@@ -105,42 +105,41 @@
 
   <div class="card">
     <div class="card__header">
-      <span class="card__title">Уведомления</span>
+      <span class="card__title">Предпочтения</span>
+      @if (prefsSaving()) {
+        <span class="card__count">Сохранение…</span>
+      }
     </div>
 
     <div class="card__body card__body--lg">
 
+      @if (prefsError()) {
+        <div class="toast toast--error">{{ prefsError() }}</div>
+      }
+
       <div class="toggle-row">
         <div class="toggle-row__info">
-          <span class="toggle-row__label">Заявки и отклики</span>
-          <span class="toggle-row__sub">Уведомления о новых заявках</span>
+          <span class="toggle-row__label">Получать уведомления</span>
+          <span class="toggle-row__sub">Заявки, сообщения и события платформы</span>
         </div>
-        <button class="toggle" [class.toggle--on]="notifyApplications()" type="button"
-          (click)="notifyApplications.set(!notifyApplications())">
+        <button class="toggle" [class.toggle--on]="receiveNotifications()" type="button"
+          [disabled]="!prefsLoaded() || prefsSaving()"
+          (click)="toggleNotifications()">
           <span class="toggle__thumb"></span>
         </button>
       </div>
 
-      <div class="toggle-row">
-        <div class="toggle-row__info">
-          <span class="toggle-row__label">Сообщения</span>
-          <span class="toggle-row__sub">Новые сообщения от пользователей</span>
-        </div>
-        <button class="toggle" [class.toggle--on]="notifyMessages()" type="button"
-          (click)="notifyMessages.set(!notifyMessages())">
-          <span class="toggle__thumb"></span>
-        </button>
-      </div>
-
-      <div class="toggle-row">
-        <div class="toggle-row__info">
-          <span class="toggle-row__label">Новости платформы</span>
-          <span class="toggle-row__sub">Обновления и анонсы DevStart</span>
-        </div>
-        <button class="toggle" [class.toggle--on]="notifyPlatform()" type="button"
-          (click)="notifyPlatform.set(!notifyPlatform())">
-          <span class="toggle__thumb"></span>
-        </button>
+      <div class="field">
+        <label class="field__label" for="sTheme">Тема оформления</label>
+        <select id="sTheme" class="field__select"
+          [disabled]="!prefsLoaded() || prefsSaving()"
+          [value]="theme()"
+          (change)="setTheme($any($event.target).value)">
+          @for (opt of themeOptions; track opt.value) {
+            <option [value]="opt.value" [selected]="opt.value === theme()">{{ opt.label }}</option>
+          }
+        </select>
+        <span class="field__hint">Выбор сохраняется в вашем профиле; светлая палитра появится позже.</span>
       </div>
 
     </div>
