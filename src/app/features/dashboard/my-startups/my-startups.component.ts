@@ -10,6 +10,7 @@ import { StartupMetricsCardComponent } from './metrics-card/metrics-card.compone
 import { StartupRoadmapCardComponent } from './roadmap-card/roadmap-card.component';
 import { StartupTeamCardComponent } from './team-card/team-card.component';
 import { StartupDocsCardComponent } from './docs-card/docs-card.component';
+import { StartupCapTableCardComponent } from './cap-table-card/cap-table-card.component';
 
 @Component({
   selector: 'app-my-startups',
@@ -21,6 +22,7 @@ import { StartupDocsCardComponent } from './docs-card/docs-card.component';
     StartupRoadmapCardComponent,
     StartupTeamCardComponent,
     StartupDocsCardComponent,
+    StartupCapTableCardComponent,
   ],
   templateUrl: './my-startups.component.html',
   styleUrl: './my-startups.component.scss',

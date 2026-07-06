@@ -54,6 +54,10 @@
       [startupId]="s.id"
       [currentUserId]="currentUserId()"
       (currentRoleChange)="myRole.set($event)" />
+    @if (myRole() === 'Founder') {
+      <!-- Backend returns the cap table only to founders (and platform admins). -->
+      <app-startup-cap-table-card [startupId]="s.id" />
+    }
     <app-startup-docs-card [startupId]="s.id" />
 
   </div>

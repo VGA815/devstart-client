@@ -36,6 +36,52 @@
 
     <div class="card">
       <div class="card__header">
+        <span class="card__title">Безопасность</span>
+        @if (!tfaOpen() && !isSelf()) {
+          <button class="card__action" type="button" (click)="openTfaReset()">Сбросить 2FA</button>
+        }
+      </div>
+      <div class="card__body card__body--lg">
+        <p class="adm-mono">
+          Сброс 2FA удаляет TOTP-секрет и резервные коды и разрывает все сессии пользователя.
+          Действие записывается в аудит-лог. Используется, когда пользователь потерял доступ
+          к аутентификатору и резервным кодам.
+        </p>
+
+        @if (tfaOk()) { <p class="adm-ok">2FA сброшена, сессии пользователя разорваны.</p> }
+        @if (isSelf()) { <p class="adm-mono">Свою 2FA можно отключить только в настройках профиля.</p> }
+
+        @if (tfaOpen()) {
+          <div class="adm-inline-form">
+            <div class="adm-inline-form__row">
+              <div class="field">
+                <label class="field__label">Причина
+                  <span class="field__hint field__hint--inline">минимум 3 символа, попадает в аудит-лог</span>
+                </label>
+                <input class="field__input field__input--sm" type="text"
+                  placeholder="Например: пользователь потерял устройство (тикет #123)"
+                  [value]="tfaReason()"
+                  (input)="tfaReason.set($any($event.target).value)" />
+              </div>
+            </div>
+            @if (tfaError()) { <p class="adm-error">{{ tfaError() }}</p> }
+            <div class="adm-inline-form__actions">
+              <button class="btn btn--ghost btn--sm" type="button" (click)="tfaOpen.set(false)">Отмена</button>
+              <button class="btn btn--danger btn--sm" type="button"
+                [disabled]="tfaReason().trim().length < 3 || tfaBusy()"
+                (click)="submitTfaReset()">
+                {{ tfaBusy() ? 'Сбрасываем…' : 'Сбросить 2FA' }}
+              </button>
+            </div>
+          </div>
+        } @else if (tfaError()) {
+          <p class="adm-error">{{ tfaError() }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
         <span class="card__title">Подписка</span>
         @if (!grantOpen()) {
           <button class="card__action" type="button" (click)="grantOpen.set(true)">Выдать Pro вручную</button>

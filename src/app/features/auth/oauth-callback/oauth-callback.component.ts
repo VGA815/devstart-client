@@ -56,6 +56,10 @@ export class OAuthCallbackComponent implements OnInit {
               this.router.navigate(['/consent']);
               return;
             }
+            if (outcome.kind === 'twoFactor' || outcome.kind === 'twoFactorSetup') {
+              this.router.navigate(['/2fa']);
+              return;
+            }
             this.status.set('success');
             setTimeout(() => this.router.navigate(['/dashboard']), 600);
           },

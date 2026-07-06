@@ -54,6 +54,12 @@ export class AdminService {
     return this.http.get<AdminPayment[]>(`${this.base}/users/${id}/payments`);
   }
 
+  // Support action: wipes the user's TOTP secret + recovery codes and revokes all their
+  // sessions (audited). 409 TwoFactor.NotEnabled when the user has no 2FA to reset.
+  resetUserTwoFactor(id: string, reason: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/users/${id}/2fa/reset`, { reason });
+  }
+
   // ── Startups ─────────────────────────────────────────────────────────────────
 
   getStartups(filter: AdminStartupsFilter = {}): Observable<AdminStartupListItem[]> {

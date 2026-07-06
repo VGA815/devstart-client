@@ -19,6 +19,9 @@ import {
   AuthResultDto,
   ConsentChallengeDto,
   CompleteConsentRequestDto,
+  TwoFactorVerifyRequestDto,
+  TwoFactorLoginSetupResponseDto,
+  TwoFactorSetupCompleteResponseDto,
 } from '../../shared/models/dto/auth.dto';
 import { ConsentItemDto } from '../../shared/models/dto/consent.dto';
 
@@ -32,10 +35,18 @@ interface JwtClaims {
   jti?: string;
 }
 
-/** Result of a sign-in attempt: either fully authenticated, or a consent challenge to satisfy. */
+/** Result of a sign-in attempt: fully authenticated, or one challenge to satisfy first. */
 export type AuthOutcome =
   | { kind: 'authenticated'; user: User }
-  | { kind: 'consent'; challenge: ConsentChallengeDto };
+  | { kind: 'consent'; challenge: ConsentChallengeDto }
+  | { kind: 'twoFactor' }        // TOTP code required (POST auth/2fa/verify)
+  | { kind: 'twoFactorSetup' };  // mandatory TOTP enrollment (admins) before tokens are issued
+
+/** Pending 2FA step stored between the login response and the /2fa screen. */
+export interface PendingTwoFactor {
+  kind: 'verify' | 'setup';
+  pendingToken: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -45,6 +56,7 @@ export class AuthService {
   private readonly _user    = signal<User | null>(null);
   private readonly _loading = signal(false);
   private readonly _pendingChallenge = signal<ConsentChallengeDto | null>(null);
+  private readonly _pendingTwoFactor = signal<PendingTwoFactor | null>(null);
 
   readonly user             = this._user.asReadonly();
   readonly loading          = this._loading.asReadonly();
@@ -52,6 +64,8 @@ export class AuthService {
   readonly role             = computed(() => this._user()?.role ?? null);
   /** Set when login/OAuth returned a consent challenge instead of tokens. */
   readonly pendingChallenge = this._pendingChallenge.asReadonly();
+  /** Set when login/OAuth returned a 2FA (verify or mandatory-setup) challenge. */
+  readonly pendingTwoFactor = this._pendingTwoFactor.asReadonly();
 
 
   getAccessToken():  string | null { return localStorage.getItem(ACCESS_KEY); }
@@ -120,7 +134,7 @@ export class AuthService {
     );
   }
 
-  // Normalize a login/OAuth response — the documented `{ tokens, consent }` envelope,
+  // Normalize a login/OAuth/2FA-verify response — the documented challenge envelope,
   // or (defensively) a bare token pair — into an AuthOutcome.
   private processAuthResult(res: AuthResultDto | TokenPairDto): Observable<AuthOutcome> {
     const bare = res as TokenPairDto;
@@ -128,7 +142,16 @@ export class AuthService {
 
     const env = res as AuthResultDto;
     if (env.tokens) return this.toAuthenticated(env.tokens);
+    if (env.twoFactor) {
+      this._pendingTwoFactor.set({ kind: 'verify', pendingToken: env.twoFactor.pendingToken });
+      return of<AuthOutcome>({ kind: 'twoFactor' });
+    }
+    if (env.twoFactorSetup) {
+      this._pendingTwoFactor.set({ kind: 'setup', pendingToken: env.twoFactorSetup.pendingToken });
+      return of<AuthOutcome>({ kind: 'twoFactorSetup' });
+    }
     if (env.consent) {
+      this._pendingTwoFactor.set(null); // the 2FA step (if any) is behind us
       this._pendingChallenge.set(env.consent);
       return of<AuthOutcome>({ kind: 'consent', challenge: env.consent });
     }
@@ -137,6 +160,7 @@ export class AuthService {
 
   private toAuthenticated(pair: TokenPairDto): Observable<AuthOutcome> {
     this._pendingChallenge.set(null);
+    this._pendingTwoFactor.set(null);
     return this.completeSession(pair).pipe(
       map(user => ({ kind: 'authenticated', user }) as AuthOutcome),
     );
@@ -169,6 +193,57 @@ export class AuthService {
 
   clearPendingChallenge(): void {
     this._pendingChallenge.set(null);
+  }
+
+  clearPendingTwoFactor(): void {
+    this._pendingTwoFactor.set(null);
+  }
+
+  // Finish a 2FA-gated login with a 6-digit TOTP or a recovery code. The response is
+  // another auth envelope — tokens, or a consent challenge that still has to be satisfied.
+  verifyTwoFactor(code: string): Observable<AuthOutcome> {
+    const pending = this._pendingTwoFactor();
+    if (!pending) return throwError(() => new Error('No pending 2FA challenge'));
+
+    this._loading.set(true);
+    const body: TwoFactorVerifyRequestDto = { pending_token: pending.pendingToken, code };
+    return this.http.post<AuthResultDto>(`${environment.apiUrl}/auth/2fa/verify`, body).pipe(
+      switchMap(res => this.processAuthResult(res)),
+      finalize(() => this._loading.set(false)),
+    );
+  }
+
+  // Mandatory login-time enrollment (admins), step 1: get the TOTP secret + otpauth URI.
+  // The response carries a fresh pending token — store it for the confirm step.
+  startTwoFactorLoginSetup(): Observable<TwoFactorLoginSetupResponseDto> {
+    const pending = this._pendingTwoFactor();
+    if (!pending) return throwError(() => new Error('No pending 2FA challenge'));
+
+    return this.http.post<TwoFactorLoginSetupResponseDto>(
+      `${environment.apiUrl}/auth/2fa/setup`,
+      { pending_token: pending.pendingToken },
+    ).pipe(
+      tap(res => this._pendingTwoFactor.set({ kind: 'setup', pendingToken: res.pendingToken })),
+    );
+  }
+
+  // Mandatory enrollment, step 2: confirm with the first TOTP code. Returns the one-time
+  // recovery codes alongside the auth outcome (tokens or a consent challenge).
+  confirmTwoFactorLoginSetup(code: string): Observable<{ recoveryCodes: string[]; outcome: AuthOutcome }> {
+    const pending = this._pendingTwoFactor();
+    if (!pending) return throwError(() => new Error('No pending 2FA challenge'));
+
+    this._loading.set(true);
+    const body: TwoFactorVerifyRequestDto = { pending_token: pending.pendingToken, code };
+    return this.http.post<TwoFactorSetupCompleteResponseDto>(
+      `${environment.apiUrl}/auth/2fa/setup/confirm`,
+      body,
+    ).pipe(
+      switchMap(res => this.processAuthResult(res.auth).pipe(
+        map(outcome => ({ recoveryCodes: res.recoveryCodes, outcome })),
+      )),
+      finalize(() => this._loading.set(false)),
+    );
   }
 
   loadCurrentUser(): Observable<User> {

@@ -132,6 +132,11 @@ export const routes: Routes = [
       import('./features/auth/consent/consent-challenge.component').then(m => m.ConsentChallengeComponent),
   },
   {
+    path: '2fa',
+    loadComponent: () =>
+      import('./features/auth/two-factor/two-factor-challenge.component').then(m => m.TwoFactorChallengeComponent),
+  },
+  {
     path: 'email/confirmed',
     loadComponent: () =>
       import('./features/email-confirm/email-confirmed.component').then(m => m.EmailConfirmedComponent),

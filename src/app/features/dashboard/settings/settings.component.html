@@ -194,6 +194,164 @@
 
   <div class="card">
     <div class="card__header">
+      <span class="card__title">Двухфакторная аутентификация</span>
+      @if (twoFactorEnabled()) {
+        <span class="badge badge--green badge--dot">Включена</span>
+      } @else {
+        <span class="badge">Выключена</span>
+      }
+    </div>
+
+    <div class="card__body card__body--lg">
+
+      @if (tfaSuccess()) {
+        <div class="toast toast--success">{{ tfaSuccess() }}</div>
+      }
+      @if (tfaError()) {
+        <div class="toast toast--error">{{ tfaError() }}</div>
+      }
+
+      @if (tfaRecoveryCodes(); as codes) {
+
+        <p class="tfa-note">
+          <strong>Сохраните резервные коды</strong> — они показываются только один раз.
+          Каждый код можно использовать однократно вместо кода из приложения.
+        </p>
+        <div class="tfa-codes">
+          @for (code of codes; track code) {
+            <span class="tfa-codes__item">{{ code }}</span>
+          }
+        </div>
+        <div class="settings-actions settings-actions--row">
+          <button class="btn btn--ghost" type="button" (click)="copyTfaCodes()">
+            {{ tfaCodesCopied() ? 'Скопировано ✓' : 'Скопировать все' }}
+          </button>
+          <button class="btn btn--primary" type="button" (click)="finishTfaFlow()">
+            Я сохранил коды
+          </button>
+        </div>
+
+      } @else {
+
+        @switch (tfaMode()) {
+
+          @case ('idle') {
+            <p class="tfa-note">
+              Дополнительная защита входа: помимо пароля потребуется 6-значный код
+              из приложения-аутентификатора (Google Authenticator, 1Password, Яндекс Ключ…).
+            </p>
+            <div class="settings-actions settings-actions--row">
+              @if (twoFactorEnabled()) {
+                <button class="btn btn--ghost" type="button" (click)="startTfaRegenerate()">
+                  Перевыпустить резервные коды
+                </button>
+                <button class="btn btn--danger-soft" type="button" (click)="startTfaDisable()">
+                  Отключить 2FA
+                </button>
+              } @else {
+                <button class="btn btn--primary" type="button"
+                  [disabled]="tfaBusy()" (click)="startTfaEnroll()">
+                  {{ tfaBusy() ? 'Готовим ключ…' : 'Включить 2FA' }}
+                </button>
+              }
+            </div>
+          }
+
+          @case ('enroll') {
+            @if (tfaOtpAuthUri(); as uri) {
+              <div class="tfa-enroll">
+                <app-qr-code [value]="uri" [size]="160" />
+                <div class="tfa-enroll__side">
+                  <p class="tfa-note">
+                    Отсканируйте QR-код приложением-аутентификатором
+                    или введите ключ вручную:
+                  </p>
+                  <code class="tfa-secret">{{ tfaSecret() }}</code>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field__label" for="tfaEnrollCode">Код из приложения</label>
+                <input id="tfaEnrollCode" class="field__input"
+                  type="text" inputmode="numeric" autocomplete="one-time-code"
+                  placeholder="123456" maxlength="6"
+                  [value]="tfaCode()"
+                  (input)="tfaCode.set($any($event.target).value)" />
+              </div>
+              <div class="settings-actions settings-actions--row">
+                <button class="btn btn--ghost" type="button" (click)="cancelTfaFlow()">Отмена</button>
+                <button class="btn btn--primary" type="button"
+                  [disabled]="tfaBusy() || tfaCode().trim().length < 6"
+                  (click)="confirmTfaEnroll()">
+                  {{ tfaBusy() ? 'Проверяем…' : 'Подтвердить и включить' }}
+                </button>
+              </div>
+            } @else {
+              <p class="tfa-note">Готовим секретный ключ…</p>
+            }
+          }
+
+          @case ('disable') {
+            <p class="tfa-note">
+              Для отключения введите пароль (если задан) и код из приложения
+              или резервный код.
+            </p>
+            <div class="field">
+              <label class="field__label" for="tfaDisablePw">Пароль</label>
+              <input id="tfaDisablePw" class="field__input"
+                type="password" autocomplete="current-password"
+                placeholder="Оставьте пустым, если входите только через провайдера"
+                [value]="tfaPassword()"
+                (input)="tfaPassword.set($any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="tfaDisableCode">Код подтверждения</label>
+              <input id="tfaDisableCode" class="field__input"
+                type="text" inputmode="numeric" autocomplete="one-time-code"
+                placeholder="Код из приложения или резервный код" maxlength="20"
+                [value]="tfaCode()"
+                (input)="tfaCode.set($any($event.target).value)" />
+            </div>
+            <div class="settings-actions settings-actions--row">
+              <button class="btn btn--ghost" type="button" (click)="cancelTfaFlow()">Отмена</button>
+              <button class="btn btn--danger" type="button"
+                [disabled]="tfaBusy() || !tfaCode().trim()"
+                (click)="confirmTfaDisable()">
+                {{ tfaBusy() ? 'Отключаем…' : 'Отключить 2FA' }}
+              </button>
+            </div>
+          }
+
+          @case ('regenerate') {
+            <p class="tfa-note">
+              Новые резервные коды заменят все старые. Подтвердите действие кодом из приложения.
+            </p>
+            <div class="field">
+              <label class="field__label" for="tfaRegenCode">Код из приложения</label>
+              <input id="tfaRegenCode" class="field__input"
+                type="text" inputmode="numeric" autocomplete="one-time-code"
+                placeholder="123456" maxlength="6"
+                [value]="tfaCode()"
+                (input)="tfaCode.set($any($event.target).value)" />
+            </div>
+            <div class="settings-actions settings-actions--row">
+              <button class="btn btn--ghost" type="button" (click)="cancelTfaFlow()">Отмена</button>
+              <button class="btn btn--primary" type="button"
+                [disabled]="tfaBusy() || tfaCode().trim().length < 6"
+                (click)="confirmTfaRegenerate()">
+                {{ tfaBusy() ? 'Выпускаем…' : 'Перевыпустить коды' }}
+              </button>
+            </div>
+          }
+
+        }
+
+      }
+
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__header">
       <span class="card__title">Безопасность</span>
     </div>
 

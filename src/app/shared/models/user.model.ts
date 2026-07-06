@@ -6,4 +6,5 @@ export interface User {
   username: string;
   isVerified: boolean;
   role: UserRole;
+  twoFactorEnabled: boolean;
 }

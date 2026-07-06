@@ -56,8 +56,14 @@ export class LoginComponent {
     this.error.set(null);
     const { email, password } = this.form.getRawValue();
     this.auth.login({ email: email!, password: password! }).subscribe({
-      next: (outcome) =>
-        this.router.navigate([outcome.kind === 'consent' ? '/consent' : '/dashboard']),
+      next: (outcome) => {
+        switch (outcome.kind) {
+          case 'consent':        this.router.navigate(['/consent']);   break;
+          case 'twoFactor':
+          case 'twoFactorSetup': this.router.navigate(['/2fa']);       break;
+          default:               this.router.navigate(['/dashboard']); break;
+        }
+      },
       error: (err: HttpErrorResponse) => {
         if (err.status === 403) {
           this.verifyEmail.set(email!);

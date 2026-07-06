@@ -1,19 +1,21 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
 import { OAuthService } from '../../../core/auth/oauth.service';
+import { TwoFactorService } from '../../../core/auth/two-factor.service';
 import { UserPreferencesService } from '../../../core/preferences/user-preferences.service';
 import { ProfileService } from '../../startups/profile.service';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
+import { QrCodeComponent } from '../../../shared/components/qr-code/qr-code.component';
 import { OAuthProvider } from '../../../shared/models/dto/auth.dto';
 import { ThemePreference } from '../../../shared/models/user-preference.model';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [ReactiveFormsModule, AvatarUploadComponent],
+  imports: [ReactiveFormsModule, AvatarUploadComponent, QrCodeComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +25,7 @@ export class SettingsComponent implements OnInit {
   private readonly title          = inject(Title);
   protected readonly auth         = inject(AuthService);
   private readonly oauth          = inject(OAuthService);
+  private readonly twoFactorSvc   = inject(TwoFactorService);
   private readonly profileService = inject(ProfileService);
   private readonly prefsService   = inject(UserPreferencesService);
 
@@ -37,6 +40,21 @@ export class SettingsComponent implements OnInit {
 
   readonly oauthBusy        = signal<OAuthProvider | null>(null);
   readonly oauthMessage     = signal<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  // 2FA (TOTP). twoFactorEnabled comes from GET users/{id} via auth.user().
+  // tfaMode: which inline flow is open; recovery codes are shown exactly once after enable/regenerate.
+  readonly tfaMode          = signal<'idle' | 'enroll' | 'disable' | 'regenerate'>('idle');
+  readonly tfaBusy          = signal(false);
+  readonly tfaError         = signal<string | null>(null);
+  readonly tfaSuccess       = signal<string | null>(null);
+  readonly tfaSecret        = signal<string | null>(null);
+  readonly tfaOtpAuthUri    = signal<string | null>(null);
+  readonly tfaCode          = signal('');
+  readonly tfaPassword      = signal('');
+  readonly tfaRecoveryCodes = signal<string[] | null>(null);
+  readonly tfaCodesCopied   = signal(false);
+
+  readonly twoFactorEnabled = computed(() => this.auth.user()?.twoFactorEnabled ?? false);
 
   linkProvider(provider: OAuthProvider): void {
     if (this.oauthBusy()) return;
@@ -207,6 +225,120 @@ export class SettingsComponent implements OnInit {
         }
       },
     });
+  }
+
+  // ——— 2FA (TOTP) ———
+
+  startTfaEnroll(): void {
+    if (this.tfaBusy()) return;
+    this.resetTfaFlow('enroll');
+    this.tfaBusy.set(true);
+    this.twoFactorSvc.setup().subscribe({
+      next: data => {
+        this.tfaSecret.set(data.secret);
+        this.tfaOtpAuthUri.set(data.otpAuthUri);
+        this.tfaBusy.set(false);
+      },
+      error: () => {
+        this.tfaBusy.set(false);
+        this.tfaError.set('Не удалось начать настройку 2FA. Попробуйте позже.');
+      },
+    });
+  }
+
+  confirmTfaEnroll(): void {
+    const code = this.tfaCode().trim();
+    if (!code || this.tfaBusy()) return;
+    this.tfaBusy.set(true);
+    this.tfaError.set(null);
+    this.twoFactorSvc.enable(code).subscribe({
+      next: codes => {
+        this.tfaBusy.set(false);
+        this.tfaRecoveryCodes.set(codes);
+        this.tfaCode.set('');
+        this.refreshUser();
+      },
+      error: (err: HttpErrorResponse) => this.failTfa(err),
+    });
+  }
+
+  startTfaDisable(): void    { this.resetTfaFlow('disable'); }
+  startTfaRegenerate(): void { this.resetTfaFlow('regenerate'); }
+
+  confirmTfaDisable(): void {
+    const code = this.tfaCode().trim();
+    if (!code || this.tfaBusy()) return;
+    this.tfaBusy.set(true);
+    this.tfaError.set(null);
+    this.twoFactorSvc.disable(this.tfaPassword().trim() || null, code).subscribe({
+      next: () => {
+        this.tfaBusy.set(false);
+        this.resetTfaFlow('idle');
+        this.tfaSuccess.set('Двухфакторная аутентификация отключена.');
+        setTimeout(() => this.tfaSuccess.set(null), 4000);
+        this.refreshUser();
+      },
+      error: (err: HttpErrorResponse) => this.failTfa(err),
+    });
+  }
+
+  confirmTfaRegenerate(): void {
+    const code = this.tfaCode().trim();
+    if (!code || this.tfaBusy()) return;
+    this.tfaBusy.set(true);
+    this.tfaError.set(null);
+    this.twoFactorSvc.regenerateRecoveryCodes(code).subscribe({
+      next: codes => {
+        this.tfaBusy.set(false);
+        this.tfaRecoveryCodes.set(codes);
+        this.tfaCode.set('');
+      },
+      error: (err: HttpErrorResponse) => this.failTfa(err),
+    });
+  }
+
+  copyTfaCodes(): void {
+    const codes = this.tfaRecoveryCodes();
+    if (!codes) return;
+    navigator.clipboard.writeText(codes.join('\n')).then(() => {
+      this.tfaCodesCopied.set(true);
+      setTimeout(() => this.tfaCodesCopied.set(false), 2000);
+    });
+  }
+
+  finishTfaFlow(): void {
+    this.resetTfaFlow('idle');
+  }
+
+  cancelTfaFlow(): void {
+    this.resetTfaFlow('idle');
+  }
+
+  private resetTfaFlow(mode: 'idle' | 'enroll' | 'disable' | 'regenerate'): void {
+    this.tfaMode.set(mode);
+    this.tfaError.set(null);
+    this.tfaSuccess.set(null);
+    this.tfaSecret.set(null);
+    this.tfaOtpAuthUri.set(null);
+    this.tfaCode.set('');
+    this.tfaPassword.set('');
+    this.tfaRecoveryCodes.set(null);
+    this.tfaCodesCopied.set(false);
+  }
+
+  private failTfa(err: HttpErrorResponse): void {
+    this.tfaBusy.set(false);
+    if (err.status === 400 || err.status === 401) {
+      this.tfaError.set('Неверный код или пароль. Попробуйте снова.');
+    } else if (err.status === 429) {
+      this.tfaError.set('Слишком много попыток. Подождите немного.');
+    } else {
+      this.tfaError.set('Не удалось выполнить операцию. Попробуйте позже.');
+    }
+  }
+
+  private refreshUser(): void {
+    this.auth.loadCurrentUser().subscribe({ error: () => { /* stale flag until next reload */ } });
   }
 
   constructor() {

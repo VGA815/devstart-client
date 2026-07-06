@@ -1,0 +1,98 @@
+<div class="auth-page">
+  <div class="auth-page__center">
+
+    <div class="auth-heading">
+      @if (mode() === 'verify') {
+        <h1 class="auth-heading__title">Подтверждение входа</h1>
+        <p class="auth-heading__sub">Введите код из приложения-аутентификатора</p>
+      } @else if (recoveryCodes()) {
+        <h1 class="auth-heading__title">Резервные коды</h1>
+        <p class="auth-heading__sub">Сохраните их сейчас — они показываются только один раз</p>
+      } @else {
+        <h1 class="auth-heading__title">Настройка 2FA</h1>
+        <p class="auth-heading__sub">Для администраторов двухфакторная аутентификация обязательна</p>
+      }
+    </div>
+
+    <div class="auth-card">
+
+      @if (error()) {
+        <div class="toast toast--error">{{ error() }}</div>
+      }
+
+      @if (recoveryCodes(); as codes) {
+
+        <div class="tfa-codes">
+          @for (code of codes; track code) {
+            <span class="tfa-codes__item">{{ code }}</span>
+          }
+        </div>
+        <p class="tfa-note">
+          Каждый код можно использовать один раз вместо кода из приложения —
+          например, если потеряете доступ к телефону.
+        </p>
+        <button class="btn btn--ghost btn--block" type="button" (click)="copyCodes()">
+          {{ codesCopied() ? 'Скопировано ✓' : 'Скопировать все коды' }}
+        </button>
+        <button class="btn btn--primary btn--lg btn--block" type="button" (click)="proceed()">
+          Я сохранил коды — продолжить
+        </button>
+
+      } @else {
+
+        @if (mode() === 'setup') {
+          @if (setupLoading()) {
+            <p class="tfa-note">Готовим секретный ключ…</p>
+          } @else if (otpAuthUri()) {
+            <div class="tfa-setup">
+              <app-qr-code [value]="otpAuthUri()!" [size]="180" />
+              <ol class="tfa-steps">
+                <li>Установите приложение-аутентификатор (Google Authenticator, 1Password, Яндекс Ключ…)</li>
+                <li>Отсканируйте QR-код или введите ключ вручную</li>
+                <li>Введите 6-значный код из приложения ниже</li>
+              </ol>
+            </div>
+            <div class="tfa-secret">
+              <span class="tfa-secret__label">Ключ для ручного ввода</span>
+              <code class="tfa-secret__value">{{ secret() }}</code>
+            </div>
+          }
+        }
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="field">
+            <label class="field__label" for="tfaCode">
+              {{ mode() === 'verify' ? 'Код подтверждения' : 'Код из приложения' }}
+            </label>
+            <input id="tfaCode" class="field__input tfa-code-input"
+              [class.field__input--error]="codeError"
+              type="text" formControlName="code"
+              placeholder="123456"
+              autocomplete="one-time-code" inputmode="numeric"
+              maxlength="20" />
+            @if (codeError) {
+              <span class="field__hint field__hint--error">{{ codeError }}</span>
+            }
+            @if (mode() === 'verify') {
+              <span class="field__hint">Нет доступа к приложению? Введите один из резервных кодов.</span>
+            }
+          </div>
+
+          <button class="btn btn--primary btn--lg btn--block" type="submit"
+            [disabled]="submitting() || (mode() === 'setup' && !otpAuthUri())">
+            @if (submitting()) { Проверяем… } @else { Подтвердить }
+          </button>
+        </form>
+
+      }
+
+    </div>
+
+    @if (!recoveryCodes()) {
+      <button class="auth-footer-link tfa-back" type="button" (click)="backToLogin()">
+        ← Вернуться ко входу
+      </button>
+    }
+
+  </div>
+</div>

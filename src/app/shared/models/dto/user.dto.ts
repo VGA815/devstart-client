@@ -40,6 +40,7 @@ export interface UserDto {
   username: string;
   isVerified: boolean;
   role: number; // UserSystemRole: 0 = User, 1 = Admin
+  twoFactorEnabled: boolean;
 }
 
 
@@ -50,5 +51,6 @@ export function mapUserDto(dto: UserDto): User {
     username: dto.username,
     isVerified: dto.isVerified,
     role: dto.role === 1 ? 'Admin' : 'User',
+    twoFactorEnabled: dto.twoFactorEnabled ?? false,
   };
 }

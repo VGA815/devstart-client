@@ -1,7 +1,9 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { AuthService } from '../../../core/auth/auth.service';
 import { AdminService } from '../admin.service';
 import {
   AdminPayment, AdminUserDetail,
@@ -20,6 +22,7 @@ import {
 export class AdminUserDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly admin = inject(AdminService);
+  private readonly auth  = inject(AuthService);
 
   readonly userId = this.route.snapshot.paramMap.get('id')!;
 
@@ -43,6 +46,15 @@ export class AdminUserDetailComponent implements OnInit {
   readonly refundAmount = signal('');
   readonly refundBusy   = signal(false);
   readonly refundError  = signal('');
+
+  // reset 2FA (backend forbids resetting your own — admins use self-service disable)
+  readonly tfaOpen   = signal(false);
+  readonly tfaReason = signal('');
+  readonly tfaBusy   = signal(false);
+  readonly tfaError  = signal('');
+  readonly tfaOk     = signal(false);
+
+  readonly isSelf = computed(() => this.auth.user()?.id === this.userId);
 
   ngOnInit(): void {
     this.loadUser();
@@ -133,6 +145,42 @@ export class AdminUserDetailComponent implements OnInit {
   canRefund(p: AdminPayment): boolean {
     // Succeeded and not fully refunded yet
     return p.status === 1 && p.refundedAmount < p.amount;
+  }
+
+  openTfaReset(): void {
+    this.tfaOpen.set(true);
+    this.tfaReason.set('');
+    this.tfaError.set('');
+    this.tfaOk.set(false);
+  }
+
+  submitTfaReset(): void {
+    const reason = this.tfaReason().trim();
+    if (reason.length < 3 || this.tfaBusy()) return;
+
+    this.tfaBusy.set(true);
+    this.tfaError.set('');
+
+    this.admin.resetUserTwoFactor(this.userId, reason).subscribe({
+      next: () => {
+        this.tfaBusy.set(false);
+        this.tfaOpen.set(false);
+        this.tfaOk.set(true);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.tfaBusy.set(false);
+        const title: string = err.error?.title ?? '';
+        if (title === 'TwoFactor.NotEnabled' || err.status === 409) {
+          this.tfaError.set('У этого пользователя 2FA не включена — сбрасывать нечего.');
+        } else if (title === 'TwoFactor.CannotResetSelf') {
+          this.tfaError.set('Нельзя сбросить 2FA самому себе — отключите её в настройках профиля.');
+        } else if (err.status === 400) {
+          this.tfaError.set('Укажите причину (от 3 до 1000 символов).');
+        } else {
+          this.tfaError.set('Не удалось сбросить 2FA. Попробуйте позже.');
+        }
+      },
+    });
   }
 
   roleLabel(v: number): string    { return ROLE_LABELS[v] ?? String(v); }

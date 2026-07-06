@@ -1,0 +1,162 @@
+<div class="card">
+  <div class="card__header">
+    <span class="card__title">Cap table</span>
+    @if (!editing() && capTable()) {
+      <button class="card__action" type="button" (click)="openEdit()">✏ Редактировать</button>
+    }
+    @if (editing()) {
+      <button class="card__action" type="button" (click)="cancelEdit()">✕ Отмена</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="card__skeleton"><app-skeleton height="80px" /></div>
+
+  } @else if (loadError()) {
+    <div class="card__empty">Не удалось загрузить таблицу капитализации</div>
+
+  } @else if (capTable()) {
+    @let table = capTable()!;
+
+    @if (!editing()) {
+
+      @if (!table.isConfigured) {
+        <div class="ct-hint">
+          Таблица ещё не сохранена — показано распределение по умолчанию.
+          Отредактируйте доли и сохраните.
+        </div>
+      }
+
+      <div class="ct-list">
+        @for (h of table.holders; track $index) {
+          <div class="ct-row">
+            <div class="ct-row__main">
+              <span class="ct-row__name">{{ h.name }}</span>
+              <span class="badge badge--mono" [class]="typeBadge(h.holderType)">
+                {{ typeLabel(h.holderType) }}
+              </span>
+            </div>
+            <div class="ct-row__vesting">
+              <span class="ct-row__vesting-label">{{ vestingLabel(h) }}</span>
+              @if (h.vestingStartDate && h.vestingMonths) {
+                <div class="ct-progress" [title]="'Вестировано ' + vestedPercent(h) + '%'">
+                  <div class="ct-progress__fill" [style.width.%]="vestedPercent(h)"></div>
+                </div>
+                <span class="ct-row__vested">{{ formatPct(h.vestedPercentage) }}% из {{ formatPct(h.equityPercentage) }}%</span>
+              }
+            </div>
+            <span class="ct-row__pct">{{ formatPct(h.equityPercentage) }}%</span>
+          </div>
+        }
+      </div>
+
+      <div class="ct-footer">
+        <span>Всего: <strong>{{ formatPct(table.totalPercentage) }}%</strong></span>
+        <span>Вестировано: <strong>{{ formatPct(table.totalVestedPercentage) }}%</strong></span>
+      </div>
+
+    } @else {
+
+      <div class="ct-editor">
+
+        @if (saveError()) {
+          <div class="toast toast--error">{{ saveError() }}</div>
+        }
+
+        @for (row of rows(); track $index; let i = $index) {
+          <div class="ct-edit-row" [class.ct-edit-row--invalid]="rowError(i)">
+
+            <div class="ct-edit-row__grid">
+              <select class="field__select"
+                [value]="row.holderType"
+                (change)="setRowType(i, $any($event.target).value)">
+                @for (t of typeOptions; track t) {
+                  <option [value]="t" [selected]="t === row.holderType">{{ typeLabel(t) }}</option>
+                }
+              </select>
+
+              @if (row.holderType === 'Founder') {
+                <select class="field__select"
+                  (change)="patchRow(i, { profileId: $any($event.target).value || null })">
+                  <option value="" [selected]="!row.profileId">— выберите основателя —</option>
+                  @for (f of founderOptions(); track f.profileId) {
+                    <option [value]="f.profileId" [selected]="f.profileId === row.profileId">{{ f.name }}</option>
+                  }
+                </select>
+              } @else {
+                <input class="field__input" type="text" placeholder="Название (например, ESOP-пул)"
+                  [value]="row.name"
+                  (input)="patchRow(i, { name: $any($event.target).value })" />
+              }
+
+              <div class="ct-edit-row__pct">
+                <input class="field__input" type="number" min="0" max="100" step="0.01"
+                  placeholder="0.00"
+                  [value]="row.equityPercentage"
+                  (input)="patchRow(i, { equityPercentage: $any($event.target).value })" />
+                <span class="ct-edit-row__pct-sign">%</span>
+              </div>
+
+              <button class="btn btn--icon btn--danger-hover" type="button"
+                title="Удалить строку" (click)="removeRow(i)">✕</button>
+            </div>
+
+            <label class="field__label field__label--checkbox ct-edit-row__vesting-toggle">
+              <input type="checkbox" [checked]="row.hasVesting" (change)="toggleVesting(i)" />
+              Вестинг
+            </label>
+
+            @if (row.hasVesting) {
+              <div class="ct-edit-row__vesting">
+                <div class="ct-edit-row__vesting-field">
+                  <label class="field__label field__label--mono">Начало</label>
+                  <input class="field__input field__input--sm" type="date"
+                    [value]="row.vestingStartDate"
+                    (input)="patchRow(i, { vestingStartDate: $any($event.target).value })" />
+                </div>
+                <div class="ct-edit-row__vesting-field">
+                  <label class="field__label field__label--mono">Срок, мес</label>
+                  <input class="field__input field__input--sm" type="number" min="1" step="1"
+                    placeholder="48"
+                    [value]="row.vestingMonths"
+                    (input)="patchRow(i, { vestingMonths: $any($event.target).value })" />
+                </div>
+                <div class="ct-edit-row__vesting-field">
+                  <label class="field__label field__label--mono">Клифф, мес</label>
+                  <input class="field__input field__input--sm" type="number" min="0" step="1"
+                    placeholder="12"
+                    [value]="row.cliffMonths"
+                    (input)="patchRow(i, { cliffMonths: $any($event.target).value })" />
+                </div>
+              </div>
+            }
+
+            @if (rowError(i); as err) {
+              <span class="field__hint field__hint--error">{{ err }}</span>
+            }
+          </div>
+        }
+
+        <div class="ct-editor__toolbar">
+          <button class="btn btn--ghost" type="button" (click)="addRow()">+ Добавить строку</button>
+          <button class="btn btn--ghost" type="button" (click)="splitEvenly()"
+            title="Поделить остаток поровну между основателями">Поровну между основателями</button>
+        </div>
+
+        <div class="ct-editor__footer">
+          <span class="ct-editor__sum" [class.ct-editor__sum--ok]="sumOk()" [class.ct-editor__sum--bad]="!sumOk()">
+            Сумма: {{ formatPct(sum()) }}% / 100%
+          </span>
+          @if (duplicateProfiles()) {
+            <span class="field__hint field__hint--error">Один основатель указан дважды</span>
+          }
+          <button class="btn btn--primary" type="button"
+            [disabled]="!canSave() || saving()" (click)="save()">
+            {{ saving() ? 'Сохраняем…' : 'Сохранить таблицу' }}
+          </button>
+        </div>
+
+      </div>
+    }
+  }
+</div>
