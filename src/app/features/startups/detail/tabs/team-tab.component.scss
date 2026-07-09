@@ -14,8 +14,8 @@
   &:hover { background: var(--bg3); }
 
   &--mine {
-    background: rgba(47, 129, 247, 0.04);
-    &:hover { background: rgba(47, 129, 247, 0.07); }
+    background: var(--accent-faint);
+    &:hover { background: var(--accent-soft); }
   }
 
   &__link {
@@ -50,7 +50,7 @@
   }
 
   &__position {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--accent);
     background: var(--accent-glow);
@@ -73,7 +73,7 @@
   }
 
   &__years {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-dim);
   }
@@ -93,7 +93,7 @@
     align-items: center;
     justify-content: center;
 
-    &:hover { color: var(--accent); border-color: rgba(47, 129, 247, 0.4); }
+    &:hover { color: var(--accent); border-color: var(--accent-border); }
   }
 }
 

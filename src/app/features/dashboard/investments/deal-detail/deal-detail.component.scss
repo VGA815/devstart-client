@@ -1,12 +1,12 @@
 @use '../../../../../styles/mixins' as *;
 
 :host {
-  --ct-color-0: #2f81f7;
-  --ct-color-1: #3fb950;
-  --ct-color-2: #bc8cff;
-  --ct-color-3: #d29922;
-  --ct-color-4: #f85149;
-  --ct-color-5: #7d8590;
+  --ct-color-0: var(--accent);
+  --ct-color-1: var(--green);
+  --ct-color-2: var(--purple);
+  --ct-color-3: var(--yellow);
+  --ct-color-4: var(--red);
+  --ct-color-5: var(--text-muted);
   --ct-color-6: #58a6ff;
   --ct-color-7: #56d364;
 }
@@ -71,37 +71,37 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   white-space: nowrap;
 
   &--inprogress {
-    background: rgba(47, 129, 247, 0.1);
+    background: var(--accent-soft);
     color: var(--accent);
-    border: 1px solid rgba(47, 129, 247, 0.2);
+    border: 1px solid var(--accent-glow);
   }
 
   &--completed {
-    background: rgba(63, 185, 80, 0.1);
+    background: var(--green-soft);
     color: var(--green);
-    border: 1px solid rgba(63, 185, 80, 0.2);
+    border: 1px solid var(--green-border);
   }
 
   &--cancelled {
-    background: rgba(125, 133, 144, 0.1);
+    background: var(--neutral-soft);
     color: var(--text-muted);
-    border: 1px solid rgba(125, 133, 144, 0.2);
+    border: 1px solid var(--neutral-border);
   }
 
   &--docs {
-    background: rgba(63, 185, 80, 0.08);
+    background: var(--green-soft);
     color: var(--green);
-    border: 1px solid rgba(63, 185, 80, 0.15);
+    border: 1px solid var(--green-soft);
   }
 
   &--pending {
-    background: rgba(210, 153, 34, 0.08);
+    background: var(--yellow-soft);
     color: var(--yellow);
-    border: 1px solid rgba(210, 153, 34, 0.2);
+    border: 1px solid var(--yellow-border);
   }
 }
 
@@ -114,7 +114,7 @@
   &__header {
     padding: 12px 16px 13px;
     border-bottom: 1px solid var(--border);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.077em;
@@ -130,7 +130,7 @@
     font-weight: 500;
     color: var(--accent);
     background: transparent;
-    border: 1px solid rgba(47, 129, 247, 0.3);
+    border: 1px solid var(--accent-border);
     border-radius: var(--radius);
     padding: 3px 10px;
     cursor: pointer;
@@ -168,7 +168,7 @@
   &__label {
     font-size: 11px;
     color: var(--text-dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -179,7 +179,7 @@
     color: var(--text);
 
     &--money {
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--font-mono);
       color: var(--green);
       font-size: 16px;
     }
@@ -205,8 +205,8 @@
   transition: var(--transition);
 
   &--done {
-    background: rgba(63, 185, 80, 0.05);
-    border-color: rgba(63, 185, 80, 0.25);
+    background: var(--green-soft);
+    border-color: var(--green-border);
   }
 
   &__icon {
@@ -263,7 +263,7 @@
     font-size: 13px;
     font-weight: 500;
     color: var(--text);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -293,7 +293,7 @@
 }
 
 .dd-ts-body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-ui);
   font-size: 13.5px;
   line-height: 1.7;
   color: var(--text-muted);
@@ -360,7 +360,7 @@
         content: counter(ts-ol) '.';
         position: absolute;
         left: 0;
-        font-family: 'IBM Plex Mono', monospace;
+        font-family: var(--font-mono);
         font-size: 11px;
         color: var(--text-dim);
         line-height: 1.7;
@@ -384,7 +384,7 @@
     th {
       padding: 8px 12px;
       text-align: left;
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
@@ -413,12 +413,12 @@
     tbody tr {
       transition: background var(--transition);
       &:last-child td { border-bottom: none; }
-      &:hover { background: rgba(255,255,255,.03); }
+      &:hover { background: var(--bg-hover); }
     }
   }
 
   code {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     background: var(--bg3);
     border: 1px solid var(--border);
@@ -533,7 +533,7 @@
   }
 
   &__pct {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-dim);
   }
@@ -548,7 +548,7 @@
   th {
     padding: 8px 12px;
     text-align: left;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
@@ -568,9 +568,9 @@
   tr:last-child td { border-bottom: none; }
 
   &__name  { font-weight: 500; color: var(--text); }
-  &__mono  { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
-  &__pct   { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); }
-  &__money { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--green); }
+  &__mono  { font-family: var(--font-mono); font-size: 12px; }
+  &__pct   { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  &__money { font-family: var(--font-mono); font-size: 12px; color: var(--green); }
 }
 
 .dd-alert {
@@ -579,14 +579,14 @@
   font-size: 13px;
 
   &--error {
-    background: rgba(248, 81, 73, 0.08);
-    border: 1px solid rgba(248, 81, 73, 0.25);
+    background: var(--red-soft);
+    border: 1px solid var(--red-border);
     color: var(--red);
   }
 
   &--success {
-    background: rgba(63, 185, 80, 0.08);
-    border: 1px solid rgba(63, 185, 80, 0.25);
+    background: var(--green-soft);
+    border: 1px solid var(--green-border);
     color: var(--green);
   }
 }
@@ -608,8 +608,8 @@
   &--primary {
     background: var(--accent);
     border: 1px solid var(--accent);
-    color: #fff;
-    &:hover:not(:disabled) { opacity: 0.88; }
+    color: var(--text-on-accent);
+    &:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 

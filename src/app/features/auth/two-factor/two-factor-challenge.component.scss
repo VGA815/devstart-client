@@ -24,7 +24,7 @@
   gap: 4px;
 
   &__label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
@@ -33,7 +33,7 @@
   }
 
   &__value {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--text);
     background: var(--bg3);
@@ -46,7 +46,7 @@
 }
 
 .tfa-code-input {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 18px;
   letter-spacing: 0.35em;
   text-align: center;
@@ -58,7 +58,7 @@
   gap: 8px;
 
   &__item {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     color: var(--text);
     background: var(--bg3);

@@ -35,7 +35,7 @@
   }
 
   &__title {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--accent);
   }
@@ -127,7 +127,7 @@
   }
 
   &__range {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-dim);
     flex-shrink: 0;
@@ -140,7 +140,7 @@
   gap: 2px;
 
   &__label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.05em;

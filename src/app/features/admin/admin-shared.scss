@@ -24,7 +24,7 @@
   border-bottom: 1px solid var(--bg3);
 
   &:last-child { border-bottom: none; }
-  &:hover { background: rgba(255, 255, 255, 0.02); }
+  &:hover { background: var(--bg-hover); }
 
   &__info {
     flex: 1;
@@ -46,7 +46,7 @@
   }
 
   &__sub {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-muted);
     word-break: break-word;
@@ -118,7 +118,7 @@
 }
 
 .adm-mono {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-dim);
 }

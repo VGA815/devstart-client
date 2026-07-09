@@ -38,13 +38,13 @@
     font-size: 24px;
     font-weight: 700;
 
-    &--ok   { background: rgba(63, 185, 80, 0.15); color: var(--green); }
-    &--err  { background: rgba(248, 81, 73, 0.15); color: var(--red); }
-    &--wait { background: rgba(210, 153, 34, 0.15); font-size: 22px; }
+    &--ok   { background: var(--green-soft); color: var(--green); }
+    &--err  { background: var(--red-soft); color: var(--red); }
+    &--wait { background: var(--yellow-soft); font-size: 22px; }
   }
 
   &__title {
-    font-family: 'Instrument Serif', Georgia, serif;
+    font-family: var(--font-serif);
     font-size: 26px;
     font-weight: 400;
     color: var(--text);
@@ -85,9 +85,9 @@
     &--primary {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--text-on-accent);
 
-      &:hover { opacity: 0.88; border-color: var(--accent); }
+      &:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
     }
   }
 }

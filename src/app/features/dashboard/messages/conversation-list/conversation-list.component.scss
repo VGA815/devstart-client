@@ -15,7 +15,7 @@
   }
 
   &__title {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.077em;
@@ -57,7 +57,7 @@
   flex-shrink: 0;
 
   &:hover { background: var(--bg3); }
-  &--active { background: rgba(47, 129, 247, 0.08); }
+  &--active { background: var(--accent-soft); }
   &--skeleton { cursor: default; &:hover { background: transparent; } }
 
   &__info {
@@ -78,7 +78,7 @@
   }
 
   &__time {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
   }
@@ -90,7 +90,7 @@
     padding: 0 5px;
     border-radius: 9px;
     background: var(--accent);
-    color: #fff;
+    color: var(--text-on-accent);
     font-size: 10px;
     font-weight: 600;
     display: flex;

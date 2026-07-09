@@ -20,14 +20,14 @@
   }
 
   &__code {
-    font-family: 'Instrument Serif', Georgia, serif;
+    font-family: var(--font-serif);
     font-size: 64px;
     line-height: 1;
     color: var(--accent);
   }
 
   &__title {
-    font-family: 'Instrument Serif', Georgia, serif;
+    font-family: var(--font-serif);
     font-size: 26px;
     font-weight: 400;
     color: var(--text);
@@ -67,9 +67,9 @@
     &--primary {
       background: var(--accent);
       border-color: var(--accent);
-      color: #fff;
+      color: var(--text-on-accent);
 
-      &:hover { opacity: 0.88; border-color: var(--accent); }
+      &:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
     }
   }
 }

@@ -1,16 +1,17 @@
+// SCSS-алиасы (легаси; в новом коде используй CSS-переменные --font-*)
 $font-ui:     'DM Sans', system-ui, sans-serif;
 $font-mono:   'IBM Plex Mono', 'Courier New', monospace;
 $font-serif:  'Instrument Serif', Georgia, serif;
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: $font-ui;
+  font-family: var(--font-ui);
   font-weight: 600;
   line-height: 1.25;
   color: var(--text);
 }
 
 h1.hero {
-  font-family: $font-serif;
+  font-family: var(--font-serif);
   font-size: 3rem;
   font-weight: 400;
 
@@ -21,7 +22,17 @@ h1.hero {
 }
 
 code, pre, .mono {
-  font-family: $font-mono;
+  font-family: var(--font-mono);
+}
+
+// Стандартный mono-лейбл секций/карточек
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .text-muted  { color: var(--text-muted); }

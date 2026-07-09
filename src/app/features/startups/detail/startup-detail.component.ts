@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit, Input, signal, HostListener, effect } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { TagComponent } from '../../../shared/components/tag/tag.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
@@ -24,6 +24,7 @@ import { InvestFormComponent } from './invest-form/invest-form.component';
   selector: 'app-startup-detail',
   standalone: true,
   imports: [
+    RouterLink,
     TagComponent, SkeletonComponent, AvatarComponent,
     OverviewTabComponent, RoadmapTabComponent, MetricsTabComponent, TeamTabComponent,
     InvestorsTabComponent, DocumentsTabComponent, CompetitorsTabComponent, ScoringTabComponent,
@@ -94,6 +95,16 @@ export class StartupDetailComponent implements OnInit {
 
   getFoundedYear(createdAt: string): string {
     return new Date(createdAt).getFullYear().toString();
+  }
+
+  // Ширина бара TAM/SAM/SOM в % от максимального из трёх значений
+  marketPercent(
+    value: number | null,
+    s: { tam: number | null; sam: number | null; som: number | null },
+  ): number {
+    const max = Math.max(s.tam ?? 0, s.sam ?? 0, s.som ?? 0);
+    if (!max || !value) return 0;
+    return Math.max(6, Math.round((value / max) * 100));
   }
 
   protected readonly getStageColor = getStageColor;

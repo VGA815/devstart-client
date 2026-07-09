@@ -16,7 +16,7 @@
   }
 
   &__title {
-    font-family: 'Instrument Serif', Georgia, serif;
+    font-family: var(--font-serif);
     font-size: 26px;
     font-weight: 400;
     color: var(--text);
@@ -62,7 +62,7 @@
   }
 
   &__doc-version {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--text-dim);
   }
@@ -119,9 +119,9 @@
     &--primary {
       background: var(--accent);
       border: 1px solid var(--accent);
-      color: #fff;
+      color: var(--text-on-accent);
 
-      &:hover:not(:disabled) { opacity: 0.88; }
+      &:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
       &:disabled { opacity: 0.5; cursor: not-allowed; }
     }
 

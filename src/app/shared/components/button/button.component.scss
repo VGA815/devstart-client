@@ -14,8 +14,8 @@
 
   &--primary {
     background: var(--accent);
-    color: #fff;
-    &:hover:not(:disabled) { opacity: 0.88; }
+    color: var(--text-on-accent);
+    &:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
   }
 
   &--ghost {
@@ -29,7 +29,7 @@
     background: transparent;
     color: var(--red);
     border-color: var(--red);
-    &:hover:not(:disabled) { background: rgba(248, 81, 73, 0.1); }
+    &:hover:not(:disabled) { background: var(--red-soft); }
   }
 
   &--sm { padding: 4px 10px; font-size: 0.86rem; }

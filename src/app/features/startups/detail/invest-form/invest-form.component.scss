@@ -31,7 +31,7 @@
     flex-shrink: 0;
     padding: 0 10px;
     background: var(--accent-glow);
-    border: 1px solid rgba(47, 129, 247, 0.3);
+    border: 1px solid var(--accent-border);
     border-radius: var(--radius);
     color: var(--accent);
     font-size: 11px;
@@ -39,7 +39,7 @@
     transition: var(--transition);
     white-space: nowrap;
 
-    &:hover:not(:disabled) { background: rgba(47, 129, 247, 0.2); }
+    &:hover:not(:disabled) { background: var(--accent-glow); }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 }

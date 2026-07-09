@@ -3,7 +3,7 @@
   align-items: center;
   padding: 2px 8px;
   border-radius: 4px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.79rem;
   font-weight: 500;
   border: 1px solid transparent;
@@ -17,30 +17,30 @@
   &--accent {
     background: var(--accent-glow);
     color: var(--accent);
-    border-color: rgba(47, 129, 247, 0.3);
+    border-color: var(--accent-border);
   }
 
   &--green {
-    background: rgba(63, 185, 80, 0.12);
+    background: var(--green-soft);
     color: var(--green);
-    border-color: rgba(63, 185, 80, 0.3);
+    border-color: var(--green-border);
   }
 
   &--yellow {
-    background: rgba(210, 153, 34, 0.12);
+    background: var(--yellow-soft);
     color: var(--yellow);
-    border-color: rgba(210, 153, 34, 0.3);
+    border-color: var(--yellow-border);
   }
 
   &--red {
-    background: rgba(248, 81, 73, 0.12);
+    background: var(--red-soft);
     color: var(--red);
-    border-color: rgba(248, 81, 73, 0.3);
+    border-color: var(--red-border);
   }
 
   &--purple {
-    background: rgba(188, 140, 255, 0.12);
+    background: var(--purple-soft);
     color: var(--purple);
-    border-color: rgba(188, 140, 255, 0.3);
+    border-color: var(--purple-border);
   }
 }

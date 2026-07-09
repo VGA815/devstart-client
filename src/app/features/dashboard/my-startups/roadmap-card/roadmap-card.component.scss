@@ -46,7 +46,7 @@
   }
 
   &__quarter {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
     flex-shrink: 0;

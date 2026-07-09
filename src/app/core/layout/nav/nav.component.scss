@@ -4,7 +4,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(13, 17, 23, 0.85);
+  background: var(--glass);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   height: 56px;
@@ -38,15 +38,15 @@
     height: 26px;
     background: var(--accent);
     border-radius: 4px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-ui);
     font-size: 12px;
     font-weight: 600;
-    color: #fff;
+    color: var(--text-on-accent);
     flex-shrink: 0;
   }
 
   &__logo-text {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 15px;
     font-weight: 600;
     color: var(--text);
@@ -116,8 +116,8 @@
     &--primary {
       background: var(--accent);
       border: 1px solid var(--accent);
-      color: #fff;
-      &:hover { opacity: 0.88; }
+      color: var(--text-on-accent);
+      &:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
     }
 
     &--ghost {
@@ -172,7 +172,7 @@
       flex-direction: column;
       gap: 2px;
       padding: 8px 16px 16px;
-      background: rgba(13, 17, 23, 0.97);
+      background: var(--bg);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
     }

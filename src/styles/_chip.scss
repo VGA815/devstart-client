@@ -11,7 +11,7 @@
   padding: 4px 10px;
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 500;
@@ -19,22 +19,22 @@
   transition: var(--transition);
   white-space: nowrap;
 
-  &:hover:not(:disabled) { color: var(--text); }
+  &:hover:not(:disabled) { color: var(--text); border-color: var(--border-strong); }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 
   &--sm { padding: 3px 8px; font-size: 11px; }
   &--lg { padding: 7px 14px; font-size: 13px; }
 
-  &--pill { border-radius: 999px; }
+  &--pill { border-radius: var(--radius-full); }
 
   &--active {
     background: var(--accent-glow);
-    border-color: rgba(47, 129, 247, 0.3);
+    border-color: var(--accent-border);
     color: var(--accent);
   }
 
-  &--green   { color: var(--green);  border-color: rgba(63, 185, 80, 0.3);  background: rgba(63, 185, 80, 0.12); }
-  &--yellow  { color: var(--yellow); border-color: rgba(210, 153, 34, 0.3); background: rgba(210, 153, 34, 0.12); }
-  &--red     { color: var(--red);    border-color: rgba(248, 81, 73, 0.3);  background: rgba(248, 81, 73, 0.10); }
-  &--purple  { color: var(--purple); border-color: rgba(188, 140, 255, 0.3); background: rgba(188, 140, 255, 0.12); }
+  &--green   { color: var(--green);  border-color: var(--green-border);  background: var(--green-soft); }
+  &--yellow  { color: var(--yellow); border-color: var(--yellow-border); background: var(--yellow-soft); }
+  &--red     { color: var(--red);    border-color: var(--red-border);    background: var(--red-soft); }
+  &--purple  { color: var(--purple); border-color: var(--purple-border); background: var(--purple-soft); }
 }

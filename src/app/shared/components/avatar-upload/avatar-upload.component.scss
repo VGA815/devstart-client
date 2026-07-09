@@ -32,7 +32,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 20px;
     font-weight: 700;
     color: var(--accent);
@@ -42,7 +42,7 @@
   &__overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: var(--overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -59,7 +59,7 @@
     width: 18px;
     height: 18px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
+    border-top-color: var(--text-on-accent);
     border-radius: 50%;
     animation: av-spin 0.7s linear infinite;
   }
@@ -89,13 +89,13 @@
 
     &--danger {
       color: var(--red);
-      border-color: rgba(248, 81, 73, 0.3);
-      &:hover:not(:disabled) { background: rgba(248, 81, 73, 0.08); border-color: var(--red); }
+      border-color: var(--red-border);
+      &:hover:not(:disabled) { background: var(--red-soft); border-color: var(--red); }
     }
   }
 
   &__hint {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
   }

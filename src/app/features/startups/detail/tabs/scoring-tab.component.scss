@@ -18,11 +18,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(188, 140, 255, 0.35);
+    border: 1px solid var(--purple-border);
     border-radius: 6px;
-    background: rgba(188, 140, 255, 0.1);
+    background: var(--purple-soft);
     color: var(--purple);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     font-weight: 700;
   }
@@ -88,7 +88,7 @@
   }
 
   &__num {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 22px;
     font-weight: 700;
     color: var(--accent);
@@ -97,7 +97,7 @@
   &__max {
     font-size: 10px;
     color: var(--text-dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
   }
 
   &__meta {
@@ -112,13 +112,13 @@
     color: var(--text);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
   }
 
   &__valuation {
     font-size: 20px;
     font-weight: 700;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     color: var(--green);
     letter-spacing: -0.02em;
   }
@@ -131,7 +131,7 @@
   &__updated {
     font-size: 10px;
     color: var(--text-dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     margin-top: 4px;
   }
 }
@@ -171,7 +171,7 @@
   }
 
   &__score {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 14px;
     font-weight: 700;
     color: var(--text);
@@ -218,7 +218,7 @@
 
   &__label {
     font-size: 10px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-dim);
@@ -233,7 +233,7 @@
     border: 1px solid var(--border);
     border-radius: 20px;
     font-size: 11px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     color: var(--text-muted);
   }
 }

@@ -33,7 +33,7 @@
 }
 
 .tfa-secret {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text);
   background: var(--bg3);
@@ -50,7 +50,7 @@
   gap: 8px;
 
   &__item {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     color: var(--text);
     background: var(--bg3);

@@ -59,7 +59,7 @@
   }
 
   &__time {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 9px;
     color: var(--text-dim);
     align-self: flex-end;
@@ -73,7 +73,7 @@
       border-color: var(--accent);
       border-radius: 12px 12px 4px 12px;
     }
-    .chat-msg__text  { color: #fff; }
+    .chat-msg__text  { color: var(--text-on-accent); }
     .chat-msg__time  { color: rgba(255,255,255,0.55); }
   }
 }
@@ -115,7 +115,7 @@
 .chat-msg__metric-label { color: var(--text-muted); }
 
 .chat-msg__metric-value {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-weight: 600;
   color: var(--text);
 }
@@ -161,7 +161,7 @@
   }
 
   &-meta {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
   }
@@ -179,7 +179,7 @@
     border-color: rgba(255, 255, 255, 0.2);
   }
   .chat-msg__metric-label { color: rgba(255, 255, 255, 0.65); }
-  .chat-msg__metric-value { color: #fff; }
+  .chat-msg__metric-value { color: var(--text-on-accent); }
 
   .chat-msg__doc {
     background: rgba(255, 255, 255, 0.1);
@@ -187,7 +187,7 @@
 
     &:hover { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.35); }
   }
-  .chat-msg__doc-name  { color: #fff; }
+  .chat-msg__doc-name  { color: var(--text-on-accent); }
   .chat-msg__doc-meta  { color: rgba(255, 255, 255, 0.55); }
   .chat-msg__doc-arrow { color: rgba(255, 255, 255, 0.65); }
 }

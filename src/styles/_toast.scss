@@ -6,26 +6,26 @@
   animation: fadeIn 0.2s ease;
 
   &--success {
-    background: rgba(63, 185, 80, 0.12);
-    border: 1px solid rgba(63, 185, 80, 0.3);
+    background: var(--green-soft);
+    border: 1px solid var(--green-border);
     color: var(--green);
   }
 
   &--error {
-    background: rgba(248, 81, 73, 0.10);
-    border: 1px solid rgba(248, 81, 73, 0.3);
+    background: var(--red-soft);
+    border: 1px solid var(--red-border);
     color: var(--red);
   }
 
   &--warning {
-    background: rgba(210, 153, 34, 0.10);
-    border: 1px solid rgba(210, 153, 34, 0.3);
+    background: var(--yellow-soft);
+    border: 1px solid var(--yellow-border);
     color: var(--yellow);
   }
 
   &--info {
-    background: var(--accent-glow);
-    border: 1px solid rgba(47, 129, 247, 0.3);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
     color: var(--accent);
   }
 }

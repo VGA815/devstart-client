@@ -1,22 +1,66 @@
 :root {
-  --bg:      #0d1117;
-  --bg2:     #161b22;
-  --bg3:     #21262d;
-  --border:  #30363d;
+  // ── Поверхности ──────────────────────────────────────────────
+  --bg:        #0d1117;                      // страница
+  --bg2:       #161b22;                      // карточки, nav, sidebar
+  --bg3:       #21262d;                      // инпуты, hover-элементы
+  --bg-hover:  rgba(255, 255, 255, 0.03);    // hover строк таблиц/списков
+  --border:        #30363d;                  // разделители
+  --border-strong: #484f58;                  // hover-бордеры, выделенные рамки
+  --overlay:   rgba(1, 4, 9, 0.6);           // подложка модалок/оверлеев
+  --glass:     rgba(13, 17, 23, 0.85);       // полупрозрачный sticky-nav (+ blur)
 
-  --text:       #e6edf3;
-  --text-muted: #7d8590;
-  --text-dim:   #484f58;
+  // ── Текст ────────────────────────────────────────────────────
+  --text:           #e6edf3;                 // основной
+  --text-muted:     #7d8590;                 // вторичные подписи
+  --text-dim:       #484f58;                 // метки времени, метаданные
+  --text-on-accent: #ffffff;                 // текст на заливке accent/red
 
-  --accent:      #2f81f7;
-  --accent-glow: rgba(47, 129, 247, 0.15);
+  // ── Акцент ───────────────────────────────────────────────────
+  --accent:        #2f81f7;
+  --accent-hover:  #1f6feb;                  // hover заливки primary
+  --accent-faint:  rgba(47, 129, 247, 0.05); // подсветка непрочитанных строк
+  --accent-soft:   rgba(47, 129, 247, 0.10); // мягкий фон
+  --accent-glow:   rgba(47, 129, 247, 0.15); // активные чипы, focus-ring, счётчики
+  --accent-border: rgba(47, 129, 247, 0.35); // бордер акцентных плашек
 
-  --green:  #3fb950;
-  --yellow: #d29922;
-  --red:    #f85149;
-  --purple: #bc8cff;
+  // ── Семантика (base / soft-фон / border) ─────────────────────
+  --green:         #3fb950;                  // позитив, live-индикатор
+  --green-soft:    rgba(63, 185, 80, 0.12);
+  --green-border:  rgba(63, 185, 80, 0.30);
 
-  --radius:     6px;
+  --yellow:        #d29922;                  // pre-seed, warning
+  --yellow-soft:   rgba(210, 153, 34, 0.12);
+  --yellow-border: rgba(210, 153, 34, 0.30);
+
+  --red:           #f85149;                  // stopped, error, danger
+  --red-hover:     #da3633;                  // hover заливки danger
+  --red-soft:      rgba(248, 81, 73, 0.10);
+  --red-border:    rgba(248, 81, 73, 0.30);
+
+  --purple:        #bc8cff;                  // роль владельца, premium
+  --purple-soft:   rgba(188, 140, 255, 0.12);
+  --purple-border: rgba(188, 140, 255, 0.30);
+
+  --neutral-soft:   rgba(125, 133, 144, 0.12); // нейтральные статусы
+  --neutral-border: rgba(125, 133, 144, 0.30);
+
+  // ── Геометрия ────────────────────────────────────────────────
+  --radius-sm:   4px;                        // иконки-кнопки, мелкие чипы
+  --radius:      6px;                        // кнопки, инпуты, чипы
+  --radius-lg:   10px;                       // карточки, модалки, крупные поверхности
+  --radius-full: 999px;                      // pill-элементы, бейджи
+
+  // ── Тени (только для «парящих» поверхностей) ─────────────────
+  --shadow-sm: 0 1px 2px rgba(1, 4, 9, 0.4);
+  --shadow-md: 0 4px 16px rgba(1, 4, 9, 0.45);
+  --shadow-lg: 0 16px 48px rgba(1, 4, 9, 0.6);
+
+  // ── Шрифты ───────────────────────────────────────────────────
+  --font-ui:    'DM Sans', system-ui, sans-serif;
+  --font-mono:  'IBM Plex Mono', 'Courier New', monospace;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+
+  // ── Motion ───────────────────────────────────────────────────
   --transition: all .15s ease;
 }
 

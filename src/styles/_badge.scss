@@ -4,7 +4,7 @@
   gap: 4px;
   padding: 2px 8px;
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: var(--radius-full);
   background: var(--bg3);
   color: var(--text-muted);
   font-size: 11px;
@@ -12,35 +12,35 @@
   white-space: nowrap;
   line-height: 1.3;
 
-  &--mono { font-family: 'IBM Plex Mono', monospace; }
+  &--mono { font-family: var(--font-mono); }
 
   &--accent {
-    background: var(--accent-glow);
-    border-color: rgba(47, 129, 247, 0.3);
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
     color: var(--accent);
   }
 
   &--green {
-    background: rgba(63, 185, 80, 0.12);
-    border-color: rgba(63, 185, 80, 0.3);
+    background: var(--green-soft);
+    border-color: var(--green-border);
     color: var(--green);
   }
 
   &--yellow {
-    background: rgba(210, 153, 34, 0.12);
-    border-color: rgba(210, 153, 34, 0.3);
+    background: var(--yellow-soft);
+    border-color: var(--yellow-border);
     color: var(--yellow);
   }
 
   &--red {
-    background: rgba(248, 81, 73, 0.10);
-    border-color: rgba(248, 81, 73, 0.3);
+    background: var(--red-soft);
+    border-color: var(--red-border);
     color: var(--red);
   }
 
   &--purple {
-    background: rgba(188, 140, 255, 0.12);
-    border-color: rgba(188, 140, 255, 0.3);
+    background: var(--purple-soft);
+    border-color: var(--purple-border);
     color: var(--purple);
   }
 

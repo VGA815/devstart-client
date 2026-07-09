@@ -11,7 +11,7 @@
   transition: background 0.15s ease;
 
   &:last-child { border-bottom: none; }
-  &--unread    { background: rgba(47, 129, 247, 0.04); }
+  &--unread    { background: var(--accent-faint); }
 
   @include mobile {
     flex-wrap: wrap;
@@ -52,7 +52,7 @@
   }
 
   &__amount {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     font-weight: 600;
     color: var(--green);
@@ -61,7 +61,7 @@
   }
 
   &__time {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
     white-space: nowrap;

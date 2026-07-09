@@ -55,7 +55,7 @@
   }
 
   &__quarter {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-muted);
   }
@@ -77,7 +77,7 @@
   }
 
   &__amount {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     color: var(--green);
   }
 }

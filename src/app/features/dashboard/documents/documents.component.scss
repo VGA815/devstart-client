@@ -48,7 +48,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-muted);
     flex-wrap: wrap;
@@ -75,7 +75,7 @@
   padding: 1px 5px;
   background: var(--bg2);
   border-radius: 10px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-dim);
 }

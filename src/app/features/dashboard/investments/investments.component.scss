@@ -22,7 +22,7 @@
   &__meta { display: flex; flex-direction: column; gap: 6px; }
 
   &__type-badge {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-muted);
   }
@@ -41,7 +41,7 @@
   }
 
   &__website {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--accent);
     text-decoration: none;
@@ -229,12 +229,12 @@
   }
 
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(255, 255, 255, 0.02); }
+  tr:hover td { background: var(--bg-hover); }
 
   &__name  { font-weight: 500; }
   &__sub   { font-size: 12px; color: var(--text-muted); }
-  &__money { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--green); }
-  &__date  { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+  &__money { font-family: var(--font-mono); font-weight: 600; color: var(--green); }
+  &__date  { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); white-space: nowrap; }
 }
 
 .badge {
@@ -246,18 +246,18 @@
   font-weight: 600;
   white-space: nowrap;
 
-  &--yellow { background: rgba(210, 153, 34, 0.15); color: var(--yellow); }
-  &--green  { background: rgba(63, 185, 80, 0.15);  color: var(--green);  }
-  &--red    { background: rgba(248, 81, 73, 0.15);  color: var(--red);    }
-  &--gray   { background: rgba(125, 133, 144, 0.15); color: var(--text-muted); }
-  &--accent { background: rgba(47, 129, 247, 0.15); color: var(--accent); }
+  &--yellow { background: var(--yellow-soft); color: var(--yellow); }
+  &--green  { background: var(--green-soft);  color: var(--green);  }
+  &--red    { background: var(--red-soft);  color: var(--red);    }
+  &--gray   { background: var(--neutral-soft); color: var(--text-muted); }
+  &--accent { background: var(--accent-glow); color: var(--accent); }
 }
 
 .inv-confirm-icons {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
 
   &__yes { color: var(--green); }
@@ -283,7 +283,7 @@
   &--primary {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: var(--text-on-accent);
     &:hover:not(:disabled) { opacity: 0.85; }
   }
 
@@ -298,7 +298,7 @@
     background: transparent;
     border-color: var(--red);
     color: var(--red);
-    &:hover:not(:disabled) { background: rgba(248, 81, 73, 0.08); }
+    &:hover:not(:disabled) { background: var(--red-soft); }
   }
 
   &--sm { padding: 4px 10px; font-size: 12px; }
@@ -312,7 +312,7 @@
 }
 
 .inv-instrument-badge {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-muted);
 }

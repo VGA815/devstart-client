@@ -27,11 +27,27 @@
 @mixin card-base {
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
 }
 
 @mixin truncate {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// Mono-лейбл (card__title, field__label--mono, section__title--mono)
+@mixin mono-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+// Focus-ring для кастомных интерактивных элементов
+@mixin focus-ring {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }

@@ -11,8 +11,8 @@
 
   &:last-child { border-bottom: none; }
   &:hover     { background: var(--bg3); }
-  &--unread   { background: rgba(47, 129, 247, 0.04); }
-  &--unread:hover { background: rgba(47, 129, 247, 0.08); }
+  &--unread   { background: var(--accent-faint); }
+  &--unread:hover { background: var(--accent-soft); }
 
   &__indicator {
     flex-shrink: 0;
@@ -49,7 +49,7 @@
   }
 
   &__time {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
     margin-top: 2px;

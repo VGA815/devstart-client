@@ -18,8 +18,8 @@
   &:hover { background: var(--bg3); }
 
   &--mine {
-    background: rgba(47, 129, 247, 0.04);
-    &:hover { background: rgba(47, 129, 247, 0.07); }
+    background: var(--accent-faint);
+    &:hover { background: var(--accent-soft); }
   }
 
   &__link {
@@ -47,7 +47,7 @@
   }
 
   &__meta {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-muted);
   }

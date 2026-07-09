@@ -1,14 +1,21 @@
 .card {
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
 
   &--flat   { background: transparent; border: none; }
   &--accent { border-color: var(--accent); }
-  &--danger { border-color: rgba(248, 81, 73, 0.4); }
+  &--danger { border-color: var(--red-border); }
+
+  // Кликабельная карточка: рамка + тень на hover
+  &--interactive {
+    cursor: pointer;
+    transition: var(--transition);
+    &:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+  }
 
   &__header {
     display: flex;
@@ -21,20 +28,20 @@
   }
 
   &__title {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text-muted);
   }
 
   &__count {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--accent);
     background: var(--accent-glow);
-    border-radius: 20px;
+    border-radius: var(--radius-full);
     padding: 2px 8px;
   }
 
@@ -105,10 +112,10 @@
   transition: background 0.15s ease;
 
   &:last-child { border-bottom: none; }
-  &:hover      { background: rgba(255, 255, 255, 0.02); }
+  &:hover      { background: var(--bg-hover); }
 
-  &--unread    { background: rgba(47, 129, 247, 0.04); }
-  &--mine      { background: rgba(47, 129, 247, 0.03); }
+  &--unread    { background: var(--accent-faint); }
+  &--mine      { background: var(--accent-faint); }
 
   &__info {
     flex: 1;
@@ -128,13 +135,13 @@
   }
 
   &__sub {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-muted);
   }
 
   &__meta {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-dim);
     white-space: nowrap;

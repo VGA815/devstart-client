@@ -40,12 +40,12 @@
     font-size: 22px;
     font-weight: 700;
 
-    &--ok  { background: rgba(63, 185, 80, 0.15); color: var(--green); }
-    &--err { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+    &--ok  { background: var(--green-soft); color: var(--green); }
+    &--err { background: var(--red-soft); color: var(--red); }
   }
 
   &__title {
-    font-family: 'Instrument Serif', Georgia, serif;
+    font-family: var(--font-serif);
     font-size: 24px;
     font-weight: 400;
     color: var(--text);
@@ -66,13 +66,13 @@
     border-radius: var(--radius);
     background: var(--accent);
     border: 1px solid var(--accent);
-    color: #fff;
+    color: var(--text-on-accent);
     font-size: 13px;
     font-weight: 500;
     text-decoration: none;
     transition: var(--transition);
 
-    &:hover { opacity: 0.88; }
+    &:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
   }
 }
 

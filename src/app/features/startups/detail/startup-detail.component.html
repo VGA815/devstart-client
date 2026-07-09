@@ -12,8 +12,8 @@
         </div>
       </div>
       <aside class="detail-page__sidebar">
-        <app-skeleton height="280px" border-radius="6px" />
-        <app-skeleton height="140px" border-radius="6px" style="margin-top:14px" />
+        <app-skeleton height="280px" border-radius="10px" />
+        <app-skeleton height="140px" border-radius="10px" style="margin-top:14px" />
       </aside>
     </div>
   </div>
@@ -24,6 +24,8 @@
   <div class="detail-page">
     <div class="detail-page__content">
       <div class="detail-page__main">
+        <a routerLink="/startups" class="sd-breadcrumb">← /startups</a>
+
         <div class="startup-header">
           <app-avatar
             [avatarId]="s.avatarId"
@@ -143,21 +145,36 @@
             <div class="card__header"><span class="card__title">РЫНОК</span></div>
             <div class="card__body card__body--flush">
               @if (s.tam) {
-                <div class="sd-card__row">
-                  <span class="sd-card__label">TAM</span>
-                  <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.tam) }}</span>
+                <div class="sd-market__row">
+                  <div class="sd-market__head">
+                    <span class="sd-card__label">TAM</span>
+                    <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.tam) }}</span>
+                  </div>
+                  <div class="sd-market__track">
+                    <div class="sd-market__bar" [style.width.%]="marketPercent(s.tam, s)"></div>
+                  </div>
                 </div>
               }
               @if (s.sam) {
-                <div class="sd-card__row">
-                  <span class="sd-card__label">SAM</span>
-                  <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.sam) }}</span>
+                <div class="sd-market__row">
+                  <div class="sd-market__head">
+                    <span class="sd-card__label">SAM</span>
+                    <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.sam) }}</span>
+                  </div>
+                  <div class="sd-market__track">
+                    <div class="sd-market__bar" [style.width.%]="marketPercent(s.sam, s)"></div>
+                  </div>
                 </div>
               }
               @if (s.som) {
-                <div class="sd-card__row">
-                  <span class="sd-card__label">SOM</span>
-                  <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.som) }}</span>
+                <div class="sd-market__row">
+                  <div class="sd-market__head">
+                    <span class="sd-card__label">SOM</span>
+                    <span class="sd-card__value sd-card__value--money">{{ formatMoney(s.som) }}</span>
+                  </div>
+                  <div class="sd-market__track">
+                    <div class="sd-market__bar" [style.width.%]="marketPercent(s.som, s)"></div>
+                  </div>
                 </div>
               }
             </div>
@@ -217,4 +234,14 @@
   @if (showScrollTop()) {
     <button class="sd-scroll-top" type="button" (click)="scrollToTop()" aria-label="Наверх">↑</button>
   }
+
+} @else {
+  <div class="detail-page">
+    <div class="empty-state empty-state--card">
+      <div class="empty-state__icon">🛰️</div>
+      <h3 class="empty-state__title">Стартап не найден</h3>
+      <p class="empty-state__sub">Возможно, он скрыт, удалён или сервис временно недоступен.</p>
+      <a routerLink="/startups" class="btn btn--ghost btn--sm">← Вернуться в каталог</a>
+    </div>
+  </div>
 }
