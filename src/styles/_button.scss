@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 .btn {
   height: 32px;
   padding: 0 14px;
@@ -88,6 +90,9 @@
     color: var(--text-muted);
     font-size: 13px;
     &:hover:not(:disabled) { background: var(--bg3); color: var(--text); }
+
+    // Тап-зона на тач-устройствах
+    @include mobile { width: 36px; height: 36px; font-size: 15px; }
 
     &.btn--danger-hover:hover:not(:disabled) {
       background: var(--red-soft);

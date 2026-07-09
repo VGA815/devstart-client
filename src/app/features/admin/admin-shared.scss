@@ -26,6 +26,16 @@
   &:last-child { border-bottom: none; }
   &:hover { background: var(--bg-hover); }
 
+  @media (max-width: 767px) {
+    flex-wrap: wrap;
+    row-gap: 8px;
+
+    &__actions {
+      flex-basis: 100%;
+      justify-content: flex-end;
+    }
+  }
+
   &__info {
     flex: 1;
     min-width: 0;

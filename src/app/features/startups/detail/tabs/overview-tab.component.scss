@@ -1,3 +1,5 @@
+@use '../../../../../styles/mixins' as *;
+
 :host { display: contents; }
 
 .sd-desc-wrap {
@@ -43,6 +45,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 20px 24px;
+
+  @include mobile { padding: 14px 16px; }
 }
 
 :host ::ng-deep .sd-markdown {
@@ -160,6 +164,12 @@
     td { color: var(--text-muted); }
 
     tr:hover td { background: var(--bg-hover); }
+
+    // Широкие markdown-таблицы скроллятся внутри себя на мобайле
+    @include mobile {
+      display: block;
+      overflow-x: auto;
+    }
   }
 }
 

@@ -79,6 +79,8 @@
     align-items: center;
     justify-content: center;
 
+    @media (max-width: 767px) { width: 36px; height: 36px; }
+
     &:hover { color: var(--accent); border-color: var(--accent-border); }
 
     &--danger {
@@ -101,6 +103,8 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0;
+
+    @media (max-width: 479px) { grid-template-columns: 1fr; }
   }
 
   &__col {
@@ -111,6 +115,10 @@
 
     &--green { border-top: 2px solid var(--green-border); }
     &--red   { border-top: 2px solid var(--red-border); border-left: 1px solid var(--bg3); }
+
+    @media (max-width: 479px) {
+      &--red { border-left: none; }
+    }
   }
 
   &__col-label {

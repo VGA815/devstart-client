@@ -19,7 +19,11 @@
     @include mobile { width: 100%; padding: 24px 16px; }
   }
 
-  &--wide .auth-page__center { width: 480px; }
+  &--wide .auth-page__center {
+    width: 480px;
+
+    @include mobile { width: 100%; }
+  }
 }
 
 .auth-heading {
@@ -54,6 +58,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+
+  @include mobile { padding: 20px 16px; }
 
   form {
     display: flex;

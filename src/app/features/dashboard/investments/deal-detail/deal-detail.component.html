@@ -256,9 +256,9 @@
               @for (row of d.capTable; track row.name) {
                 <tr>
                   <td class="dd-table__name">{{ row.name }}</td>
-                  <td class="dd-table__mono">{{ row.partyType }}</td>
-                  <td class="dd-table__mono">{{ row.percentageBefore.toFixed(1) }}%</td>
-                  <td class="dd-table__pct">{{ row.percentage.toFixed(1) }}%</td>
+                  <td class="dd-table__mono" data-label="Тип">{{ row.partyType }}</td>
+                  <td class="dd-table__mono" data-label="До сделки">{{ row.percentageBefore.toFixed(1) }}%</td>
+                  <td class="dd-table__pct" data-label="После сделки">{{ row.percentage.toFixed(1) }}%</td>
                 </tr>
               }
             </tbody>

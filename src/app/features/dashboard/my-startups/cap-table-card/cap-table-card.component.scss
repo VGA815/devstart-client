@@ -26,6 +26,12 @@
 
   &:last-child { border-bottom: none; }
 
+  // На мобайле строка складывается в карточку: имя + %, вестинг ниже на всю ширину
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
   &__main {
     display: flex;
     align-items: center;
@@ -49,6 +55,8 @@
     gap: 3px;
     width: 160px;
     flex-shrink: 0;
+
+    @media (max-width: 640px) { width: 100%; order: 3; }
   }
 
   &__vesting-label {

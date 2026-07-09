@@ -306,9 +306,60 @@
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
+// На мобайле таблица превращается в стопку карточек «лейбл: значение»
 @include mobile {
-  .inv-table { font-size: 12px; }
-  .inv-table th, .inv-table td { padding: 8px 10px; }
+  .inv-table {
+    display: block;
+
+    thead { display: none; }
+
+    tbody {
+      display: flex;
+      flex-direction: column;
+    }
+
+    tr {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+
+      &:last-child { border-bottom: none; }
+      &:hover td { background: transparent; }
+    }
+
+    td {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0;
+      border-bottom: none;
+    }
+
+    td[data-label]::before {
+      content: attr(data-label);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .inv-table__name { font-size: 14px; }
+
+    .inv-table__actions {
+      justify-content: stretch;
+
+      .inv-actions { width: 100%; }
+    }
+  }
+
+  .inv-actions .inv-btn { flex: 1; padding: 9px 10px; }
+  .inv-table__actions > .inv-btn { width: 100%; padding: 9px 10px; }
 }
 
 .inv-instrument-badge {

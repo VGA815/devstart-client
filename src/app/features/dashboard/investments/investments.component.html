@@ -169,13 +169,13 @@
             @for (app of myApps(); track app.id) {
               <tr>
                 <td class="inv-table__name">{{ app.startupName }}</td>
-                <td class="inv-table__sub">{{ app.roadmapItemTitle ?? '—' }}</td>
-                <td class="inv-table__money">{{ formatMoney(app.amount) }}</td>
-                <td>
+                <td class="inv-table__sub" data-label="Этап">{{ app.roadmapItemTitle ?? '—' }}</td>
+                <td class="inv-table__money" data-label="Сумма">{{ formatMoney(app.amount) }}</td>
+                <td data-label="Статус">
                   <span class="badge" [class]="appStatusClass(app.status)">{{ appStatusLabel(app.status) }}</span>
                 </td>
-                <td class="inv-table__date">{{ formatDate(app.createdAt) }}</td>
-                <td>
+                <td class="inv-table__date" data-label="Дата">{{ formatDate(app.createdAt) }}</td>
+                <td class="inv-table__actions">
                   @if (app.status === 'Pending') {
                     <button
                       class="inv-btn inv-btn--danger inv-btn--sm"
@@ -226,14 +226,14 @@
             @for (app of incomingApps(); track app.id) {
               <tr>
                 <td class="inv-table__name">{{ app.investorDisplayName }}</td>
-                <td class="inv-table__sub">{{ app.startupName }}</td>
-                <td class="inv-table__sub">{{ app.roadmapItemTitle ?? '—' }}</td>
-                <td class="inv-table__money">{{ formatMoney(app.amount) }}</td>
-                <td>
+                <td class="inv-table__sub" data-label="Стартап">{{ app.startupName }}</td>
+                <td class="inv-table__sub" data-label="Этап">{{ app.roadmapItemTitle ?? '—' }}</td>
+                <td class="inv-table__money" data-label="Сумма">{{ formatMoney(app.amount) }}</td>
+                <td data-label="Статус">
                   <span class="badge" [class]="appStatusClass(app.status)">{{ appStatusLabel(app.status) }}</span>
                 </td>
-                <td class="inv-table__date">{{ formatDate(app.createdAt) }}</td>
-                <td>
+                <td class="inv-table__date" data-label="Дата">{{ formatDate(app.createdAt) }}</td>
+                <td class="inv-table__actions">
                   @if (app.status === 'Pending') {
                     <div class="inv-actions">
                       <button
@@ -289,18 +289,18 @@
             @for (deal of deals(); track deal.id) {
               <tr>
                 <td class="inv-table__name">{{ deal.startupName }}</td>
-                <td class="inv-table__sub">{{ deal.investorDisplayName }}</td>
-                <td class="inv-table__money">{{ formatMoney(deal.amount) }}</td>
-                <td class="inv-table__sub">
+                <td class="inv-table__sub" data-label="Инвестор">{{ deal.investorDisplayName }}</td>
+                <td class="inv-table__money" data-label="Сумма">{{ formatMoney(deal.amount) }}</td>
+                <td class="inv-table__sub" data-label="Инструмент">
                   <span class="inv-instrument-badge">{{ instrumentLabel(deal.instrument) }}</span>
                   @if (deal.documentsReady) {
                     <span class="inv-docs-ready" title="Документы готовы">📄</span>
                   }
                 </td>
-                <td>
+                <td data-label="Статус">
                   <span class="badge" [class]="dealStatusClass(deal.status)">{{ dealStatusLabel(deal.status) }}</span>
                 </td>
-                <td>
+                <td data-label="Подтверждения">
                   <div class="inv-confirm-icons">
                     <span [class.inv-confirm-icons__yes]="deal.confirmedByStartup" [class.inv-confirm-icons__no]="!deal.confirmedByStartup" title="Стартап">
                       {{ deal.confirmedByStartup ? '✓' : '○' }} Стартап
@@ -310,7 +310,7 @@
                     </span>
                   </div>
                 </td>
-                <td>
+                <td class="inv-table__actions">
                   <div class="inv-actions">
                     <a class="inv-btn inv-btn--ghost inv-btn--sm" [routerLink]="['/dashboard/investments/deals', deal.id]">
                       Детали

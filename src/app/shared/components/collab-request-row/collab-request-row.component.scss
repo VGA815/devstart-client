@@ -11,6 +11,16 @@
   &:last-child { border-bottom: none; }
   &--unread    { background: var(--accent-faint); }
 
+  @media (max-width: 767px) {
+    flex-wrap: wrap;
+    row-gap: 10px;
+
+    &__actions {
+      flex-basis: 100%;
+      justify-content: flex-end;
+    }
+  }
+
   &__dot {
     flex-shrink: 0;
     width: 7px;
@@ -119,6 +129,8 @@
   cursor: pointer;
   transition: all 0.15s ease;
   border: 1px solid transparent;
+
+  @media (max-width: 767px) { height: 36px; padding: 0 14px; font-size: 12px; }
 
   &--accept {
     background: var(--accent);

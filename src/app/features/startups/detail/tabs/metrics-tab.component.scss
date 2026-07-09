@@ -1,3 +1,5 @@
+@use '../../../../../styles/mixins' as *;
+
 :host { display: contents; }
 
 .sd-metrics {
@@ -8,6 +10,10 @@
   border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
+
+  @include mobile { grid-template-columns: repeat(2, 1fr); }
+
+  @media (max-width: 479px) { grid-template-columns: 1fr; }
 }
 
 .sd-metric {

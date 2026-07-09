@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -23,6 +25,11 @@
   flex-direction: column;
   animation: fadeIn 0.15s ease;
 
+  @include mobile {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+
   &__header {
     display: flex;
     align-items: center;
@@ -41,6 +48,8 @@
   &__close {
     width: 28px;
     height: 28px;
+
+    @include mobile { width: 36px; height: 36px; }
     background: transparent;
     border: none;
     color: var(--text-muted);

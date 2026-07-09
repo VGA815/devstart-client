@@ -93,6 +93,8 @@
     align-items: center;
     justify-content: center;
 
+    @media (max-width: 767px) { width: 36px; height: 36px; }
+
     &:hover { color: var(--accent); border-color: var(--accent-border); }
   }
 }

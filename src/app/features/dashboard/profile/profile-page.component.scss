@@ -78,10 +78,12 @@
 .profile-stats {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .profile-stat-cell {
   flex: 1 0 0;
+  min-width: 90px;
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
