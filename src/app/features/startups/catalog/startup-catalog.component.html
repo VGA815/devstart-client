@@ -36,6 +36,12 @@
       <option value="India">Индия</option>
       <option value="Other">Другое</option>
     </select>
+
+    <select class="field__select field__select--sm catalog-filters__select" [value]="selectedCommunity() ?? ''" (change)="selectCommunity($any($event.target).value)">
+      <option value="">Любые стандарты</option>
+      <option value="Developing">Стандарты: от «В процессе»</option>
+      <option value="Complete">Стандарты: «Соответствует»</option>
+    </select>
   </div>
 
   <div class="startup-list">
@@ -70,6 +76,13 @@
               <span class="sr-badge" [class]="getStageBadgeClass(startup.stage, startup.isStopped)">
                 {{ getStageBadgeLabel(startup.stage, startup.isStopped) }}
               </span>
+              @if (startup.communityStandardsLevel !== 'Incomplete') {
+                <span class="sr-community"
+                  [class]="'sr-community--' + getCommunityLevelMod(startup.communityStandardsLevel)"
+                  [title]="'Стандарты сообщества: ' + getCommunityLevelLabel(startup.communityStandardsLevel)">
+                  ◍ {{ startup.communityStandardsPercent }}%
+                </span>
+              }
             </div>
             <p class="startup-row__desc">
               @if (startup.shortDescription) { {{ startup.shortDescription }} }

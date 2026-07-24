@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { StartupCompetitor } from '../../../shared/models/startup-competitor.model';
+import { CommunityDocumentType } from '../../../shared/models/community-standards.model';
 import { SuggestedTerms } from '../../../shared/models/startup-score.model';
 import {
   StartupDetailStore, DetailTab,
@@ -44,6 +45,13 @@ export class StartupDetailFacade {
   readonly investorsLoading    = this.store.investorsLoading;
   readonly investorProfilesMap = this.store.investorProfilesMap;
 
+  readonly community           = this.store.community;
+  readonly communityDocs       = this.store.communityDocs;
+  readonly communityLoading    = this.store.communityLoading;
+  readonly communityBodies     = this.store.communityBodies;
+  readonly openCommunityDoc    = this.store.openCommunityDoc;
+  readonly communityDocLoading = this.store.communityDocLoading;
+
   readonly investorProfile = this.store.investorProfile;
 
   readonly isFounderOrAdmin = this.store.isFounderOrAdmin;
@@ -59,6 +67,8 @@ export class StartupDetailFacade {
   setTab(tab: DetailTab): void { this.store.setTab(tab); }
 
   toggleFollow(): void { this.store.toggleFollow(); }
+
+  toggleCommunityDoc(type: CommunityDocumentType): void { this.store.toggleCommunityDoc(type); }
 
   prepareInvest(): void { this.store.prepareInvest(); }
 

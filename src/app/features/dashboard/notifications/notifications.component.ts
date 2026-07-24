@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { catchError, of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -8,6 +9,9 @@ import { NotificationService } from './notification.service';
 import { Notification } from '../../../shared/models/notification.model';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { formatRelativeTime } from '../../../shared/utils/format.utils';
+import {
+  NotificationLink, getNotificationIcon, getNotificationLink,
+} from '../../../shared/utils/notification.utils';
 
 @Component({
   selector: 'app-notifications',
@@ -21,6 +25,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   private readonly auth      = inject(AuthService);
   private readonly svc       = inject(NotificationService);
   private readonly centrifugo = inject(CentrifugoService);
+  private readonly router    = inject(Router);
 
   readonly loading       = signal(true);
   readonly saving        = signal(false);
@@ -62,6 +67,23 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Клик отмечает прочитанным и уводит к самой сущности. Переход не ждёт ответа
+   * `markRead`: отметка — фоновая мелочь, задерживать из-за неё навигацию незачем.
+   */
+  open(n: Notification): void {
+    this.markRead(n);
+
+    const link = this.linkFor(n);
+    if (!link) return;
+
+    this.router.navigate(link.commands, link.queryParams ? { queryParams: link.queryParams } : {});
+  }
+
+  linkFor(n: Notification): NotificationLink | null {
+    return getNotificationLink(n);
+  }
+
   markAllRead(): void {
     if (!this.hasUnread() || this.saving()) return;
     this.saving.set(true);
@@ -75,4 +97,5 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   protected readonly formatDate = formatRelativeTime;
+  protected readonly getIcon    = getNotificationIcon;
 }

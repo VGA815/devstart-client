@@ -11,6 +11,7 @@ import { StartupRoadmapCardComponent } from './roadmap-card/roadmap-card.compone
 import { StartupTeamCardComponent } from './team-card/team-card.component';
 import { StartupDocsCardComponent } from './docs-card/docs-card.component';
 import { StartupCapTableCardComponent } from './cap-table-card/cap-table-card.component';
+import { StartupCommunityCardComponent } from './community-card/community-card.component';
 
 @Component({
   selector: 'app-my-startups',
@@ -23,6 +24,7 @@ import { StartupCapTableCardComponent } from './cap-table-card/cap-table-card.co
     StartupTeamCardComponent,
     StartupDocsCardComponent,
     StartupCapTableCardComponent,
+    StartupCommunityCardComponent,
   ],
   templateUrl: './my-startups.component.html',
   styleUrl: './my-startups.component.scss',

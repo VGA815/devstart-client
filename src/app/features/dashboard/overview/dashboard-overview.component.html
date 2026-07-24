@@ -97,6 +97,7 @@
           @for (n of notifications(); track n.id) {
             <div class="overview-notif" [class.overview-notif--unread]="!n.isRead">
               @if (!n.isRead) { <span class="overview-notif__dot"></span> }
+              <span class="overview-notif__icon">{{ getIcon(n.type) }}</span>
               <div class="overview-notif__info">
                 <p class="overview-notif__text">{{ n.title }}</p>
                 <p class="overview-notif__time">{{ formatTime(n.createdAt) }}</p>

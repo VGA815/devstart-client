@@ -1,4 +1,5 @@
 import { Startup, StartupMember, StartupStage, StartupLocation, StartupRole, StartupPosition } from '../startup.model';
+import { mapCommunityStandardsLevel } from './community-standards.dto';
 
 // Stage/Location/Role/Position numeric values from API
 const STAGE_MAP: Record<number, StartupStage> = {
@@ -38,6 +39,9 @@ export interface StartupDto {
   som?: number | null;
   hasPatents?: boolean;
   marketGrowthRate?: number | null;
+  // Есть только в ответе списка каталога — карточка одного стартапа их не несёт.
+  communityStandardsPercent?: number | null;
+  communityStandardsLevel?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -126,6 +130,8 @@ export function mapStartupDto(dto: StartupDto): Startup {
     som: dto.som ?? null,
     hasPatents: dto.hasPatents ?? false,
     marketGrowthRate: dto.marketGrowthRate ?? null,
+    communityStandardsPercent: dto.communityStandardsPercent ?? 0,
+    communityStandardsLevel: mapCommunityStandardsLevel(dto.communityStandardsLevel),
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
   };

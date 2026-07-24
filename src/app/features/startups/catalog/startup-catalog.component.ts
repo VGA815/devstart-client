@@ -12,7 +12,9 @@ import { AvatarComponent } from '../../../shared/components/avatar/avatar.compon
 import { StartupMetricsService } from '../startup-metrics.service';
 import { StartupStage, StartupLocation } from '../../../shared/models/startup.model';
 import { StartupMetric, MetricType } from '../../../shared/models/startup-metric.model';
+import { CommunityStandardsLevel } from '../../../shared/models/community-standards.model';
 import { getStageBadgeClass, getStageBadgeLabel, getMetricLabel } from '../../../shared/utils/startup.utils';
+import { getCommunityLevelLabel, getCommunityLevelMod } from '../../../shared/utils/community-standards.utils';
 
 const LOCATION_LABELS: Record<StartupLocation, string> = {
   Russia: 'Россия', USA: 'США', China: 'Китай', India: 'Индия', Other: 'Другое',
@@ -60,9 +62,10 @@ export class StartupCatalogComponent implements OnInit {
 
   readonly skeletons = Array(8);
 
-  readonly selectedStage    = signal<StartupStage | null>(null);
-  readonly selectedLocation = signal<StartupLocation | null>(null);
-  readonly searchQuery      = signal('');
+  readonly selectedStage     = signal<StartupStage | null>(null);
+  readonly selectedLocation  = signal<StartupLocation | null>(null);
+  readonly selectedCommunity = signal<CommunityStandardsLevel | null>(null);
+  readonly searchQuery       = signal('');
 
 
   readonly metricsMap = signal(new Map<string, StartupMetric[]>());
@@ -96,17 +99,12 @@ export class StartupCatalogComponent implements OnInit {
 
     // Seed search & filters from the URL (e.g. when arriving from the landing filter bar).
     const params = this.route.snapshot.queryParamMap;
-    const stage = params.get('stage') as StartupStage | null;
-    const location = params.get('location') as StartupLocation | null;
     this.searchQuery.set(params.get('q') ?? '');
-    this.selectedStage.set(stage);
-    this.selectedLocation.set(location);
+    this.selectedStage.set(params.get('stage') as StartupStage | null);
+    this.selectedLocation.set(params.get('location') as StartupLocation | null);
+    this.selectedCommunity.set(params.get('community') as CommunityStandardsLevel | null);
 
-    this.facade.load({
-      page: 1, pageSize: 50,
-      ...(stage ? { stage } : {}),
-      ...(location ? { location } : {}),
-    });
+    this.reload();
   }
 
   private loadMetrics(ids: string[]): void {
@@ -125,25 +123,31 @@ export class StartupCatalogComponent implements OnInit {
   }
 
   selectStage(value: string): void {
-    const stage = value === '' ? null : value as StartupStage;
-    this.selectedStage.set(stage);
+    this.selectedStage.set(value === '' ? null : value as StartupStage);
     this.searchQuery.set('');
-    const loc = this.selectedLocation();
-    this.facade.load({
-      page: 1, pageSize: 50,
-      ...(stage ? { stage } : {}),
-      ...(loc   ? { location: loc } : {}),
-    });
+    this.reload();
   }
 
   selectLocation(value: string): void {
-    const loc = value === '' ? null : value as StartupLocation;
-    this.selectedLocation.set(loc);
+    this.selectedLocation.set(value === '' ? null : value as StartupLocation);
+    this.reload();
+  }
+
+  selectCommunity(value: string): void {
+    this.selectedCommunity.set(value === '' ? null : value as CommunityStandardsLevel);
+    this.reload();
+  }
+
+  /** Фильтры применяются на бэке, поэтому любое изменение перезапрашивает первую страницу. */
+  private reload(): void {
     const stage = this.selectedStage();
+    const loc   = this.selectedLocation();
+    const level = this.selectedCommunity();
     this.facade.load({
       page: 1, pageSize: 50,
       ...(stage ? { stage } : {}),
       ...(loc   ? { location: loc } : {}),
+      ...(level ? { minCommunityStandards: level } : {}),
     });
   }
 
@@ -163,8 +167,10 @@ export class StartupCatalogComponent implements OnInit {
     return METRIC_CSS_COLOR[type] ?? 'var(--text)';
   }
 
-  protected readonly getStageBadgeClass  = getStageBadgeClass;
-  protected readonly getStageBadgeLabel  = getStageBadgeLabel;
+  protected readonly getStageBadgeClass    = getStageBadgeClass;
+  protected readonly getStageBadgeLabel    = getStageBadgeLabel;
+  protected readonly getCommunityLevelLabel = getCommunityLevelLabel;
+  protected readonly getCommunityLevelMod   = getCommunityLevelMod;
   protected readonly getMetricLabel      = getMetricLabel;
   protected readonly formatMetric        = formatCatalogMetric;
 }

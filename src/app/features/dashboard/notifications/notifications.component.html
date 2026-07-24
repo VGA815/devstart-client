@@ -26,17 +26,24 @@
   } @else {
     <div class="card card__body--flush">
       @for (n of notifications(); track n.id) {
+        @let hasLink = !!linkFor(n);
         <div
           class="notif-item"
           [class.notif-item--unread]="!n.isRead"
-          (click)="markRead(n)">
+          [class.notif-item--link]="hasLink"
+          (click)="open(n)">
           <span class="notif-item__indicator" [class.notif-item__indicator--unread]="!n.isRead"></span>
+          <span class="notif-item__icon">{{ getIcon(n.type) }}</span>
 
           <div class="notif-item__body">
             <p class="notif-item__title">{{ n.title }}</p>
             <p class="notif-item__sub">{{ n.body }}</p>
             <span class="notif-item__time">{{ formatDate(n.createdAt) }}</span>
           </div>
+
+          @if (hasLink) {
+            <span class="notif-item__arrow" aria-hidden="true">→</span>
+          }
         </div>
       }
     </div>

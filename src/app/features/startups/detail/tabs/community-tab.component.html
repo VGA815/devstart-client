@@ -1,0 +1,106 @@
+@if (facade.communityLoading()) {
+  <app-skeleton height="120px" border-radius="10px" />
+  <app-skeleton height="260px" border-radius="10px" />
+} @else if (!facade.community()) {
+  <div class="empty-state empty-state--card">
+    <p class="empty-state__title">Стандарты сообщества недоступны</p>
+  </div>
+} @else {
+  @let cs = facade.community()!;
+
+  <div class="cs-hero">
+    <div class="cs-hero__top">
+      <div class="cs-hero__meta">
+        <span class="cs-hero__title">Стандарты сообщества</span>
+        <span class="cs-hero__sub">
+          Насколько полно стартап рассказал о себе и правилах работы с ним
+        </span>
+      </div>
+      <span class="cs-level" [class]="'cs-level--' + getCommunityLevelMod(cs.level)">
+        {{ getCommunityLevelLabel(cs.level) }}
+      </span>
+    </div>
+
+    <div class="cs-hero__bar">
+      <div class="cs-hero__fill"
+        [class]="'cs-hero__fill--' + getCommunityLevelMod(cs.level)"
+        [style.width.%]="cs.percent"></div>
+    </div>
+
+    <div class="cs-hero__foot">
+      <span class="cs-hero__count">{{ cs.completedCount }} из {{ cs.totalCount }} пунктов</span>
+      <span class="cs-hero__percent">{{ cs.percent }}%</span>
+    </div>
+  </div>
+
+  <section class="cs-section">
+    <h3 class="cs-section__title">Профиль стартапа</h3>
+    <div class="cs-list">
+      @for (check of profileChecks(); track check.key) {
+        @let meta = getCommunityCheckMeta(check.key);
+        <div class="cs-item" [class.cs-item--done]="check.isSatisfied">
+          <span class="cs-item__mark" [class.cs-item__mark--done]="check.isSatisfied">
+            {{ check.isSatisfied ? '✓' : '' }}
+          </span>
+          <div class="cs-item__body">
+            <span class="cs-item__label">{{ meta.label }}</span>
+            <span class="cs-item__hint">{{ meta.hint }}</span>
+          </div>
+          @if (!check.isSatisfied && facade.isFounderOrAdmin()) {
+            <a class="btn btn--ghost btn--sm cs-item__cta" [routerLink]="ctaLink(check)">Добавить</a>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="cs-section">
+    <h3 class="cs-section__title">Документы сообщества</h3>
+    <div class="cs-list">
+      @for (check of documentChecks(); track check.key) {
+        @let meta = getCommunityCheckMeta(check.key);
+        @let type = check.documentType;
+        @let isOpen = type !== null && facade.openCommunityDoc() === type;
+
+        <div class="cs-item cs-item--doc" [class.cs-item--done]="check.isSatisfied">
+          <span class="cs-item__mark" [class.cs-item__mark--done]="check.isSatisfied">
+            {{ check.isSatisfied ? '✓' : '' }}
+          </span>
+          <div class="cs-item__body">
+            <span class="cs-item__label">
+              {{ check.isSatisfied ? documentTitle(check) : meta.label }}
+            </span>
+            @if (check.isSatisfied && type) {
+              @let updated = documentUpdatedAt(type);
+              @if (updated) {
+                <span class="cs-item__meta">Обновлён {{ formatRelativeTime(updated) }}</span>
+              }
+            } @else {
+              <span class="cs-item__hint">{{ meta.hint }}</span>
+            }
+          </div>
+
+          @if (check.isSatisfied) {
+            <button class="btn btn--ghost btn--sm cs-item__cta" type="button"
+              (click)="toggleDoc(type)">
+              {{ isOpen ? 'Свернуть' : 'Читать' }}
+            </button>
+          } @else if (facade.isFounderOrAdmin()) {
+            <a class="btn btn--ghost btn--sm cs-item__cta" [routerLink]="ctaLink(check)">Добавить</a>
+          }
+        </div>
+
+        @if (isOpen && type) {
+          @let body = documentBody(type);
+          @if (body) {
+            <div class="cs-doc-body cs-doc-body--md" [innerHTML]="body | markdown"></div>
+          } @else if (facade.communityDocLoading()) {
+            <div class="cs-doc-body"><app-skeleton height="120px" border-radius="6px" /></div>
+          } @else {
+            <div class="cs-doc-body cs-doc-body--error">Не удалось загрузить документ</div>
+          }
+        }
+      }
+    </div>
+  </section>
+}

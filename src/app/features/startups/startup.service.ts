@@ -17,6 +17,9 @@ export class StartupService {
     if (filters.stage    != null) params = params.set('stage', filters.stage);
     if (filters.location != null) params = params.set('location', filters.location);
     if (filters.isStopped != null) params = params.set('isStopped', filters.isStopped);
+    if (filters.minCommunityStandards != null) {
+      params = params.set('minCommunityStandards', filters.minCommunityStandards);
+    }
 
     return this.http.get<StartupDto[]>(this.base, { params }).pipe(
       map(list => list.map(mapStartupDto))

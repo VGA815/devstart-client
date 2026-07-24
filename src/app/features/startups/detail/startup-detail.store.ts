@@ -13,6 +13,7 @@ import { StartupFollowersService } from '../startup-followers.service';
 import { StartupCompetitorsService } from '../startup-competitors.service';
 import { StartupInvestorsService } from '../startup-investors.service';
 import { StartupScoreService } from '../startup-score.service';
+import { CommunityStandardsService } from '../community-standards.service';
 import { ProfileService } from '../profile.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { InvestorProfileService } from '../../investors/investor-profile.service';
@@ -27,10 +28,13 @@ import { StartupDocument } from '../../../shared/models/startup-document.model';
 import { StartupCompetitor } from '../../../shared/models/startup-competitor.model';
 import { StartupInvestor } from '../../../shared/models/startup-investor.model';
 import { StartupScore, SuggestedTerms } from '../../../shared/models/startup-score.model';
+import {
+  CommunityDocument, CommunityDocumentSummary, CommunityDocumentType, CommunityStandards,
+} from '../../../shared/models/community-standards.model';
 import { CreateInvestmentApplicationRequestDto } from '../../../shared/models/dto/investment-application.dto';
 import { UpdateStartupMemberProfileRequestDto } from '../../../shared/models/dto/startup.dto';
 
-export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'investors' | 'documents' | 'competitors' | 'scoring';
+export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'investors' | 'documents' | 'competitors' | 'scoring' | 'community';
 
 export interface CompetitorPayload {
   name: string;
@@ -77,6 +81,14 @@ interface StartupDetailState {
   investorsLoading: boolean;
   investorProfilesMap: Map<string, Profile>;
 
+  community: CommunityStandards | null;
+  communityDocs: CommunityDocumentSummary[];
+  communityLoading: boolean;
+  // Тела документов подгружаются по клику и кэшируются на время просмотра страницы.
+  communityBodies: Map<CommunityDocumentType, CommunityDocument>;
+  openCommunityDoc: CommunityDocumentType | null;
+  communityDocLoading: boolean;
+
   // undefined = not yet loaded; null = no profile; InvestorProfile = has profile
   investorProfile: InvestorProfile | null | undefined;
 }
@@ -107,6 +119,12 @@ const initialState: StartupDetailState = {
   investors: [],
   investorsLoading: false,
   investorProfilesMap: new Map(),
+  community: null,
+  communityDocs: [],
+  communityLoading: false,
+  communityBodies: new Map(),
+  openCommunityDoc: null,
+  communityDocLoading: false,
   investorProfile: undefined,
 };
 
@@ -138,6 +156,7 @@ export const StartupDetailStore = signalStore(
     const competitorsSvc     = inject(StartupCompetitorsService);
     const startupInvestorsSvc = inject(StartupInvestorsService);
     const scoreSvc           = inject(StartupScoreService);
+    const communitySvc       = inject(CommunityStandardsService);
     const profileSvc         = inject(ProfileService);
     const authSvc            = inject(AuthService);
     const investorProfileSvc = inject(InvestorProfileService);
@@ -254,6 +273,16 @@ export const StartupDetailStore = signalStore(
             }
           });
           break;
+
+        case 'community':
+          patchState(store, { communityLoading: true });
+          forkJoin({
+            standards: communitySvc.getStandards(store.id()).pipe(catchError(() => of(null))),
+            docs: communitySvc.getDocuments(store.id()).pipe(catchError(() => of([] as CommunityDocumentSummary[]))),
+          }).subscribe(({ standards, docs }) => {
+            patchState(store, { community: standards, communityDocs: docs, communityLoading: false });
+          });
+          break;
       }
     }
 
@@ -302,6 +331,30 @@ export const StartupDetailStore = signalStore(
             followersCount: store.followersCount() + (wasFollowing ? 1 : -1),
             followLoading: false,
           }),
+        });
+      },
+
+      /** Открывает/сворачивает документ, подгружая markdown-тело при первом раскрытии. */
+      toggleCommunityDoc(type: CommunityDocumentType): void {
+        if (store.openCommunityDoc() === type) {
+          patchState(store, { openCommunityDoc: null });
+          return;
+        }
+
+        patchState(store, { openCommunityDoc: type });
+
+        if (store.communityBodies().has(type)) return;
+
+        patchState(store, { communityDocLoading: true });
+        communitySvc.getDocument(store.id(), type).pipe(
+          catchError(() => of(null))
+        ).subscribe(doc => {
+          if (doc) {
+            const bodies = new Map(store.communityBodies());
+            bodies.set(type, doc);
+            patchState(store, { communityBodies: bodies });
+          }
+          patchState(store, { communityDocLoading: false });
         });
       },
 

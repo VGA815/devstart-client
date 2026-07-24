@@ -25,6 +25,20 @@
     &--unread { background: var(--accent); }
   }
 
+  &__icon {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1;
+  }
+
   &__body {
     flex: 1;
     min-width: 0;
@@ -54,4 +68,15 @@
     color: var(--text-dim);
     margin-top: 2px;
   }
+
+  // Стрелка появляется только у уведомлений, которым есть куда вести
+  &__arrow {
+    flex-shrink: 0;
+    align-self: center;
+    font-size: 13px;
+    color: var(--text-dim);
+    transition: var(--transition);
+  }
+
+  &--link:hover &__arrow { color: var(--accent); }
 }

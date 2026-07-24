@@ -59,6 +59,10 @@
       <app-startup-cap-table-card [startupId]="s.id" />
     }
     <app-startup-docs-card [startupId]="s.id" />
+    @if (myRole() === 'Founder' || myRole() === 'Administration') {
+      <!-- Документы сообщества правят только основатели и администраторы — бэк отвечает 403 остальным. -->
+      <app-startup-community-card [startupId]="s.id" />
+    }
 
   </div>
 }

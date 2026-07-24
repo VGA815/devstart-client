@@ -150,6 +150,12 @@
   &:last-child { border-bottom: none; }
   &--unread    { background: var(--accent-faint); }
 
+  &__icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
   &__dot {
     width: 7px;
     height: 7px;

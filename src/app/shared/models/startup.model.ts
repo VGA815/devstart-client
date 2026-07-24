@@ -5,6 +5,8 @@ export type StartupRole = 'Founder' | 'Administration' | 'Member';
 /** Maps to DevStart.Domain.StartupMembers.StartupPosition enum */
 export type StartupPosition = 'Other' | 'CEO' | 'CTO' | 'CMO' | 'COO' | 'CFO' | 'CPO';
 
+import { CommunityStandardsLevel } from './community-standards.model';
+
 export interface Startup {
   id: string;
   name: string;
@@ -23,6 +25,12 @@ export interface Startup {
   som: number | null;
   hasPatents: boolean;
   marketGrowthRate: number | null;
+  /**
+   * Доля выполненного чек-листа сообщества, 0–100. Приходит из проекции и может немного
+   * отставать от живого расчёта на `api/startups/{id}/community`.
+   */
+  communityStandardsPercent: number;
+  communityStandardsLevel: CommunityStandardsLevel;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,6 +55,8 @@ export interface StartupFilters {
   stage?: StartupStage;
   location?: StartupLocation;
   isStopped?: boolean;
+  /** Отбирает стартапы с уровнем стандартов сообщества не ниже указанного. */
+  minCommunityStandards?: CommunityStandardsLevel;
 }
 
 export interface PaginatedResult<T> {

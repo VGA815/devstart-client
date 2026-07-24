@@ -1,0 +1,201 @@
+@use '../../../../../styles/mixins' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cs-hero {
+  @include card-base;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  @include mobile { padding: 14px 16px; }
+
+  &__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  &__bar {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: var(--transition);
+
+    &--complete   { background: var(--green); }
+    &--developing { background: var(--yellow); }
+    &--incomplete { background: var(--text-dim); }
+  }
+
+  &__foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  &__count   { color: var(--text-muted); }
+  &__percent { color: var(--text); font-weight: 600; }
+}
+
+.cs-level {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+
+  &--complete {
+    background: var(--green-soft);
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+
+  &--developing {
+    background: var(--yellow-soft);
+    border-color: var(--yellow-border);
+    color: var(--yellow);
+  }
+
+  &--incomplete {
+    background: var(--neutral-soft);
+    border-color: var(--neutral-border);
+    color: var(--text-muted);
+  }
+}
+
+.cs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__title {
+    @include mono-label;
+    margin: 0;
+  }
+}
+
+.cs-list {
+  @include card-base;
+  overflow: hidden;
+}
+
+.cs-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+
+  &:hover { background: var(--bg-hover); }
+
+  @include mobile { padding: 10px 12px; }
+
+  &__mark {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-strong);
+    background: var(--bg3);
+    font-size: 11px;
+    color: var(--text-dim);
+
+    &--done {
+      background: var(--green-soft);
+      border-color: var(--green-border);
+      color: var(--green);
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    @include truncate;
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  &__meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  &__cta { flex-shrink: 0; }
+
+  // Незакрытые пункты приглушены — закрытые читаются как основной контент
+  &:not(&--done) &__label { color: var(--text-muted); }
+}
+
+.cs-list > .cs-item:last-child,
+.cs-list > .cs-doc-body:last-child { border-bottom: none; }
+
+.cs-doc-body {
+  padding: 16px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  animation: fadeIn .15s ease;
+
+  @include mobile { padding: 12px 14px 16px; }
+
+  &--error {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+}
+
+:host ::ng-deep .cs-doc-body--md {
+  @include markdown-body;
+}

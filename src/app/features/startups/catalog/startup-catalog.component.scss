@@ -175,3 +175,32 @@
     color: var(--red);
   }
 }
+
+// Бейдж стандартов сообщества. Показывается только начиная с уровня Developing:
+// «Incomplete» — это состояние по умолчанию, отмечать его нечем.
+.sr-community {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &--complete {
+    background: var(--green-soft);
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+
+  &--developing {
+    background: var(--neutral-soft);
+    border-color: var(--neutral-border);
+    color: var(--text-muted);
+  }
+
+  @include mobile { display: none; }
+}

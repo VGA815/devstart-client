@@ -1,0 +1,118 @@
+<div class="card">
+  <div class="card__header">
+    <span class="card__title">Стандарты сообщества</span>
+    @if (standards(); as cs) {
+      <span class="cc-level" [class]="'cc-level--' + getCommunityLevelMod(cs.level)">
+        {{ getCommunityLevelLabel(cs.level) }}
+      </span>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="card__empty">Загрузка…</div>
+  } @else {
+
+    @if (standards(); as cs) {
+      <div class="cc-progress">
+        <div class="cc-progress__bar">
+          <div class="cc-progress__fill"
+            [class]="'cc-progress__fill--' + getCommunityLevelMod(cs.level)"
+            [style.width.%]="cs.percent"></div>
+        </div>
+        <span class="cc-progress__count">{{ cs.completedCount }}/{{ cs.totalCount }}</span>
+      </div>
+
+      @if (pendingProfileChecks().length > 0) {
+        <div class="cc-pending">
+          <span class="cc-pending__label">Осталось заполнить в профиле</span>
+          <div class="cc-pending__items">
+            @for (check of pendingProfileChecks(); track check.key) {
+              @let meta = getCommunityCheckMeta(check.key);
+              @if (meta.target === 'edit') {
+                <a class="cc-pending__chip" [routerLink]="['/startups', startupId, 'edit']">
+                  {{ meta.label }} →
+                </a>
+              } @else {
+                <span class="cc-pending__chip cc-pending__chip--static">{{ meta.label }}</span>
+              }
+            }
+          </div>
+        </div>
+      }
+    }
+
+    @if (error()) {
+      <div class="cc-error">{{ error() }}</div>
+    }
+
+    @for (type of docTypes; track type) {
+      @let published = isPublished(type);
+      @let isEditing = editingType() === type;
+
+      <div class="cc-row" [class.cc-row--published]="published">
+        <span class="cc-row__mark" [class.cc-row__mark--done]="published">
+          {{ published ? '✓' : '' }}
+        </span>
+        <div class="cc-row__info">
+          <span class="cc-row__title">{{ publishedTitle(type) ?? getCommunityDocumentLabel(type) }}</span>
+          <span class="cc-row__hint">{{ getCommunityDocumentHint(type) }}</span>
+        </div>
+        <button class="btn btn--ghost btn--sm" type="button" (click)="edit(type)">
+          @if (isEditing) { ✕ Отмена } @else if (published) { ✏ Изменить } @else { + Добавить }
+        </button>
+        @if (published) {
+          <button class="btn btn--icon btn--danger-hover" type="button"
+            title="Снять с публикации"
+            [disabled]="deletingType() === type"
+            (click)="remove(type)">✕</button>
+        }
+      </div>
+
+      @if (isEditing) {
+        <div class="cc-editor" [formGroup]="form">
+          <div class="cc-editor__toolbar">
+            <button class="btn btn--ghost btn--xs" type="button"
+              [disabled]="loadingTemplate()" (click)="applyTemplate()">
+              @if (loadingTemplate()) { Загружаем… } @else { 📄 Вставить шаблон }
+            </button>
+            <button class="btn btn--ghost btn--xs" type="button" (click)="togglePreview()">
+              {{ showPreview() ? '✎ Редактировать' : '👁 Превью' }}
+            </button>
+          </div>
+
+          <label class="field__label field__label--mono" for="ccTitle">Заголовок</label>
+          <input id="ccTitle" class="field__input field__input--sm"
+            [class.field__input--error]="fieldError('title')"
+            type="text" formControlName="title"
+            placeholder="Например: Кодекс поведения" />
+          @if (fieldError('title')) {
+            <span class="field__hint field__hint--error">{{ fieldError('title') }}</span>
+          }
+
+          <label class="field__label field__label--mono cc-editor__label">
+            Текст <span class="field__hint field__hint--inline">markdown</span>
+          </label>
+
+          @if (showPreview()) {
+            <div class="cc-editor__preview cc-editor__preview--md"
+              [innerHTML]="form.getRawValue().content | markdown"></div>
+          } @else {
+            <textarea class="field__textarea cc-editor__textarea"
+              [class.field__textarea--error]="fieldError('content')"
+              formControlName="content" rows="12"
+              placeholder="# Заголовок&#10;&#10;Текст документа в формате markdown…"></textarea>
+          }
+          @if (fieldError('content')) {
+            <span class="field__hint field__hint--error">{{ fieldError('content') }}</span>
+          }
+
+          <button class="btn btn--primary btn--block cc-editor__submit" type="button"
+            [disabled]="saving()" (click)="save()">
+            @if (saving()) { Сохраняем… } @else { Опубликовать }
+          </button>
+        </div>
+      }
+    }
+
+  }
+</div>

@@ -18,6 +18,7 @@ import { InvestorsTabComponent } from './tabs/investors-tab.component';
 import { DocumentsTabComponent } from './tabs/documents-tab.component';
 import { CompetitorsTabComponent } from './tabs/competitors-tab.component';
 import { ScoringTabComponent } from './tabs/scoring-tab.component';
+import { CommunityTabComponent } from './tabs/community-tab.component';
 import { InvestFormComponent } from './invest-form/invest-form.component';
 
 @Component({
@@ -28,6 +29,7 @@ import { InvestFormComponent } from './invest-form/invest-form.component';
     TagComponent, SkeletonComponent, AvatarComponent,
     OverviewTabComponent, RoadmapTabComponent, MetricsTabComponent, TeamTabComponent,
     InvestorsTabComponent, DocumentsTabComponent, CompetitorsTabComponent, ScoringTabComponent,
+    CommunityTabComponent,
     InvestFormComponent,
   ],
   providers: [StartupDetailStore, StartupDetailFacade],
@@ -37,6 +39,13 @@ import { InvestFormComponent } from './invest-form/invest-form.component';
 })
 export class StartupDetailComponent implements OnInit {
   @Input() id!: string;
+
+  /**
+   * Query-параметр `?tab=` — вкладка, открытая сразу при заходе (ссылки из уведомлений,
+   * например «стандарты сообщества не заполнены»). Приходит через `withComponentInputBinding()`.
+   * Связь односторонняя: переключение вкладок руками URL не меняет.
+   */
+  @Input() tab?: string;
 
   protected readonly facade = inject(StartupDetailFacade);
   private readonly router   = inject(Router);
@@ -54,6 +63,7 @@ export class StartupDetailComponent implements OnInit {
     { key: 'investors',    label: 'Инвесторы' },
     { key: 'documents',    label: 'Документы' },
     { key: 'competitors',  label: 'Конкуренты' },
+    { key: 'community',    label: 'Сообщество' },
     { key: 'scoring',      label: '★ Скоринг' },
   ];
 
@@ -75,6 +85,9 @@ export class StartupDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.facade.init(this.id);
+
+    const requested = this.tabs.find(t => t.key === this.tab);
+    if (requested) this.facade.setTab(requested.key);
   }
 
   openInvestForm(): void {

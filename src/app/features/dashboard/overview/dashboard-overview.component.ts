@@ -12,6 +12,7 @@ import { Startup, StartupMember, StartupRole } from '../../../shared/models/star
 import { Notification } from '../../../shared/models/notification.model';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 import { formatRelativeTime } from '../../../shared/utils/format.utils';
+import { getNotificationIcon } from '../../../shared/utils/notification.utils';
 
 @Component({
   selector: 'app-dashboard-overview',
@@ -83,6 +84,7 @@ export class DashboardOverviewComponent implements OnInit {
   }
 
   protected readonly formatTime = formatRelativeTime;
+  protected readonly getIcon    = getNotificationIcon;
 
   getRoleBadge(startupId: string): { label: string; mod: string } {
     switch (this.roleMap().get(startupId)) {
