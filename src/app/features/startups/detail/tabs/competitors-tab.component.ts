@@ -1,7 +1,29 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 import { StartupCompetitor } from '../../../../shared/models/startup-competitor.model';
 import { StartupDetailFacade } from '../startup-detail.facade';
+
+/** Человеческий текст по стабильному коду Problem Details (title), см. docs/api.md. */
+const COMPETITOR_ERRORS: Record<string, string> = {
+  'StartupCompetitors.DuplicateDomain': 'Конкурент с этим доменом уже добавлен',
+  'StartupCompetitors.LimitReached':    'Достигнут лимит карточек конкурентов',
+  'StartupCompetitors.InvalidWebsite':  'Укажите корректную ссылку на сайт (https://…)',
+};
+
+function competitorErrorMessage(title?: string): string {
+  return (title && COMPETITOR_ERRORS[title]) || 'Не удалось сохранить. Попробуйте снова.';
+}
+
+/** Абсолютный http(s) URL — зеркалит серверную нормализацию домена (StartupCompetitor.NormalizeDomain). */
+function looksLikeUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
 
 @Component({
   selector: 'app-competitors-tab',
@@ -55,13 +77,17 @@ export class CompetitorsTabComponent {
     const name = this.competitorName().trim();
     if (!name) { this.competitorError.set('Название обязательно'); return; }
 
+    const website = this.competitorWebsite().trim();
+    if (!website) { this.competitorError.set('Ссылка на сайт обязательна'); return; }
+    if (!looksLikeUrl(website)) { this.competitorError.set('Укажите корректную ссылку на сайт (https://…)'); return; }
+
     this.competitorSaving.set(true);
     this.competitorError.set('');
 
     const editing = this.editingCompetitor();
     const payload = {
       name,
-      website: this.competitorWebsite().trim() || undefined,
+      website,
       description: this.competitorDesc().trim() || undefined,
       strengths_vs_us: this.competitorStrengths().trim() || undefined,
       weaknesses_vs_us: this.competitorWeaknesses().trim() || undefined,
@@ -72,14 +98,22 @@ export class CompetitorsTabComponent {
         this.competitorSaving.set(false);
         this.showCompetitorForm.set(false);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.competitorSaving.set(false);
-        this.competitorError.set('Не удалось сохранить. Попробуйте снова.');
+        this.competitorError.set(competitorErrorMessage(err?.error?.title));
       },
     });
   }
 
   deleteCompetitor(c: StartupCompetitor): void {
     this.facade.deleteCompetitor(c);
+  }
+
+  /**
+   * Карточка «проработана», если есть сайт и хотя бы одна из сторон (наши/их преимущества) —
+   * ровно тот критерий, по которому бэк засчитывает её в балл конкуренции (компонент «а»).
+   */
+  isWorkedOut(c: StartupCompetitor): boolean {
+    return !!(c.website && (c.strengthsVsUs || c.weaknessesVsUs));
   }
 }

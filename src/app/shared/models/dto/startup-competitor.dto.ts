@@ -16,7 +16,8 @@ export interface StartupCompetitorDto {
 export interface CreateStartupCompetitorRequestDto {
   startup_id: string;
   name: string;
-  website?: string;
+  // Обязателен: бэк отклоняет пустой сайт и выводит из него ключ дедупликации домена.
+  website: string;
   description?: string;
   strengths_vs_us?: string;
   weaknesses_vs_us?: string;
@@ -24,7 +25,8 @@ export interface CreateStartupCompetitorRequestDto {
 
 export interface UpdateStartupCompetitorRequestDto {
   name: string;
-  website?: string;
+  // Обязателен и на update — легаси-карточка без сайта получает его при первой же правке.
+  website: string;
   description?: string;
   strengths_vs_us?: string;
   weaknesses_vs_us?: string;

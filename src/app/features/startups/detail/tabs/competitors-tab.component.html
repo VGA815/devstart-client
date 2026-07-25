@@ -20,9 +20,9 @@
           (input)="competitorName.set($any($event.target).value)" />
       </div>
       <div class="field">
-        <label class="field__label field__label--mono">Сайт</label>
+        <label class="field__label field__label--mono">Сайт *</label>
         <input class="field__input field__input--sm"
-          type="url" placeholder="https://competitor.com"
+          type="url" required placeholder="https://competitor.com"
           [value]="competitorWebsite()"
           (input)="competitorWebsite.set($any($event.target).value)" />
       </div>
@@ -69,12 +69,20 @@
 } @else if (facade.competitors().length === 0 && !showCompetitorForm()) {
   <div class="empty-state empty-state--card"><p class="empty-state__title">Анализ конкурентов не добавлен</p></div>
 } @else {
+  <p class="sd-competitors__hint">
+    Балл за конкуренцию зависит не от числа карточек, а от числа <strong>проработанных</strong> —
+    с сайтом и хотя бы одной из сторон (наши / их преимущества). Проработанные отмечены значком
+    <span class="sd-competitors__hint-badge">✓ зачтено</span>.
+  </p>
   <div class="sd-competitors">
     @for (c of facade.competitors(); track c.id) {
-      <div class="sd-competitor-card">
+      <div class="sd-competitor-card" [class.sd-competitor-card--counted]="isWorkedOut(c)">
         <div class="sd-competitor-card__header">
           <div class="sd-competitor-card__title-row">
             <span class="sd-competitor-card__name">{{ c.name }}</span>
+            @if (isWorkedOut(c)) {
+              <span class="sd-competitor-card__counted" title="Карточка засчитана в балл конкуренции">✓ зачтено</span>
+            }
             @if (c.website) {
               <a [href]="c.website" target="_blank" rel="noopener" class="sd-competitor-card__link">
                 🌐 {{ c.website }}

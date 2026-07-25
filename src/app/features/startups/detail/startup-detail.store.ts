@@ -38,7 +38,7 @@ export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'investors
 
 export interface CompetitorPayload {
   name: string;
-  website?: string;
+  website: string;
   description?: string;
   strengths_vs_us?: string;
   weaknesses_vs_us?: string;

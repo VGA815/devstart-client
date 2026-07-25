@@ -204,6 +204,116 @@
     font-size: 11px;
     color: var(--text-dim);
   }
+
+  // «Нет данных» вместо числового балла в шапке фактора.
+  &__nodata {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  // Плейсхолдер на месте полосы для выпавшего фактора.
+  &__nobar {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+    padding: 2px 0;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  &__tags {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  // Бейдж источника балла — чтобы инвестор видел, что держится на самодекларации.
+  &__src {
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+    border: 1px solid var(--neutral-border);
+    background: var(--neutral-soft);
+    color: var(--text-muted);
+
+    &--self     { border-color: var(--yellow-border); background: var(--yellow-soft); color: var(--yellow); }
+    &--platform { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+    &--external { border-color: var(--green-border);  background: var(--green-soft);  color: var(--green); }
+    &--none     { border-color: var(--neutral-border); background: var(--neutral-soft); color: var(--text-dim); }
+  }
+
+  &__weight {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+}
+
+.sc-insufficient {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+
+  @include mobile { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--neutral-border);
+    border-radius: var(--radius);
+    background: var(--neutral-soft);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  &__text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  &__updated {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    margin-top: 4px;
+  }
 }
 
 .sc-methods {

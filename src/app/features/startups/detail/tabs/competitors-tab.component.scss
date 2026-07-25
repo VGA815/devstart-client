@@ -10,6 +10,32 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  &__hint {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    strong { color: var(--text); font-weight: 600; }
+  }
+
+  &__hint-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    background: var(--green-soft);
+    border: 1px solid var(--green-border);
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+  }
 }
 
 .sd-competitor-card {
@@ -21,6 +47,23 @@
   animation: fadeIn 0.12s ease;
 
   &:hover { border-color: var(--text-dim); }
+
+  // Проработанная карточка — та, что засчитывается в балл конкуренции.
+  &--counted { border-left: 2px solid var(--green-border); }
+
+  &__counted {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: var(--green-soft);
+    border: 1px solid var(--green-border);
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 
   &__header {
     display: flex;
