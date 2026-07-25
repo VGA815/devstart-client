@@ -1,6 +1,8 @@
 export type SubscriptionPlan = 'Free' | 'Pro';
 export type SubscriptionStatus = 'Pending' | 'Active' | 'Cancelled' | 'Expired';
 export type PaymentStatus = 'Pending' | 'Succeeded' | 'Cancelled' | 'Failed' | 'Refunded';
+/** За что платёж: подписка или разовая услуга (SC-49). История платежей общая. */
+export type PaymentPurpose = 'Subscription' | 'ServiceOrder';
 
 export interface CurrentSubscription {
   subscriptionId: string | null;
@@ -21,7 +23,9 @@ export interface CheckoutSession {
 
 export interface PaymentHistoryItem {
   id: string;
-  subscriptionId: string;
+  /** null у платежей за разовые услуги — они не привязаны к подписке. */
+  subscriptionId: string | null;
+  purpose: PaymentPurpose;
   plan: SubscriptionPlan;
   amount: number;
   refundedAmount: number;

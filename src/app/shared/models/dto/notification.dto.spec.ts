@@ -21,10 +21,10 @@ describe('mapNotificationDto', () => {
     'ExpertCollaborationRequestReceived', 'ExpertCollaborationRequestAccepted',
     'ExpertCollaborationRequestRejected', 'ExpertCollaborationRequestWithdrawn',
     'SubscriptionExpiringSoon', 'SubscriptionExpired', 'PaymentRefunded',
-    'CommunityStandardsIncomplete',
+    'CommunityStandardsIncomplete', 'IncomeLimitWarning', 'ServiceOrderFulfilled',
   ];
 
-  it('декодирует все 19 значений бэкенд-энума', () => {
+  it('декодирует все 21 значение бэкенд-энума', () => {
     EXPECTED.forEach((expected, value) => {
       expect(mapNotificationDto(dto(value)).type).toBe(expected);
     });

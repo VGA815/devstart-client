@@ -1,5 +1,5 @@
 /**
- * Зеркало `DevStart.Domain.Notifications.NotificationType` (значения 0–18).
+ * Зеркало `DevStart.Domain.Notifications.NotificationType` (значения 0–20).
  * `Unknown` — не значение бэка, а запасной вариант фронта: если сервер пришлёт тип новее
  * этого списка, уведомление всё равно отрисуется (title и body приходят с сервера),
  * но без иконки-обманки и без ссылки в случайный раздел.
@@ -24,6 +24,9 @@ export type NotificationType =
   | 'SubscriptionExpired'
   | 'PaymentRefunded'
   | 'CommunityStandardsIncomplete'
+  // Приходит только администраторам: доход НПД достиг 80% годового лимита (SC-42).
+  | 'IncomeLimitWarning'
+  | 'ServiceOrderFulfilled'
   | 'Unknown';
 
 export interface Notification {

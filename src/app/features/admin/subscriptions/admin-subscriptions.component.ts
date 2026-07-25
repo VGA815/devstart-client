@@ -5,6 +5,7 @@ import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.
 import { AdminService } from '../admin.service';
 import {
   AdminSubscription,
+  NpdIncomeStatus,
   PLAN_LABELS, SUBSCRIPTION_SOURCE_LABELS, SUBSCRIPTION_STATUS_LABELS,
 } from '../admin.models';
 
@@ -42,7 +43,40 @@ export class AdminSubscriptionsComponent implements OnInit {
   readonly busy        = signal(false);
   readonly actionError = signal('');
 
-  ngOnInit(): void { this.load(); }
+  // SC-42: статус годового лимита дохода НПД
+  readonly npd        = signal<NpdIncomeStatus | null>(null);
+  readonly npdLoading = signal(true);
+  readonly npdError   = signal('');
+
+  ngOnInit(): void {
+    this.load();
+    this.loadNpd();
+  }
+
+  loadNpd(): void {
+    this.npdLoading.set(true);
+    this.npdError.set('');
+
+    this.admin.getNpdIncomeStatus().pipe(
+      catchError(() => {
+        this.npdError.set('Не удалось загрузить статус лимита НПД.');
+        return of(null);
+      })
+    ).subscribe(status => {
+      this.npd.set(status);
+      this.npdLoading.set(false);
+    });
+  }
+
+  /** Доля лимита, выбранная доходом, в процентах — для шкалы. Ограничена сотней. */
+  npdPercent(status: NpdIncomeStatus): number {
+    if (status.limit <= 0) return 0;
+    return Math.min(100, Math.round((status.incomeToDate / status.limit) * 100));
+  }
+
+  formatRub(amount: number): string {
+    return `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(amount)} ₽`;
+  }
 
   load(): void {
     this.loading.set(true);

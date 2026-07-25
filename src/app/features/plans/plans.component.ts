@@ -4,8 +4,26 @@ import { Title, Meta } from '@angular/platform-browser';
 import { catchError, of } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { SubscriptionService } from '../../shared/services/subscription.service';
+import { ServiceOrderService } from '../../shared/services/service-order.service';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { CurrentSubscription } from '../../shared/models/subscription.model';
+import { ServiceCatalogItem, ServiceType } from '../../shared/models/service-order.model';
+
+/** Витринные подписи разовых услуг. Цена и валюта — только из каталога бэка. */
+const SERVICE_META: Record<ServiceType, { title: string; desc: string }> = {
+  ScoringReport: {
+    title: 'Скоринг-отчёт',
+    desc: 'Разовый расчёт скоринга и ориентира диапазона стоимости по данным проекта — без подписки.',
+  },
+  TermSheet: {
+    title: 'Генерация term sheet',
+    desc: 'Документ с предлагаемыми условиями сделки на основе профиля стартапа и скоринга.',
+  },
+  Promotion: {
+    title: 'Продвижение проекта',
+    desc: 'Приоритетное размещение карточки стартапа в каталоге платформы.',
+  },
+};
 
 @Component({
   selector: 'app-plans',
@@ -18,6 +36,7 @@ import { CurrentSubscription } from '../../shared/models/subscription.model';
 export class PlansComponent implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly billingSvc = inject(SubscriptionService);
+  private readonly serviceSvc = inject(ServiceOrderService);
   private readonly router = inject(Router);
   private readonly titleSvc = inject(Title);
   private readonly metaSvc = inject(Meta);
@@ -29,9 +48,16 @@ export class PlansComponent implements OnInit {
   readonly checkoutError = signal('');
   readonly promoCode = signal('');
 
+  // SC-49: разовые услуги
+  readonly services = signal<ServiceCatalogItem[]>([]);
+  readonly servicesLoading = signal(false);
+  /** Тип услуги, по которой сейчас открывается оплата (блокирует только её кнопку). */
+  readonly serviceBusy = signal<ServiceType | null>(null);
+  readonly serviceError = signal('');
+
   readonly proFeatures = [
     'Скоринг DevStart по ключевым осям проекта',
-    'Диапазон оценки стоимости стартапа',
+    'Расчётный ориентир диапазона стоимости стартапа',
     'Премиальные метрики: MRR, MAU, MoM Growth, LTV',
     'Быстрый переход к расширенной аналитике в карточках стартапов',
   ];
@@ -53,6 +79,8 @@ export class PlansComponent implements OnInit {
     if (this.auth.user()) {
       this.loadSubscription();
     }
+
+    this.loadServices();
   }
 
   checkout(): void {
@@ -91,6 +119,61 @@ export class PlansComponent implements OnInit {
     });
   }
 
+  /** Заводит заказ разовой услуги и уводит на оплату ЮKassa. */
+  buyService(item: ServiceCatalogItem): void {
+    if (!this.auth.user()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.serviceBusy()) return;
+
+    this.serviceBusy.set(item.serviceType);
+    this.serviceError.set('');
+
+    this.serviceSvc.checkout(item.serviceType).subscribe({
+      next: order => {
+        if (order.confirmationUrl) {
+          // Страница возврата у подписки и услуг одна — оставляем метку, чем закончился заход.
+          this.serviceSvc.rememberPending(order.paymentId, item.serviceType);
+          window.location.assign(order.confirmationUrl);
+          return;
+        }
+        this.serviceBusy.set(null);
+        this.serviceError.set('Не удалось открыть оплату. Попробуйте ещё раз.');
+      },
+      error: err => {
+        this.serviceBusy.set(null);
+        this.serviceError.set(checkoutErrorMessage(err?.error?.title));
+      },
+    });
+  }
+
+  serviceTitle(item: ServiceCatalogItem): string {
+    return SERVICE_META[item.serviceType].title;
+  }
+
+  serviceDesc(item: ServiceCatalogItem): string {
+    return SERVICE_META[item.serviceType].desc;
+  }
+
+  formatPrice(item: ServiceCatalogItem): string {
+    const amount = new Intl.NumberFormat('ru-RU').format(item.price);
+    return `${amount} ${item.currency === 'RUB' ? '₽' : item.currency}`;
+  }
+
+  private loadServices(): void {
+    this.servicesLoading.set(true);
+
+    // Каталог пустой или недоступный — секцию просто не показываем: подписка не должна страдать.
+    this.serviceSvc.getCatalog().pipe(
+      catchError(() => of([] as ServiceCatalogItem[]))
+    ).subscribe(items => {
+      this.services.set(items);
+      this.servicesLoading.set(false);
+    });
+  }
+
   private loadSubscription(): void {
     this.subscriptionLoading.set(true);
     this.subscriptionError.set('');
@@ -116,7 +199,8 @@ export class PlansComponent implements OnInit {
   }
 }
 
-const PROMO_ERRORS: Record<string, string> = {
+// Ветвимся по `title` из Problem Details — это стабильный код ошибки, в отличие от detail.
+const CHECKOUT_ERRORS: Record<string, string> = {
   'PromoCodes.InvalidCode':          'Промокод недействителен.',
   'PromoCodes.Inactive':             'Промокод больше не активен.',
   'PromoCodes.NotYetValid':          'Промокод ещё не начал действовать.',
@@ -124,8 +208,14 @@ const PROMO_ERRORS: Record<string, string> = {
   'PromoCodes.GlobalLimitReached':   'Лимит использований промокода исчерпан.',
   'PromoCodes.AlreadyRedeemedByUser':'Вы уже использовали этот промокод.',
   'PromoCodes.PlanMismatch':         'Промокод не подходит для этого плана.',
+  // SC-42: достигнут годовой лимит дохода НПД — новые платные операции недоступны до конца года.
+  'Payments.IncomeLimitReached':     'Приём оплат временно приостановлен до конца календарного года. ' +
+                                     'Напишите в поддержку — подскажем, когда оплата снова откроется.',
+  'Payments.CustomerEmailMissing':   'Для оплаты нужен подтверждённый email в профиле.',
+  'Payments.ProviderUnavailable':    'Платёжный сервис временно недоступен. Попробуйте позже.',
+  'ServiceOrders.UnknownServiceType':'Эта услуга сейчас недоступна.',
 };
 
 function checkoutErrorMessage(title?: string): string {
-  return (title && PROMO_ERRORS[title]) ?? 'Не удалось открыть оплату. Попробуйте ещё раз.';
+  return (title && CHECKOUT_ERRORS[title]) ?? 'Не удалось открыть оплату. Попробуйте ещё раз.';
 }

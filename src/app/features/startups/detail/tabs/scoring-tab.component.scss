@@ -347,3 +347,20 @@
     color: var(--text-muted);
   }
 }
+
+// SC-44: правовая оговорка — не отчёт об оценке (ФЗ-135) и не инвестрекомендация (ФЗ-39).
+.sc-disclaimer {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-dim);
+
+  strong {
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+}

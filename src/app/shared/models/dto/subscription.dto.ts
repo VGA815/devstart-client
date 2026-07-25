@@ -2,6 +2,7 @@ import {
   CheckoutSession,
   CurrentSubscription,
   PaymentHistoryItem,
+  PaymentPurpose,
   PaymentStatus,
   SubscriptionPlan,
   SubscriptionStatus,
@@ -27,6 +28,12 @@ const PAYMENT_STATUS_MAP: Record<number, PaymentStatus> = {
   4: 'Refunded',
 };
 
+// DevStart.Domain.Payments.PaymentPurpose
+const PAYMENT_PURPOSE_MAP: Record<number, PaymentPurpose> = {
+  0: 'Subscription',
+  1: 'ServiceOrder',
+};
+
 export interface CurrentSubscriptionDto {
   subscriptionId: string | null;
   plan: number;
@@ -45,7 +52,8 @@ export interface CheckoutSessionDto {
 
 export interface PaymentHistoryDto {
   id: string;
-  subscriptionId: string;
+  subscriptionId: string | null;
+  purpose: number;
   plan: number;
   amount: number;
   refundedAmount: number;
@@ -78,7 +86,8 @@ export function mapCheckoutSessionDto(dto: CheckoutSessionDto): CheckoutSession 
 export function mapPaymentHistoryDto(dto: PaymentHistoryDto): PaymentHistoryItem {
   return {
     id: dto.id,
-    subscriptionId: dto.subscriptionId,
+    subscriptionId: dto.subscriptionId ?? null,
+    purpose: PAYMENT_PURPOSE_MAP[dto.purpose] ?? 'Subscription',
     plan: PLAN_MAP[dto.plan] ?? 'Pro',
     amount: dto.amount,
     refundedAmount: dto.refundedAmount,

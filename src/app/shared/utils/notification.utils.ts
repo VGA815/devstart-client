@@ -26,6 +26,8 @@ const ICON: Record<NotificationType, string> = {
   SubscriptionExpired:                '⌛',
   PaymentRefunded:                    '💸',
   CommunityStandardsIncomplete:       '◍',
+  IncomeLimitWarning:                 '⚠',
+  ServiceOrderFulfilled:              '🧾',
   Unknown:                            '🔔',
 };
 
@@ -43,7 +45,9 @@ export function getNotificationIcon(type: NotificationType): string {
  * - заявка на инвестиции — `InvestmentApplication*` остальные;
  * - заявка эксперта — `ExpertCollaborationRequest*`;
  * - подписка — `Subscription*`, `PaymentRefunded`;
- * - сообщение — `MessageReceived`.
+ * - заказ услуги — `ServiceOrderFulfilled`;
+ * - сообщение — `MessageReceived`;
+ * - без ссылки на сущность — `IncomeLimitWarning` (событие платформы, не объекта).
  *
  * Ссылку строим только туда, где маршрут действительно принимает этот идентификатор:
  * для заявок и сообщений отдельных страниц нет, поэтому ведём на соответствующий список.
@@ -95,6 +99,14 @@ export function getNotificationLink(notification: Notification): NotificationLin
       return ref
         ? { commands: ['/startups', ref], queryParams: { tab: 'community' } }
         : { commands: ['/dashboard/my-startups'] };
+
+    // Только у админов: ведём на раздел с виджетом статуса лимита НПД.
+    case 'IncomeLimitWarning':
+      return { commands: ['/admin/subscriptions'] };
+
+    // Отдельной страницы у заказа услуги нет — ведём в историю платежей.
+    case 'ServiceOrderFulfilled':
+      return { commands: ['/dashboard/subscriptions'] };
 
     case 'Welcome':
     case 'EmailVerified':

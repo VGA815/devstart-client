@@ -55,6 +55,16 @@ describe('getNotificationLink', () => {
     expect(getNotificationLink(notification('MessageReceived', 'msg-1')))
       .toEqual({ commands: ['/dashboard/messages'] });
   });
+
+  it('уводит админа к статусу лимита НПД по IncomeLimitWarning', () => {
+    expect(getNotificationLink(notification('IncomeLimitWarning')))
+      .toEqual({ commands: ['/admin/subscriptions'] });
+  });
+
+  it('ведёт в историю платежей по ServiceOrderFulfilled — страницы заказа нет', () => {
+    expect(getNotificationLink(notification('ServiceOrderFulfilled', 'order-1')))
+      .toEqual({ commands: ['/dashboard/subscriptions'] });
+  });
 });
 
 describe('getNotificationIcon', () => {

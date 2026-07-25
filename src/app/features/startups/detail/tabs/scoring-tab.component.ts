@@ -24,6 +24,15 @@ const SOURCE_FLAGS: { flag: number; label: string; kind: string }[] = [
 
 interface SourceChip { label: string; kind: string; }
 
+// Имена методов приходят с бэка как идентификаторы (ValuationCalculator): подписи — здесь.
+// Состав списка задаёт бэк — фронт ничего не додумывает, только читаемо называет пришедшее.
+const METHOD_LABELS: Record<string, string> = {
+  Berkus:     'Berkus',
+  Scorecard:  'Scorecard',
+  VcMethod:   'VC-метод',
+  Comparable: 'Сравнительный',
+};
+
 @Component({
   selector: 'app-scoring-tab',
   standalone: true,
@@ -52,5 +61,10 @@ export class ScoringTabComponent {
 
   weightPercent(weight: number): string {
     return `${Math.round(weight * 100)}%`;
+  }
+
+  /** Неизвестный метод показываем как есть — врать читаемой подписью хуже, чем показать код. */
+  methodLabel(method: string): string {
+    return METHOD_LABELS[method] ?? method;
   }
 }

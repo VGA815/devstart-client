@@ -77,4 +77,46 @@
       }
     </article>
   </div>
+
+  @if (servicesLoading()) {
+    <app-skeleton height="180px" border-radius="6px" />
+  } @else if (services().length > 0) {
+    <section class="services">
+      <div class="services__heading">
+        <h2 class="services__title">Разовые услуги</h2>
+        <p class="services__sub">Оплата за одну конкретную услугу платформы — подписка не требуется.</p>
+      </div>
+
+      <div class="services__grid">
+        @for (item of services(); track item.serviceType) {
+          <article class="service-card">
+            <div class="service-card__top">
+              <span class="service-card__name">{{ serviceTitle(item) }}</span>
+              <span class="service-card__price">{{ formatPrice(item) }}</span>
+            </div>
+            <p class="service-card__desc">{{ serviceDesc(item) }}</p>
+            <button class="btn btn--ghost btn--sm btn--block" type="button"
+              [disabled]="serviceBusy() !== null"
+              (click)="buyService(item)">
+              @if (serviceBusy() === item.serviceType) {
+                Открываем оплату…
+              } @else {
+                {{ auth.user() ? 'Оплатить' : 'Войти и оплатить' }}
+              }
+            </button>
+          </article>
+        }
+      </div>
+
+      @if (serviceError()) {
+        <p class="services__error">{{ serviceError() }}</p>
+      }
+
+      <p class="services__note">
+        Услуги оказывает платформа от своего имени по фиксированной цене. Чек направляется на email,
+        указанный в профиле. Скоринг-отчёт и term sheet содержат расчётный ориентир диапазона
+        стоимости и не являются отчётом об оценке (ФЗ-135) или инвестиционной рекомендацией (ФЗ-39).
+      </p>
+    </section>
+  }
 </section>

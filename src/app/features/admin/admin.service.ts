@@ -17,6 +17,7 @@ import {
   ConsentDocument,
   CreateConsentDocumentRequest,
   CreatePromoCodeRequest,
+  NpdIncomeStatus,
   ValuationBenchmark,
 } from './admin.models';
 
@@ -103,9 +104,23 @@ export class AdminService {
     return this.http.post<void>(`${this.base}/subscriptions/${id}/revoke`, { reason });
   }
 
-  // Full refund when amount is null. POST api/payments/{id}/refund (admin permission).
-  refundPayment(paymentId: string, amount: number | null): Observable<void> {
-    return this.http.post<void>(`${this.api}/payments/${paymentId}/refund`, { amount });
+  /**
+   * POST api/payments/{id}/refund (admin permission). Полный возврат — `amount = null`.
+   * SC-48: `proportional` возвращает неиспользованную часть оплаченного периода подписки;
+   * бэк считает сумму сам, поэтому `amount` в этом режиме не передаём (валидатор отклонит).
+   */
+  refundPayment(paymentId: string, amount: number | null, proportional = false): Observable<void> {
+    const body = proportional ? { amount: null, proportional: true } : { amount };
+    return this.http.post<void>(`${this.api}/payments/${paymentId}/refund`, body);
+  }
+
+  // ── НПД ──────────────────────────────────────────────────────────────────────
+
+  // Год по умолчанию — текущий по таймзоне дохода (Europe/Moscow), её определяет бэк.
+  getNpdIncomeStatus(year?: number): Observable<NpdIncomeStatus> {
+    let params = new HttpParams();
+    if (year != null) params = params.set('year', year);
+    return this.http.get<NpdIncomeStatus>(`${this.base}/npd/income-status`, { params });
   }
 
   // ── Promo codes ──────────────────────────────────────────────────────────────

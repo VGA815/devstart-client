@@ -53,7 +53,7 @@
           <div class="card-row">
             <div class="card-row__info">
               <span class="card-row__title">
-                {{ p.plan === 'Pro' ? 'DevStart Pro' : 'Free' }} · {{ formatAmount(p) }}
+                {{ paymentTitle(p) }} · {{ formatAmount(p) }}
               </span>
               <span class="card-row__sub">
                 {{ formatSubscriptionDate(p.paidAt ?? p.createdAt) }}

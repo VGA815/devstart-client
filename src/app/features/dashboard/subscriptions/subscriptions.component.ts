@@ -134,5 +134,11 @@ export class SubscriptionsComponent implements OnInit {
     return `${new Intl.NumberFormat('ru-RU').format(p.amount)} ${p.currency === 'RUB' ? '₽' : p.currency}`;
   }
 
+  /** История общая для подписки и разовых услуг (SC-49) — план показываем только у подписки. */
+  paymentTitle(p: PaymentHistoryItem): string {
+    if (p.purpose === 'ServiceOrder') return 'Разовая услуга';
+    return p.plan === 'Pro' ? 'DevStart Pro' : 'Free';
+  }
+
   protected readonly getStageColor  = getStageColor;
 }

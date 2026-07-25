@@ -84,7 +84,10 @@ export interface AdminSubscriptionsFilter {
 
 export interface AdminPayment {
   id: string;
-  subscriptionId: string;
+  // null у платежей за разовые услуги — они не привязаны к подписке.
+  subscriptionId: string | null;
+  serviceOrderId: string | null;
+  purpose: number;           // 0 Subscription, 1 ServiceOrder
   amount: number;
   discountAmount: number;
   refundedAmount: number;
@@ -93,6 +96,20 @@ export interface AdminPayment {
   promoCodeId: string | null;
   createdAt: string;
   paidAt: string | null;
+}
+
+// ── НПД: статус годового лимита дохода (SC-42) ────────────────────────────────
+
+export interface NpdIncomeStatus {
+  year: number;
+  incomeToDate: number;
+  limit: number;
+  /** Сумма, с которой бэк рассылает админам предупреждение (80% лимита). */
+  warningAmount: number;
+  remaining: number;
+  warningReached: boolean;
+  /** true — новые платные операции блокируются до следующего календарного года. */
+  limitReached: boolean;
 }
 
 // ── Promo codes ────────────────────────────────────────────────────────────────

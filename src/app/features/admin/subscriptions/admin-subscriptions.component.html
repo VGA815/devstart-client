@@ -3,6 +3,58 @@
     <h1 class="page__title page__title--sm">Подписки</h1>
   </header>
 
+  @if (npdLoading()) {
+    <app-skeleton height="120px" border-radius="6px" />
+  } @else if (npdError()) {
+    <div class="card"><div class="card__body"><p class="adm-error">{{ npdError() }}</p></div></div>
+  } @else if (npd()) {
+    @let npdStatus = npd()!;
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Лимит дохода НПД · {{ npdStatus.year }}</span>
+        <span class="badge badge--mono"
+          [class.badge--green]="!npdStatus.warningReached"
+          [class.badge--yellow]="npdStatus.warningReached && !npdStatus.limitReached"
+          [class.badge--red]="npdStatus.limitReached">
+          @if (npdStatus.limitReached) {
+            Лимит достигнут
+          } @else if (npdStatus.warningReached) {
+            Порог 80% пройден
+          } @else {
+            В пределах лимита
+          }
+        </span>
+      </div>
+      <div class="card__body card__body--lg">
+        <div class="npd-bar">
+          <div class="npd-bar__fill"
+            [style.width.%]="npdPercent(npdStatus)"
+            [class.npd-bar__fill--warn]="npdStatus.warningReached && !npdStatus.limitReached"
+            [class.npd-bar__fill--over]="npdStatus.limitReached"></div>
+        </div>
+
+        <dl class="adm-kv">
+          <dt>Доход за год</dt><dd>{{ formatRub(npdStatus.incomeToDate) }} · {{ npdPercent(npdStatus) }}%</dd>
+          <dt>Годовой лимит</dt><dd>{{ formatRub(npdStatus.limit) }}</dd>
+          <dt>Остаток</dt><dd>{{ formatRub(npdStatus.remaining) }}</dd>
+          <dt>Порог предупреждения</dt><dd>{{ formatRub(npdStatus.warningAmount) }}</dd>
+        </dl>
+
+        @if (npdStatus.limitReached) {
+          <p class="adm-error">
+            Приём новых платных операций заблокирован до следующего календарного года:
+            чекаут подписок и разовых услуг отвечает ошибкой «Payments.IncomeLimitReached».
+          </p>
+        } @else if (npdStatus.warningReached) {
+          <p class="adm-mono">
+            Доход превысил 80% годового лимита (ФЗ-422). При достижении лимита создание новых
+            платных операций будет заблокировано автоматически.
+          </p>
+        }
+      </div>
+    </div>
+  }
+
   <div class="adm-filters">
     <div class="field">
       <label class="field__label" for="subStatus">Статус</label>

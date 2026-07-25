@@ -132,3 +132,34 @@
   font-size: 11px;
   color: var(--text-dim);
 }
+
+.adm-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+
+  input { margin-top: 2px; accent-color: var(--accent); }
+
+  .adm-mono { display: inline; }
+}
+
+// SC-42: шкала выбранного годового лимита дохода НПД.
+.npd-bar {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg3);
+  overflow: hidden;
+
+  &__fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: var(--green);
+    transition: var(--transition);
+
+    &--warn { background: var(--yellow); }
+    &--over { background: var(--red); }
+  }
+}

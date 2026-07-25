@@ -21,6 +21,8 @@ const TYPE_MAP: Record<number, NotificationType> = {
   16: 'SubscriptionExpired',
   17: 'PaymentRefunded',
   18: 'CommunityStandardsIncomplete',
+  19: 'IncomeLimitWarning',
+  20: 'ServiceOrderFulfilled',
 };
 
 // Shape returned by GET /api/notifications and GET /api/notifications/:id

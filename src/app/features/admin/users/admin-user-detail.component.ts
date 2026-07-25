@@ -42,10 +42,11 @@ export class AdminUserDetailComponent implements OnInit {
   readonly grantOk     = signal(false);
 
   // refund
-  readonly refundFor    = signal<string | null>(null);
-  readonly refundAmount = signal('');
-  readonly refundBusy   = signal(false);
-  readonly refundError  = signal('');
+  readonly refundFor          = signal<string | null>(null);
+  readonly refundAmount       = signal('');
+  readonly refundProportional = signal(false);
+  readonly refundBusy         = signal(false);
+  readonly refundError        = signal('');
 
   // reset 2FA (backend forbids resetting your own — admins use self-service disable)
   readonly tfaOpen   = signal(false);
@@ -113,15 +114,18 @@ export class AdminUserDetailComponent implements OnInit {
   openRefund(p: AdminPayment): void {
     this.refundFor.set(p.id);
     this.refundAmount.set('');
+    this.refundProportional.set(false);
     this.refundError.set('');
   }
 
   submitRefund(p: AdminPayment): void {
     if (this.refundBusy()) return;
 
+    // Пропорциональный возврат считает бэк по остатку периода — свою сумму не передаём.
+    const proportional = this.refundProportional() && this.canRefundProportionally(p);
     const raw = this.refundAmount().trim().replace(',', '.');
     const amount = raw ? Number(raw) : null;
-    if (raw && (isNaN(amount!) || amount! <= 0)) {
+    if (!proportional && raw && (isNaN(amount!) || amount! <= 0)) {
       this.refundError.set('Сумма должна быть положительным числом.');
       return;
     }
@@ -129,15 +133,15 @@ export class AdminUserDetailComponent implements OnInit {
     this.refundBusy.set(true);
     this.refundError.set('');
 
-    this.admin.refundPayment(p.id, amount).subscribe({
+    this.admin.refundPayment(p.id, proportional ? null : amount, proportional).subscribe({
       next: () => {
         this.refundBusy.set(false);
         this.refundFor.set(null);
         this.loadPayments();
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.refundBusy.set(false);
-        this.refundError.set('Не удалось выполнить возврат.');
+        this.refundError.set(refundErrorMessage(err?.error?.title));
       },
     });
   }
@@ -145,6 +149,14 @@ export class AdminUserDetailComponent implements OnInit {
   canRefund(p: AdminPayment): boolean {
     // Succeeded and not fully refunded yet
     return p.status === 1 && p.refundedAmount < p.amount;
+  }
+
+  /**
+   * SC-48: пропорциональный возврат осмыслен только для подписки — бэк считает сумму от остатка
+   * оплаченного периода. У платежа за разовую услугу периода нет, там только полный/частичный.
+   */
+  canRefundProportionally(p: AdminPayment): boolean {
+    return p.purpose === 0 && p.subscriptionId !== null;
   }
 
   openTfaReset(): void {
@@ -197,4 +209,19 @@ export class AdminUserDetailComponent implements OnInit {
   formatMoney(amount: number, currency: string): string {
     return `${new Intl.NumberFormat('ru-RU').format(amount)} ${currency === 'RUB' ? '₽' : currency}`;
   }
+
+  purposeLabel(p: AdminPayment): string {
+    return p.purpose === 1 ? 'Разовая услуга' : 'Подписка';
+  }
+}
+
+const REFUND_ERRORS: Record<string, string> = {
+  'Payments.NotRefundable':      'Вернуть можно только успешный платёж.',
+  'Payments.RefundAmountInvalid':'Сумма превышает доступный к возврату остаток.',
+  'Payments.CustomerEmailMissing':'У пользователя нет email — чек на возврат не сформировать.',
+  'Payments.ProviderUnavailable':'Платёжный сервис временно недоступен. Попробуйте позже.',
+};
+
+function refundErrorMessage(title?: string): string {
+  return (title && REFUND_ERRORS[title]) ?? 'Не удалось выполнить возврат.';
 }

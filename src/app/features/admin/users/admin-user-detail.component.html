@@ -151,7 +151,7 @@
                   @if (p.discountAmount > 0) { <span class="adm-mono">(скидка {{ formatMoney(p.discountAmount, p.currency) }})</span> }
                 </span>
                 <span class="adm-row__sub">
-                  {{ formatDate(p.paidAt ?? p.createdAt) }}
+                  {{ purposeLabel(p) }} · {{ formatDate(p.paidAt ?? p.createdAt) }}
                   @if (p.refundedAmount > 0) { · возвращено {{ formatMoney(p.refundedAmount, p.currency) }} }
                 </span>
               </div>
@@ -174,20 +174,36 @@
                 <div class="adm-inline-form__row">
                   <div class="field">
                     <label class="field__label">Сумма возврата
-                      <span class="field__hint field__hint--inline">пусто = полный возврат</span>
+                      <span class="field__hint field__hint--inline">
+                        {{ refundProportional() ? 'считает сервер по остатку периода' : 'пусто = полный возврат' }}
+                      </span>
                     </label>
                     <input class="field__input field__input--sm" type="text" inputmode="decimal"
                       [value]="refundAmount()"
+                      [disabled]="refundProportional()"
                       (input)="refundAmount.set($any($event.target).value)" />
                   </div>
                 </div>
+
+                @if (canRefundProportionally(p)) {
+                  <label class="adm-check">
+                    <input type="checkbox"
+                      [checked]="refundProportional()"
+                      (change)="refundProportional.set($any($event.target).checked)" />
+                    <span>
+                      Пропорциональный возврат
+                      <span class="adm-mono">— вернуть неиспользованную часть оплаченного периода; доступ к Pro закрывается</span>
+                    </span>
+                  </label>
+                }
+
                 @if (refundError()) { <p class="adm-error">{{ refundError() }}</p> }
                 <div class="adm-inline-form__actions">
                   <button class="btn btn--ghost btn--sm" type="button" (click)="refundFor.set(null)">Отмена</button>
                   <button class="btn btn--danger btn--sm" type="button"
                     [disabled]="refundBusy()"
                     (click)="submitRefund(p)">
-                    {{ refundBusy() ? 'Выполняем…' : 'Вернуть деньги' }}
+                    {{ refundBusy() ? 'Выполняем…' : (refundProportional() ? 'Вернуть остаток периода' : 'Вернуть деньги') }}
                   </button>
                 </div>
               </div>

@@ -9,18 +9,32 @@
       }
       @case ('success') {
         <div class="status-page__icon status-page__icon--ok">✓</div>
-        <h1 class="status-page__title">Подписка активна</h1>
-        <p class="status-page__sub">Оплата прошла успешно — DevStart Pro активирован. Спасибо!</p>
-        <div class="status-page__actions">
-          <a class="status-page__btn status-page__btn--primary" routerLink="/dashboard/subscriptions">В кабинет</a>
-        </div>
+        @if (mode() === 'service') {
+          <h1 class="status-page__title">Услуга оплачена</h1>
+          <p class="status-page__sub">
+            «{{ serviceName() }}» — оплата прошла успешно, услуга активирована.
+            Чек придёт на email из вашего профиля.
+          </p>
+          <div class="status-page__actions">
+            <a class="status-page__btn status-page__btn--primary" routerLink="/dashboard">В кабинет</a>
+            <a class="status-page__btn" routerLink="/dashboard/subscriptions">История платежей</a>
+          </div>
+        } @else {
+          <h1 class="status-page__title">Подписка активна</h1>
+          <p class="status-page__sub">Оплата прошла успешно — DevStart Pro активирован. Спасибо!</p>
+          <div class="status-page__actions">
+            <a class="status-page__btn status-page__btn--primary" routerLink="/dashboard/subscriptions">В кабинет</a>
+          </div>
+        }
       }
       @case ('failed') {
         <div class="status-page__icon status-page__icon--err">!</div>
         <h1 class="status-page__title">Оплата не прошла</h1>
         <p class="status-page__sub">Платёж не был завершён или был отменён. Вы можете попробовать снова.</p>
         <div class="status-page__actions">
-          <a class="status-page__btn status-page__btn--primary" routerLink="/plans">К тарифам</a>
+          <a class="status-page__btn status-page__btn--primary" routerLink="/plans">
+            {{ mode() === 'service' ? 'К услугам' : 'К тарифам' }}
+          </a>
           <a class="status-page__btn" routerLink="/dashboard/subscriptions">В кабинет</a>
         </div>
       }
