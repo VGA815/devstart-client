@@ -1,0 +1,155 @@
+@use '../../../../styles/mixins' as *;
+
+.ave {
+
+  &__frame {
+    position: relative;
+    width: min(300px, 68vw);
+    aspect-ratio: 1;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    // Без бордера: padding-box совпадает с border-box, иначе на дробном DPR
+    // измеренная рамка расходится с видимой и по краю проступает фон
+    cursor: grab;
+    // Без этого браузер перехватывает pan/pinch на тач-устройствах
+    touch-action: none;
+    user-select: none;
+    outline: none;
+
+    &:active { cursor: grabbing; }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+
+  &__img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    max-width: none;
+    opacity: 0;
+    -webkit-user-drag: none;
+
+    &--ready { opacity: 1; }
+  }
+
+  &__mask {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: var(--radius-lg);
+    box-shadow: inset 0 0 0 1px var(--accent-border);
+
+    // Затемняем всё за пределами круга — рамка обрезает разлив тени
+    &--circle {
+      border-radius: var(--radius-full);
+      box-shadow:
+        0 0 0 9999px var(--overlay),
+        inset 0 0 0 1px var(--accent-border);
+    }
+  }
+
+  &__spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: var(--radius-full);
+    animation: ave-spin 0.7s linear infinite;
+  }
+
+  &__zoom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: min(300px, 68vw);
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  &__slider {
+    flex: 1;
+    min-width: 0;
+    height: 20px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    &::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: var(--radius-full);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+    }
+
+    &::-moz-range-track {
+      height: 4px;
+      border-radius: var(--radius-full);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+    }
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      margin-top: -6px;
+      border-radius: var(--radius-full);
+      background: var(--accent);
+      border: 2px solid var(--bg2);
+      transition: var(--transition);
+    }
+
+    &::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: var(--radius-full);
+      background: var(--accent);
+      border: 2px solid var(--bg2);
+      transition: var(--transition);
+    }
+
+    &:hover::-webkit-slider-thumb { background: var(--accent-hover); }
+    &:hover::-moz-range-thumb     { background: var(--accent-hover); }
+
+    &:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--accent-glow); }
+    &:focus-visible::-moz-range-thumb     { box-shadow: 0 0 0 3px var(--accent-glow); }
+  }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    @include mobile {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+  }
+
+  &__hint {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: right;
+
+    @include mobile { text-align: left; }
+  }
+}
+
+@keyframes ave-spin {
+  to { transform: rotate(360deg); }
+}

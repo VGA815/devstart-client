@@ -5,11 +5,13 @@ import {
 import { ImageService, injectImageUrl } from '../../services/image.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { getInitials } from '../../utils/avatar.utils';
+import { AvatarShape } from '../avatar/avatar.component';
+import { AvatarEditorComponent } from '../avatar-editor/avatar-editor.component';
 
 @Component({
   selector: 'app-avatar-upload',
   standalone: true,
-  imports: [],
+  imports: [AvatarEditorComponent],
   templateUrl: './avatar-upload.component.html',
   styleUrl: './avatar-upload.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +27,9 @@ export class AvatarUploadComponent {
 
 
   readonly localPreview = signal<string | null>(null);
+
+
+  readonly pendingFile = signal<File | null>(null);
 
   readonly uploading   = signal(false);
   readonly uploadError = signal<string | null>(null);
@@ -43,6 +48,9 @@ export class AvatarUploadComponent {
     if (v !== this.currentImageId()) this.currentImageId.set(v);
   }
   @Input() set name(v: string) { this._name.set(v ?? ''); }
+
+
+  @Input() shape: AvatarShape = 'square';
 
   openFilePicker(): void {
     this.fileInputRef.nativeElement.click();
@@ -65,12 +73,31 @@ export class AvatarUploadComponent {
       return;
     }
 
+    this.pendingFile.set(file);
+  }
+
+
+  onEditorApply(cropped: File): void {
+    this.pendingFile.set(null);
+
     const reader = new FileReader();
     reader.onload = e => this.localPreview.set(e.target?.result as string);
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(cropped);
 
+    this.upload(cropped);
+  }
+
+  onEditorDismiss(): void {
+    this.pendingFile.set(null);
+  }
+
+  private upload(file: File): void {
     const ownerId = this.auth.user()?.id;
-    if (!ownerId) { this.uploadError.set('Необходима авторизация'); return; }
+    if (!ownerId) {
+      this.localPreview.set(null);
+      this.uploadError.set('Необходима авторизация');
+      return;
+    }
 
     this.uploading.set(true);
     this.imageSvc.upload(file, ownerId).subscribe({

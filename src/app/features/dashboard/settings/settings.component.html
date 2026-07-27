@@ -19,6 +19,7 @@
         <app-avatar-upload
           [avatarId]="selectedAvatarId()"
           [name]="profileForm.get('name')?.value || auth.user()?.username || ''"
+          shape="circle"
           (avatarIdChange)="selectedAvatarId.set($event)" />
       </div>
 

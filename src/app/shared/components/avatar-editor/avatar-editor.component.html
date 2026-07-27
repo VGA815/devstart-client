@@ -1,0 +1,77 @@
+<div class="modal-backdrop" (click)="dismiss.emit()"></div>
+
+<div class="modal ave" role="dialog" aria-modal="true" aria-label="Редактирование фото">
+
+  <div class="modal__header">
+    <span class="modal__title">Кадрирование</span>
+    <button class="modal__close" type="button" (click)="dismiss.emit()" aria-label="Закрыть">×</button>
+  </div>
+
+  <div class="modal__body">
+
+    @if (error()) {
+      <div class="toast toast--error">{{ error() }}</div>
+    }
+
+    <div #frame
+      class="ave__frame"
+      tabindex="0"
+      role="group"
+      aria-label="Область кадрирования: перетаскивайте изображение, стрелки — сдвиг, плюс и минус — масштаб"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)"
+      (wheel)="onWheel($event)"
+      (keydown)="onKeydown($event)">
+
+      <img #image
+        class="ave__img"
+        [attr.src]="source()"
+        [style.transform]="transform()"
+        [class.ave__img--ready]="ready()"
+        (load)="onImageLoad()"
+        (error)="onImageError()"
+        alt=""
+        draggable="false" />
+
+      <div class="ave__mask" [class.ave__mask--circle]="shape === 'circle'"></div>
+
+      @if (!ready() && !error()) {
+        <span class="ave__spinner"></span>
+      }
+    </div>
+
+    <div class="ave__zoom">
+      <button type="button" class="btn btn--icon" (click)="zoomOut()"
+        [disabled]="!ready() || atMinZoom()" aria-label="Отдалить">−</button>
+
+      <input class="ave__slider"
+        type="range" min="0" [max]="sliderMax" step="1"
+        [value]="sliderValue()"
+        [disabled]="!ready()"
+        (input)="onSliderInput($event)"
+        aria-label="Масштаб" />
+
+      <button type="button" class="btn btn--icon" (click)="zoomIn()"
+        [disabled]="!ready()" aria-label="Приблизить">+</button>
+    </div>
+
+    <div class="ave__foot">
+      <button type="button" class="btn btn--text" (click)="reset()" [disabled]="!canReset()">
+        Сбросить
+      </button>
+      <span class="ave__hint">Перетащите фото · колесо или ползунок меняют масштаб</span>
+    </div>
+
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" (click)="dismiss.emit()" [disabled]="processing()">
+        Отмена
+      </button>
+      <button type="button" class="btn btn--primary" (click)="save()" [disabled]="!ready() || processing()">
+        {{ processing() ? 'Обработка…' : 'Сохранить' }}
+      </button>
+    </div>
+
+  </div>
+</div>

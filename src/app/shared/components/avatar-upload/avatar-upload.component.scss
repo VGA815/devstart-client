@@ -17,6 +17,7 @@
 
     &:hover .av-upload__overlay { opacity: 1; }
     &--loading .av-upload__overlay { opacity: 1; }
+    &--circle { border-radius: var(--radius-full); }
   }
 
   &__img {

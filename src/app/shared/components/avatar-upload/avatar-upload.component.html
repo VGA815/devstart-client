@@ -1,6 +1,8 @@
 <div class="av-upload">
 
-  <div class="av-upload__trigger" (click)="openFilePicker()" [class.av-upload__trigger--loading]="uploading()">
+  <div class="av-upload__trigger" (click)="openFilePicker()"
+    [class.av-upload__trigger--loading]="uploading()"
+    [class.av-upload__trigger--circle]="shape === 'circle'">
     @if (displayUrl()) {
       <img class="av-upload__img" [src]="displayUrl()!" (error)="onImgError()" alt="avatar" />
     } @else {
@@ -38,3 +40,11 @@
   </div>
 
 </div>
+
+@if (pendingFile(); as file) {
+  <app-avatar-editor
+    [file]="file"
+    [shape]="shape"
+    (apply)="onEditorApply($event)"
+    (dismiss)="onEditorDismiss()" />
+}
