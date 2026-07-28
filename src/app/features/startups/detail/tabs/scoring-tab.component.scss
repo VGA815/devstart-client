@@ -260,6 +260,135 @@
     color: var(--text-dim);
     white-space: nowrap;
   }
+
+  // Раскрытие разбора. Позиционирование — здесь, вид кнопки — глобальный `.btn--ghost.btn--sm`.
+  &__toggle { align-self: flex-start; }
+}
+
+// Разбор фактора: слагаемые, исходные данные и невыполненные условия.
+.sc-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bg3);
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  &__note {
+    margin: 6px 0 0;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-dim);
+  }
+}
+
+// Одно слагаемое балла.
+.sc-comp {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+
+  &__label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  &__points {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+
+    &--plus  { color: var(--green); }
+    &--minus { color: var(--red); }
+  }
+
+  // Итог — то же число, что и в шапке фактора.
+  &--total {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--bg3);
+
+    .sc-comp__label  { color: var(--text); font-weight: 600; }
+    .sc-comp__points { color: var(--text); font-weight: 700; }
+  }
+}
+
+// Сырое значение, которое прочитала формула.
+.sc-input {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+
+  @include mobile { flex-direction: column; gap: 0; }
+
+  &__label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  &__value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  // Формула это поле читает, но значения нет — так честнее, чем скрыть строку.
+  &--empty .sc-input__value {
+    color: var(--text-dim);
+    font-style: italic;
+  }
+}
+
+// Невыполненное условие и его цена.
+.sc-hint {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+
+  &__label {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  &__targets {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 6px;
+  }
+
+  &__gain {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
 }
 
 .sc-insufficient {

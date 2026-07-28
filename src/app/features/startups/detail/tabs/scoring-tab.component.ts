@@ -1,7 +1,12 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+import { ScoreFactor } from '../../../../shared/models/startup-score.model';
 import { formatMoney, formatRelativeTime } from '../../../../shared/utils/format.utils';
+import {
+  formatHintTargets, formatPoints, formatScoreValue,
+  getComponentLabel, getHintLabel, getInputLabel,
+} from '../../../../shared/utils/scoring-labels.utils';
 import { StartupDetailFacade } from '../startup-detail.facade';
 
 /** Справочник по имени фактора (строки приходят с бэка на англ.): иконка, подпись, описание оси. */
@@ -46,9 +51,45 @@ export class ScoringTabComponent {
 
   protected readonly formatMoney         = formatMoney;
   protected readonly formatRelativeTime  = formatRelativeTime;
+  protected readonly formatScoreValue    = formatScoreValue;
+  protected readonly formatPoints        = formatPoints;
+  protected readonly formatHintTargets   = formatHintTargets;
+  protected readonly getComponentLabel   = getComponentLabel;
+  protected readonly getInputLabel       = getInputLabel;
+  protected readonly getHintLabel        = getHintLabel;
+
+  /**
+   * Раскрытые факторы. Держим локально, а не в сторе: на раскрытие ничего не грузится, всё уже
+   * в ответе. Открытых может быть несколько сразу — сравнить два фактора рядом и есть смысл разбора.
+   */
+  private readonly expanded = signal<ReadonlySet<string>>(new Set());
 
   factorMeta(name: string): FactorMeta {
     return FACTOR_REF[name] ?? { label: name, icon: '•', desc: '' };
+  }
+
+  isExpanded(factor: string): boolean {
+    return this.expanded().has(factor);
+  }
+
+  toggle(factor: string): void {
+    const next = new Set(this.expanded());
+    next.has(factor) ? next.delete(factor) : next.add(factor);
+    this.expanded.set(next);
+  }
+
+  /**
+   * Детализация может быть пустой: ответ мог быть посчитан до её появления и лежать в часовом
+   * кэше бэка. Тогда кнопки просто нет — вкладка деградирует до прежнего вида.
+   */
+  hasDetail(f: ScoreFactor): boolean {
+    const d = f.detail;
+    return d.components.length + d.inputs.length + d.hints.length > 0;
+  }
+
+  /** Строка «Итого» под слагаемыми: наглядно показывает, что сумма сходится с баллом фактора. */
+  componentsTotal(f: ScoreFactor): number {
+    return f.detail.components.reduce((sum, c) => sum + c.points, 0);
   }
 
   /** Разбирает флаговое поле source в набор чипов; пустое (0) → «нет данных». */

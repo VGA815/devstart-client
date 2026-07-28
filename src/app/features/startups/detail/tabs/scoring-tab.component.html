@@ -82,6 +82,76 @@
               <span class="sc-axis__weight">вес {{ weightPercent(f.weight) }}</span>
             </div>
           </div>
+
+          @if (hasDetail(f)) {
+            <button class="btn btn--ghost btn--sm sc-axis__toggle" type="button"
+                    [attr.aria-expanded]="isExpanded(f.factor)"
+                    [attr.aria-controls]="'sc-detail-' + f.factor"
+                    (click)="toggle(f.factor)">
+              {{ isExpanded(f.factor) ? 'Свернуть' : 'Как считался' }}
+            </button>
+
+            @if (isExpanded(f.factor)) {
+              <div class="sc-detail" [id]="'sc-detail-' + f.factor">
+                @if (f.detail.components.length > 0) {
+                  <div class="sc-detail__section">
+                    <span class="sc-detail__title">Из чего складывается</span>
+                    @for (c of f.detail.components; track c.code) {
+                      <div class="sc-comp">
+                        <span class="sc-comp__label">{{ getComponentLabel(c.code) }}</span>
+                        <span class="sc-comp__points"
+                              [class.sc-comp__points--plus]="c.points > 0"
+                              [class.sc-comp__points--minus]="c.points < 0">{{ formatPoints(c.points) }}</span>
+                      </div>
+                    }
+                    <div class="sc-comp sc-comp--total">
+                      <span class="sc-comp__label">Итого</span>
+                      <span class="sc-comp__points">{{ componentsTotal(f) }}</span>
+                    </div>
+                  </div>
+                }
+
+                @if (f.detail.inputs.length > 0) {
+                  <div class="sc-detail__section">
+                    <span class="sc-detail__title">Исходные данные</span>
+                    @for (i of f.detail.inputs; track i.code) {
+                      <div class="sc-input" [class.sc-input--empty]="i.value.kind === 0">
+                        <span class="sc-input__label">{{ getInputLabel(i.code) }}</span>
+                        <span class="sc-input__value">{{ formatScoreValue(i.value) }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (f.detail.hints.length > 0) {
+                  <div class="sc-detail__section">
+                    <span class="sc-detail__title">Что поднимет балл</span>
+                    @for (h of f.detail.hints; track h.code) {
+                      <div class="sc-hint">
+                        <span class="sc-hint__label">
+                          {{ getHintLabel(h.code) }}
+                          @if (h.targets.length > 0) {
+                            <span class="sc-hint__targets">{{ formatHintTargets(h.targets) }}</span>
+                          }
+                        </span>
+                        <span class="sc-hint__gain">
+                          @if (h.enablesFactor) {
+                            → {{ h.points }}/100
+                          } @else {
+                            {{ formatPoints(h.points) }}
+                          }
+                        </span>
+                      </div>
+                    }
+                    <p class="sc-detail__note">
+                      Оценки независимы: выполнение двух условий не всегда даёт их сумму —
+                      балл фактора ограничен сотней.
+                    </p>
+                  </div>
+                }
+              </div>
+            }
+          }
         </div>
       }
     </div>

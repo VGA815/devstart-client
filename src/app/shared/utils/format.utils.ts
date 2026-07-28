@@ -32,6 +32,22 @@ export function formatMoney(amount: number | null | undefined): string {
 }
 
 /**
+ * Компактная сумма в рублях средствами Intl: "₽1,5 млрд", "₽250 тыс.", "₽0".
+ *
+ * Отдельно от `formatMoney`, а не вместо него: тот схлопывает всё от миллиона в "M" и на
+ * значениях рынка выдаёт "₽10000.0M". Диапазон оценки в hero по-прежнему идёт через `formatMoney`.
+ */
+export function formatRub(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || Number.isNaN(amount)) return '—';
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'RUB',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(amount);
+}
+
+/**
  * "Q1 2026" format from an ISO date
  */
 export function formatQuarter(date: string): string {
