@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { switchMap, map, catchError, of, filter } from 'rxjs';
 import { toObservable, toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../auth/auth.service';
+import { UserPreferencesService } from '../../preferences/user-preferences.service';
 import { ProfileService } from '../../../features/startups/profile.service';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 
@@ -16,8 +17,11 @@ import { AvatarComponent } from '../../../shared/components/avatar/avatar.compon
 })
 export class NavComponent {
   protected readonly auth = inject(AuthService);
+  protected readonly prefs = inject(UserPreferencesService);
   private readonly profileSvc = inject(ProfileService);
   private readonly router = inject(Router);
+
+  protected readonly isLight = computed(() => this.prefs.effective() === 'light');
 
   readonly menuOpen = signal(false);
 

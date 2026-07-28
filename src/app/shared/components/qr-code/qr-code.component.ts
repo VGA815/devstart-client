@@ -25,6 +25,9 @@ export class QrCodeComponent implements OnChanges {
       QRCode.toCanvas(this.canvas.nativeElement, this.value, {
         width: this.size,
         margin: 2,
+        // Фиксировано в ОБЕИХ темах намеренно: декодеры ISO/IEC 18004 рассчитаны
+        // на тёмные модули поверх светлого фона, а здесь рендерится секрет для
+        // подключения 2FA — несработавшее сканирование стоит дороже стыка цветов.
         color: { dark: '#000000', light: '#ffffff' },
       }).catch(() => { /* canvas render failed — the secret is still shown as text */ });
     }

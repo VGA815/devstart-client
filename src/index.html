@@ -10,6 +10,27 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <!-- Ставит data-theme до первой отрисовки: applyStoredTheme() отрабатывает
+       только после бутстрапа Angular, и без этого Light-пользователь видит
+       вспышку тёмной темы на каждой загрузке.
+       ЗЕРКАЛО app/core/preferences/theme.constants.ts — правьте оба файла
+       вместе, расхождение ловит theme-bootstrap.spec.ts. -->
+  <script>
+    (function () {
+      var d = document.documentElement;
+      try {
+        var raw = localStorage.getItem('devstart_theme');
+        var pref = (raw === 'Dark' || raw === 'Light' || raw === 'System') ? raw : 'System';
+        var eff = pref === 'System'
+          ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+          : (pref === 'Light' ? 'light' : 'dark');
+        d.setAttribute('data-theme', eff);
+        d.style.colorScheme = eff;
+      } catch (e) {
+        d.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

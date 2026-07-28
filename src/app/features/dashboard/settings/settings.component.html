@@ -123,8 +123,8 @@
           <span class="toggle-row__label">Получать уведомления</span>
           <span class="toggle-row__sub">Заявки, сообщения и события платформы</span>
         </div>
-        <button class="toggle" [class.toggle--on]="receiveNotifications()" type="button"
-          [disabled]="!prefsLoaded() || prefsSaving()"
+        <button class="toggle" [class.toggle--on]="prefs.receiveNotifications()" type="button"
+          [disabled]="!prefs.prefsLoaded() || prefsSaving()"
           (click)="toggleNotifications()">
           <span class="toggle__thumb"></span>
         </button>
@@ -133,14 +133,14 @@
       <div class="field">
         <label class="field__label" for="sTheme">Тема оформления</label>
         <select id="sTheme" class="field__select"
-          [disabled]="!prefsLoaded() || prefsSaving()"
-          [value]="theme()"
+          [disabled]="!prefs.prefsLoaded() || prefsSaving()"
+          [value]="prefs.theme()"
           (change)="setTheme($any($event.target).value)">
           @for (opt of themeOptions; track opt.value) {
-            <option [value]="opt.value" [selected]="opt.value === theme()">{{ opt.label }}</option>
+            <option [value]="opt.value" [selected]="opt.value === prefs.theme()">{{ opt.label }}</option>
           }
         </select>
-        <span class="field__hint">Выбор сохраняется в вашем профиле; светлая палитра появится позже.</span>
+        <span class="field__hint">Выбор сохраняется в вашем профиле и на этом устройстве. «Как в системе» следует настройке ОС; кнопка в шапке переключает тёмную и светлую напрямую.</span>
       </div>
 
     </div>

@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { OAuthService } from '../../../core/auth/oauth.service';
 import { TwoFactorService } from '../../../core/auth/two-factor.service';
@@ -27,7 +28,7 @@ export class SettingsComponent implements OnInit {
   private readonly oauth          = inject(OAuthService);
   private readonly twoFactorSvc   = inject(TwoFactorService);
   private readonly profileService = inject(ProfileService);
-  private readonly prefsService   = inject(UserPreferencesService);
+  protected readonly prefs        = inject(UserPreferencesService);
 
   readonly saveSuccess      = signal(false);
   readonly saveError        = signal<string | null>(null);
@@ -112,12 +113,10 @@ export class SettingsComponent implements OnInit {
 
   readonly socialLinksRaw = signal('');
 
-  // Backed by api/users/preferences: one receive-notifications flag + a theme choice.
-  readonly prefsLoaded          = signal(false);
-  readonly prefsSaving          = signal(false);
-  readonly prefsError           = signal<string | null>(null);
-  readonly receiveNotifications = signal(true);
-  readonly theme                = signal<ThemePreference>('Dark');
+  // Настройки (тема + флаг уведомлений) живут в UserPreferencesService: их же
+  // читает переключатель в шапке. Здесь остаётся только UI-состояние страницы.
+  readonly prefsSaving = signal(false);
+  readonly prefsError  = signal<string | null>(null);
 
   readonly themeOptions: { value: ThemePreference; label: string }[] = [
     { value: 'Dark',   label: 'Тёмная' },
@@ -354,24 +353,18 @@ export class SettingsComponent implements OnInit {
   }
 
   toggleNotifications(): void {
-    this.receiveNotifications.set(!this.receiveNotifications());
-    this.savePreferences();
+    this.runPreferenceSave(this.prefs.setReceiveNotifications(!this.prefs.receiveNotifications()));
   }
 
   setTheme(theme: ThemePreference): void {
-    if (this.theme() === theme) return;
-    this.theme.set(theme);
-    this.savePreferences();
+    this.runPreferenceSave(this.prefs.setTheme(theme));
   }
 
-  private savePreferences(): void {
-    const user = this.auth.user();
-    if (!user) return;
-
+  private runPreferenceSave(save$: Observable<void>): void {
     this.prefsSaving.set(true);
     this.prefsError.set(null);
 
-    this.prefsService.update(user.id, this.theme(), this.receiveNotifications()).subscribe({
+    save$.subscribe({
       next: () => this.prefsSaving.set(false),
       error: () => {
         this.prefsSaving.set(false);
@@ -383,15 +376,9 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     const user = this.auth.user();
     if (!user) return;
-    this.prefsService.get(user.id).subscribe({
-      next: pref => {
-        this.receiveNotifications.set(pref.receiveNotifications);
-        this.theme.set(pref.theme);
-        this.prefsLoaded.set(true);
-      },
-      // Preferences may not exist yet — keep the defaults editable.
-      error: () => this.prefsLoaded.set(true),
-    });
+    // Preferences may not exist yet — the service keeps prefsLoaded() false and
+    // the form stays disabled rather than PUTting a guessed notifications flag.
+    this.prefs.load(user.id).subscribe({ error: () => { /* defaults stay */ } });
     this.profileService.getProfile(user.id).subscribe({
       next: profile => {
         this.profileExists = true;

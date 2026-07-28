@@ -5,10 +5,12 @@ import { SkeletonComponent } from '../../../../shared/components/skeleton/skelet
 import { getPositionLabel } from '../../../../shared/utils/startup.utils';
 import { StartupDetailFacade } from '../startup-detail.facade';
 
+// Токены, а не литералы: значения уходят в [color] аватара и должны следовать
+// за темой (тот же приём — avatar.utils.ts и nav.component.html).
 const ROLE_COLORS: Record<string, string> = {
-  Founder: '#2f81f7',
-  Administration: '#bc8cff',
-  Member: '#3fb950',
+  Founder: 'var(--accent)',
+  Administration: 'var(--purple)',
+  Member: 'var(--green)',
 };
 
 const POSITION_NUM: Record<string, number> = {
@@ -102,7 +104,7 @@ export class TeamTabComponent {
   }
 
   getMemberColor(role: string): string {
-    return ROLE_COLORS[role] ?? '#7d8590';
+    return ROLE_COLORS[role] ?? 'var(--text-muted)';
   }
 
   protected readonly getPositionLabel = getPositionLabel;

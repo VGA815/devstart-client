@@ -101,6 +101,38 @@
     @include mobile { display: none; }
   }
 
+  // Видна на всех брейкпоинтах: .nav__actions, в отличие от .nav__auth,
+  // на мобильных не скрывается — дублировать кнопку в .nav__mobile не нужно.
+  &__theme {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+
+    svg { width: 15px; height: 15px; }
+
+    &:hover {
+      color: var(--text);
+      background: var(--bg3);
+      border-color: var(--border-strong);
+    }
+
+    @include mobile {
+      width: 36px;
+      height: 36px;
+      svg { width: 17px; height: 17px; }
+    }
+  }
+
   &__btn {
     display: inline-flex;
     align-items: center;
