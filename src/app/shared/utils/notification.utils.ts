@@ -104,9 +104,8 @@ export function getNotificationLink(notification: Notification): NotificationLin
     case 'IncomeLimitWarning':
       return { commands: ['/admin/subscriptions'] };
 
-    // Отдельной страницы у заказа услуги нет — ведём в историю платежей.
     case 'ServiceOrderFulfilled':
-      return { commands: ['/dashboard/subscriptions'] };
+      return { commands: ['/dashboard/service-orders'] };
 
     case 'Welcome':
     case 'EmailVerified':

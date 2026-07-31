@@ -76,6 +76,9 @@
               <span class="sr-badge" [class]="getStageBadgeClass(startup.stage, startup.isStopped)">
                 {{ getStageBadgeLabel(startup.stage, startup.isStopped) }}
               </span>
+              @if (startup.isFeatured) {
+                <span class="sr-featured" title="Оплачено приоритетное размещение">★ Рекомендуем</span>
+              }
               @if (startup.communityStandardsLevel !== 'Incomplete') {
                 <span class="sr-community"
                   [class]="'sr-community--' + getCommunityLevelMod(startup.communityStandardsLevel)"

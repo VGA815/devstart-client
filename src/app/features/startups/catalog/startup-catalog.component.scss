@@ -178,6 +178,22 @@
 
 // Бейдж стандартов сообщества. Показывается только начиная с уровня Developing:
 // «Incomplete» — это состояние по умолчанию, отмечать его нечем.
+/* Оплаченное приоритетное размещение (услуга «Продвижение», SC-49). */
+.sr-featured {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: var(--yellow-soft, var(--neutral-soft));
+  border: 1px solid var(--yellow-border, var(--neutral-border));
+  color: var(--yellow, var(--text-muted));
+}
+
 .sr-community {
   display: inline-flex;
   align-items: center;

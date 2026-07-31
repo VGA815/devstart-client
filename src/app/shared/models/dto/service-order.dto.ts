@@ -1,4 +1,11 @@
-import { ServiceCatalogItem, ServiceOrderCheckout, ServiceType } from '../service-order.model';
+import {
+  ServiceCatalogItem,
+  ServiceOrder,
+  ServiceOrderCheckout,
+  ServiceOrderStatus,
+  ServiceTargetKind,
+  ServiceType,
+} from '../service-order.model';
 
 // Порядок значений задан бэком (DevStart.Domain.ServiceOrders.ServiceType).
 const SERVICE_TYPE_MAP: Record<number, ServiceType> = {
@@ -13,17 +20,49 @@ const SERVICE_TYPE_CODE: Record<ServiceType, number> = {
   Promotion:     2,
 };
 
+const TARGET_KIND_MAP: Record<number, ServiceTargetKind> = {
+  0: 'None',
+  1: 'Startup',
+  2: 'Deal',
+};
+
+const ORDER_STATUS_MAP: Record<number, ServiceOrderStatus> = {
+  0: 'Pending',
+  1: 'Paid',
+  2: 'Fulfilled',
+  3: 'Cancelled',
+  4: 'Refunded',
+};
+
 export interface ServiceCatalogItemDto {
   serviceType: number;
   price: number;
   currency: string | null;
   description: string | null;
+  accessDays: number;
+  targetKind: number;
 }
 
 export interface ServiceOrderCheckoutDto {
   serviceOrderId: string;
   paymentId: string;
   confirmationUrl: string | null;
+}
+
+export interface ServiceOrderDto {
+  id: string;
+  serviceType: number;
+  targetKind: number;
+  targetId: string | null;
+  targetName: string | null;
+  amount: number;
+  currency: string | null;
+  status: number;
+  isActive: boolean;
+  createdAt: string;
+  paidAt: string | null;
+  fulfilledAt: string | null;
+  expiresAt: string | null;
 }
 
 /** Код услуги для тела запроса чекаута: enum уходит на бэк числом. */
@@ -43,6 +82,8 @@ export function mapServiceCatalogDto(items: ServiceCatalogItemDto[]): ServiceCat
       price: dto.price,
       currency: dto.currency ?? 'RUB',
       description: dto.description ?? '',
+      accessDays: dto.accessDays ?? 0,
+      targetKind: TARGET_KIND_MAP[dto.targetKind] ?? 'None',
     }));
 }
 
@@ -51,5 +92,27 @@ export function mapServiceOrderCheckoutDto(dto: ServiceOrderCheckoutDto): Servic
     serviceOrderId: dto.serviceOrderId,
     paymentId: dto.paymentId,
     confirmationUrl: dto.confirmationUrl ?? null,
+  };
+}
+
+/**
+ * В отличие от каталога, заказ с незнакомым кодом услуги не выбрасываем: это уже оплаченная
+ * история пользователя, и скрыть её было бы хуже, чем показать под техническим названием.
+ */
+export function mapServiceOrderDto(dto: ServiceOrderDto): ServiceOrder {
+  return {
+    id: dto.id,
+    serviceType: SERVICE_TYPE_MAP[dto.serviceType] ?? 'ScoringReport',
+    targetKind: TARGET_KIND_MAP[dto.targetKind] ?? 'None',
+    targetId: dto.targetId ?? null,
+    targetName: dto.targetName ?? null,
+    amount: dto.amount,
+    currency: dto.currency ?? 'RUB',
+    status: ORDER_STATUS_MAP[dto.status] ?? 'Pending',
+    isActive: dto.isActive,
+    createdAt: dto.createdAt,
+    paidAt: dto.paidAt ?? null,
+    fulfilledAt: dto.fulfilledAt ?? null,
+    expiresAt: dto.expiresAt ?? null,
   };
 }

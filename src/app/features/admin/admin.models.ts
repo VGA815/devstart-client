@@ -98,6 +98,56 @@ export interface AdminPayment {
   paidAt: string | null;
 }
 
+// ── Разовые услуги (SC-49) ────────────────────────────────────────────────────
+
+export interface AdminServiceOrder {
+  id: string;
+  userId: string;
+  userEmail: string | null;
+  serviceType: number;       // 0 ScoringReport, 1 TermSheet, 2 Promotion
+  targetKind: number;        // 0 None, 1 Startup, 2 Deal
+  targetId: string | null;
+  amount: number;
+  currency: string;
+  status: number;            // ServiceOrderStatus
+  /** Доступ действует прямо сейчас (исполнен и не истёк). */
+  isActive: boolean;
+  createdAt: string;
+  paidAt: string | null;
+  fulfilledAt: string | null;
+  expiresAt: string | null;
+  cancelledAt: string | null;
+  refundedAt: string | null;
+}
+
+export interface AdminServiceOrdersFilter {
+  userId?: string;
+  status?: number;
+  serviceType?: number;
+  pageNumber?: number;
+  pageSize?: number;
+}
+
+export const SERVICE_TYPE_LABELS: Record<number, string> = {
+  0: 'Скоринг-отчёт',
+  1: 'Term sheet',
+  2: 'Продвижение',
+};
+
+export const SERVICE_ORDER_STATUS_LABELS: Record<number, string> = {
+  0: 'Ожидает оплаты',
+  1: 'Оплачен',
+  2: 'Исполнен',
+  3: 'Отменён',
+  4: 'Возвращён',
+};
+
+export const SERVICE_TARGET_KIND_LABELS: Record<number, string> = {
+  0: '—',
+  1: 'Стартап',
+  2: 'Сделка',
+};
+
 // ── НПД: статус годового лимита дохода (SC-42) ────────────────────────────────
 
 export interface NpdIncomeStatus {

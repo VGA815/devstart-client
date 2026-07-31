@@ -31,6 +31,8 @@ export interface Startup {
    */
   communityStandardsPercent: number;
   communityStandardsLevel: CommunityStandardsLevel;
+  /** Оплаченное приоритетное размещение действует сейчас (услуга «Продвижение», SC-49). */
+  isFeatured: boolean;
   createdAt: string;
   updatedAt: string;
 }

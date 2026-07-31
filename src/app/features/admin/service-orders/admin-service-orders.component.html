@@ -1,0 +1,95 @@
+<div class="adm-page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Разовые услуги</h1>
+  </header>
+
+  <div class="adm-filters">
+    <div class="field">
+      <label class="field__label">Статус</label>
+      <select class="field__select field__select--sm"
+        [value]="statusFilter()"
+        (change)="onStatusChange($any($event.target).value)">
+        <option value="">Все</option>
+        <option value="0">Ожидает оплаты</option>
+        <option value="1">Оплачен</option>
+        <option value="2">Исполнен</option>
+        <option value="3">Отменён</option>
+        <option value="4">Возвращён</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field__label">Услуга</label>
+      <select class="field__select field__select--sm"
+        [value]="serviceTypeFilter()"
+        (change)="onServiceTypeChange($any($event.target).value)">
+        <option value="">Все</option>
+        <option value="0">Скоринг-отчёт</option>
+        <option value="1">Term sheet</option>
+        <option value="2">Продвижение</option>
+      </select>
+    </div>
+    <button class="btn btn--ghost btn--sm" type="button" (click)="load()">Обновить</button>
+  </div>
+
+  @if (actionError()) { <p class="adm-error">{{ actionError() }}</p> }
+
+  @if (loading()) {
+    <app-skeleton height="48px" /><app-skeleton height="48px" />
+  } @else if (error()) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">{{ error() }}</p></div>
+  } @else if (orders().length === 0) {
+    <div class="empty-state empty-state--card"><p class="empty-state__sub">Заказов нет.</p></div>
+  } @else {
+    <div class="card card__body--flush">
+      @for (order of orders(); track order.id) {
+        <div class="adm-row">
+          <div class="adm-row__info">
+            <span class="adm-row__title">{{ serviceLabel(order) }} · {{ formatAmount(order) }}</span>
+            <span class="adm-row__sub">
+              {{ order.userEmail ?? order.userId }}
+              · {{ targetKindLabel(order) }}: {{ order.targetId ?? '—' }}
+              · создан {{ formatDate(order.createdAt) }}
+              @if (order.expiresAt) { · доступ до {{ formatDate(order.expiresAt) }} }
+            </span>
+          </div>
+
+          <span class="badge badge--mono"
+            [class.badge--green]="order.isActive"
+            [class.badge--yellow]="order.status === 0"
+            [class.badge--red]="order.status === 3 || order.status === 4">
+            {{ statusLabel(order) }}
+          </span>
+
+          <div class="adm-row__actions">
+            @if (canCancel(order)) {
+              <button class="btn btn--danger-soft btn--sm" type="button"
+                [disabled]="busy()" (click)="openCancel(order)">Отменить</button>
+            }
+          </div>
+        </div>
+
+        @if (cancelOpen() === order.id) {
+          <div class="adm-row adm-row--form">
+            <div class="field field--grow">
+              <label class="field__label">Причина отмены
+                <span class="field__hint field__hint--inline">попадёт в аудит-лог</span>
+              </label>
+              <input class="field__input field__input--sm" type="text"
+                [value]="cancelReason()" (input)="cancelReason.set($any($event.target).value)" />
+            </div>
+            <div class="adm-row__actions">
+              <button class="btn btn--ghost btn--sm" type="button" (click)="closeCancel()">Отмена</button>
+              <button class="btn btn--danger-soft btn--sm" type="button"
+                [disabled]="busy()" (click)="submitCancel(order)">Подтвердить</button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <p class="adm-note">
+      Отмена закрывает заказ и снимает выданный доступ, но не двигает деньги. Чтобы вернуть оплату,
+      сделайте возврат платежа — он отменяет заказ сам.
+    </p>
+  }
+</div>

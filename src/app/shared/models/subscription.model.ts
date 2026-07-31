@@ -1,3 +1,5 @@
+import { ServiceType } from './service-order.model';
+
 export type SubscriptionPlan = 'Free' | 'Pro';
 export type SubscriptionStatus = 'Pending' | 'Active' | 'Cancelled' | 'Expired';
 export type PaymentStatus = 'Pending' | 'Succeeded' | 'Cancelled' | 'Failed' | 'Refunded';
@@ -25,8 +27,13 @@ export interface PaymentHistoryItem {
   id: string;
   /** null у платежей за разовые услуги — они не привязаны к подписке. */
   subscriptionId: string | null;
+  /** null у платежей за подписку. */
+  serviceOrderId: string | null;
   purpose: PaymentPurpose;
-  plan: SubscriptionPlan;
+  /** null у платежей за разовые услуги: плана у них нет. */
+  plan: SubscriptionPlan | null;
+  /** null у платежей за подписку; для разовой услуги — что именно оплачено. */
+  serviceType: ServiceType | null;
   amount: number;
   refundedAmount: number;
   currency: string;

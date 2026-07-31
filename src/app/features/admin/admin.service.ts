@@ -7,6 +7,8 @@ import {
   AdminAuditEntry,
   AdminPayment,
   AdminPromoCode,
+  AdminServiceOrder,
+  AdminServiceOrdersFilter,
   AdminStartupListItem,
   AdminStartupsFilter,
   AdminSubscription,
@@ -112,6 +114,26 @@ export class AdminService {
   refundPayment(paymentId: string, amount: number | null, proportional = false): Observable<void> {
     const body = proportional ? { amount: null, proportional: true } : { amount };
     return this.http.post<void>(`${this.api}/payments/${paymentId}/refund`, body);
+  }
+
+  // ── Service orders (SC-49) ───────────────────────────────────────────────────
+
+  getServiceOrders(filter: AdminServiceOrdersFilter = {}): Observable<AdminServiceOrder[]> {
+    let params = new HttpParams();
+    if (filter.userId)              params = params.set('userId', filter.userId);
+    if (filter.status != null)      params = params.set('status', filter.status);
+    if (filter.serviceType != null) params = params.set('serviceType', filter.serviceType);
+    if (filter.pageNumber != null)  params = params.set('pageNumber', filter.pageNumber);
+    if (filter.pageSize != null)    params = params.set('pageSize', filter.pageSize);
+    return this.http.get<AdminServiceOrder[]>(`${this.base}/service-orders`, { params });
+  }
+
+  /**
+   * Закрывает заказ и отзывает выданное (доступ, приоритетное размещение). Деньги не двигает —
+   * возврат делается через `refundPayment`, который отменяет заказ сам.
+   */
+  cancelServiceOrder(id: string, reason: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/service-orders/${id}/cancel`, { reason });
   }
 
   // ── НПД ──────────────────────────────────────────────────────────────────────

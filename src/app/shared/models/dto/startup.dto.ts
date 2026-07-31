@@ -42,6 +42,7 @@ export interface StartupDto {
   // Есть только в ответе списка каталога — карточка одного стартапа их не несёт.
   communityStandardsPercent?: number | null;
   communityStandardsLevel?: number | null;
+  isFeatured?: boolean | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -132,6 +133,7 @@ export function mapStartupDto(dto: StartupDto): Startup {
     marketGrowthRate: dto.marketGrowthRate ?? null,
     communityStandardsPercent: dto.communityStandardsPercent ?? 0,
     communityStandardsLevel: mapCommunityStandardsLevel(dto.communityStandardsLevel),
+    isFeatured: dto.isFeatured ?? false,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
   };

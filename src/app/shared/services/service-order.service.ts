@@ -3,12 +3,19 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BYPASS_403 } from '../../core/http/error.interceptor';
-import { ServiceCatalogItem, ServiceOrderCheckout, ServiceType } from '../models/service-order.model';
+import {
+  ServiceCatalogItem,
+  ServiceOrder,
+  ServiceOrderCheckout,
+  ServiceType,
+} from '../models/service-order.model';
 import {
   ServiceCatalogItemDto,
   ServiceOrderCheckoutDto,
+  ServiceOrderDto,
   mapServiceCatalogDto,
   mapServiceOrderCheckoutDto,
+  mapServiceOrderDto,
   serviceTypeCode,
 } from '../models/dto/service-order.dto';
 
@@ -36,15 +43,24 @@ export class ServiceOrderService {
     );
   }
 
+  /** Заказы текущего пользователя со статусами и сроком доступа. */
+  getMine(): Observable<ServiceOrder[]> {
+    return this.http.get<ServiceOrderDto[]>(this.base).pipe(
+      map(items => items.map(mapServiceOrderDto))
+    );
+  }
+
   /**
-   * Заводит заказ и платёж, возвращает ссылку на оплату. 409 `Payments.IncomeLimitReached` —
-   * достигнут годовой лимит НПД, новые платные операции не создаются до следующего года.
+   * Заводит заказ и платёж, возвращает ссылку на оплату. `targetId` — объект, для которого
+   * покупается услуга (стартап для скоринга и продвижения, сделка для term sheet).
+   * 409 `Payments.IncomeLimitReached` — достигнут годовой лимит НПД, новые платные операции
+   * не создаются до следующего года; 409 `ServiceOrders.AlreadyOwned` — доступ уже есть.
    * 403 обрабатывается инлайн на странице планов, а не общим редиректом на /403.
    */
-  checkout(serviceType: ServiceType): Observable<ServiceOrderCheckout> {
+  checkout(serviceType: ServiceType, targetId: string | null): Observable<ServiceOrderCheckout> {
     return this.http.post<ServiceOrderCheckoutDto>(
       `${this.base}/checkout`,
-      { serviceType: serviceTypeCode(serviceType) },
+      { serviceType: serviceTypeCode(serviceType), targetId },
       { context: new HttpContext().set(BYPASS_403, true) },
     ).pipe(
       map(mapServiceOrderCheckoutDto)

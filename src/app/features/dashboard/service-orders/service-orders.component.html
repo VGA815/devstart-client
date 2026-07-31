@@ -1,0 +1,49 @@
+<div class="page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Разовые услуги</h1>
+    <a class="btn btn--ghost btn--sm" routerLink="/plans">Купить услугу →</a>
+  </header>
+
+  @if (loading()) {
+    <app-skeleton height="120px" border-radius="6px" />
+  } @else if (error()) {
+    <div class="empty-state empty-state--card">
+      <p class="empty-state__sub">{{ error() }}</p>
+    </div>
+  } @else if (orders().length === 0) {
+    <div class="empty-state empty-state--card">
+      <p class="empty-state__sub">Вы ещё не покупали разовые услуги.</p>
+    </div>
+  } @else {
+    <div class="order-list">
+      @for (order of orders(); track order.id) {
+        <div class="order-row">
+          <div class="order-row__info">
+            <span class="order-row__title">
+              {{ serviceLabel(order) }} · {{ formatAmount(order) }}
+            </span>
+            <span class="order-row__meta">
+              @let link = targetLink(order);
+              @if (link) {
+                <a class="order-row__target" [routerLink]="link">{{ targetText(order) }}</a>
+              } @else {
+                {{ targetText(order) }}
+              }
+              · Заказ от {{ formatDate(order.createdAt) }}
+              · Доступ: {{ accessText(order) }}
+            </span>
+          </div>
+
+          <span class="badge badge--mono" [class]="statusClass(order)">
+            {{ statusLabel(order) }}
+          </span>
+        </div>
+      }
+    </div>
+
+    <p class="order-list__note">
+      Услуги оказывает платформа от своего имени по фиксированной цене. Чек направляется на email,
+      указанный в профиле. По вопросам возврата напишите в поддержку.
+    </p>
+  }
+</div>

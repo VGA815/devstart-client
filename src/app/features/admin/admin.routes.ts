@@ -27,6 +27,11 @@ export const adminRoutes: Routes = [
       import('./subscriptions/admin-subscriptions.component').then(m => m.AdminSubscriptionsComponent),
   },
   {
+    path: 'service-orders',
+    loadComponent: () =>
+      import('./service-orders/admin-service-orders.component').then(m => m.AdminServiceOrdersComponent),
+  },
+  {
     path: 'promo-codes',
     loadComponent: () =>
       import('./promo-codes/admin-promo-codes.component').then(m => m.AdminPromoCodesComponent),

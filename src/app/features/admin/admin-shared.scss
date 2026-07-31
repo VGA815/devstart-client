@@ -103,6 +103,19 @@
   .card__body { gap: 10px; }
 }
 
+/* Инлайн-форма, разворачивающаяся под строкой (подтверждение действия по записи). */
+.adm-row--form {
+  align-items: flex-end;
+  background: var(--bg3);
+}
+
+.adm-note {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
 .adm-error {
   font-size: 12px;
   color: var(--red);

@@ -32,6 +32,11 @@ export const dashboardRoutes: Routes = [
       import('./subscriptions/subscriptions.component').then(m => m.SubscriptionsComponent),
   },
   {
+    path: 'service-orders',
+    loadComponent: () =>
+      import('./service-orders/service-orders.component').then(m => m.ServiceOrdersComponent),
+  },
+  {
     path: 'investments',
     loadComponent: () =>
       import('./investments/investments.component').then(m => m.InvestmentsComponent),

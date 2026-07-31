@@ -95,8 +95,35 @@
               <span class="service-card__price">{{ formatPrice(item) }}</span>
             </div>
             <p class="service-card__desc">{{ serviceDesc(item) }}</p>
+            <p class="service-card__access">{{ accessLabel(item) }}</p>
+
+            @if (auth.user() && item.targetKind !== 'None') {
+              @if (targetOptions(item).length > 0) {
+                <label class="service-card__target">
+                  <span class="service-card__target-label">{{ targetLabel(item) }}</span>
+                  <select class="service-card__select"
+                    [value]="targetOf(item)"
+                    (change)="onTargetChange(item, $any($event.target).value)">
+                    <option value="">Выберите…</option>
+                    @for (option of targetOptions(item); track option.id) {
+                      <option [value]="option.id">{{ option.name }}</option>
+                    }
+                  </select>
+                </label>
+              } @else if (!targetsLoading()) {
+                <p class="service-card__hint">
+                  @if (item.targetKind === 'Deal') {
+                    Нет сделок, для которых можно купить эту услугу.
+                  } @else {
+                    Нет проектов. Услуга покупается для конкретного стартапа —
+                    скоринг-отчёт по чужому проекту можно оплатить с его карточки.
+                  }
+                </p>
+              }
+            }
+
             <button class="btn btn--ghost btn--sm btn--block" type="button"
-              [disabled]="serviceBusy() !== null"
+              [disabled]="!canBuy(item)"
               (click)="buyService(item)">
               @if (serviceBusy() === item.serviceType) {
                 Открываем оплату…

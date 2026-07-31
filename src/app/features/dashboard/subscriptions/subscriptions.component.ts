@@ -9,6 +9,7 @@ import { AvatarComponent } from '../../../shared/components/avatar/avatar.compon
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { Startup } from '../../../shared/models/startup.model';
 import { CurrentSubscription, PaymentHistoryItem, PaymentStatus } from '../../../shared/models/subscription.model';
+import { SERVICE_TYPE_LABELS } from '../../../shared/models/service-order.model';
 import { getStageColor } from '../../../shared/utils/startup.utils';
 
 @Component({
@@ -136,7 +137,9 @@ export class SubscriptionsComponent implements OnInit {
 
   /** История общая для подписки и разовых услуг (SC-49) — план показываем только у подписки. */
   paymentTitle(p: PaymentHistoryItem): string {
-    if (p.purpose === 'ServiceOrder') return 'Разовая услуга';
+    if (p.purpose === 'ServiceOrder') {
+      return p.serviceType ? SERVICE_TYPE_LABELS[p.serviceType] : 'Разовая услуга';
+    }
     return p.plan === 'Pro' ? 'DevStart Pro' : 'Free';
   }
 

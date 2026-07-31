@@ -61,9 +61,9 @@ describe('getNotificationLink', () => {
       .toEqual({ commands: ['/admin/subscriptions'] });
   });
 
-  it('ведёт в историю платежей по ServiceOrderFulfilled — страницы заказа нет', () => {
+  it('ведёт к списку заказов по ServiceOrderFulfilled', () => {
     expect(getNotificationLink(notification('ServiceOrderFulfilled', 'order-1')))
-      .toEqual({ commands: ['/dashboard/subscriptions'] });
+      .toEqual({ commands: ['/dashboard/service-orders'] });
   });
 });
 
