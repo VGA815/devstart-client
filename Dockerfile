@@ -18,9 +18,16 @@ COPY . .
 # passes it from ${DOMAIN}).
 ARG API_URL=/api
 ARG WS_URL=ws://localhost:8082/connection/websocket
+# Self-hosted Matomo. An empty MATOMO_URL (the default) disables the tracker entirely, so the
+# image builds and runs fine without an analytics backend. Prod passes MATOMO_URL=/matomo/ —
+# same origin, so no CORS and no extra CSP host — plus the site id created by the install wizard.
+ARG MATOMO_URL=
+ARG MATOMO_SITE_ID=
 RUN sed -i \
       -e "s|apiUrl: '[^']*'|apiUrl: '${API_URL}'|" \
       -e "s|wsUrl: '[^']*'|wsUrl: '${WS_URL}'|" \
+      -e "s|matomoUrl: '[^']*'|matomoUrl: '${MATOMO_URL}'|" \
+      -e "s|matomoSiteId: '[^']*'|matomoSiteId: '${MATOMO_SITE_ID}'|" \
       src/environments/environment.ts
 
 # Inject the absolute public site URL into the crawler files (robots.txt / sitemap.xml).
