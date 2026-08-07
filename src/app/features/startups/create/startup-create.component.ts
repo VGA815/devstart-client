@@ -7,9 +7,13 @@ import { debounceTime } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { StartupService } from '../startup.service';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
+import { StartupIndustry } from '../../../shared/models/startup.model';
+import { INDUSTRY_NUM } from '../../../shared/models/dto/startup.dto';
+import { apiErrorMessage } from '../../../core/http/api-error';
 
 type StageOption    = { label: string; value: number };
 type LocationOption = { label: string; value: number };
+type IndustryOption = { label: string; value: StartupIndustry };
 type WizardStep     = { label: string; controls: readonly string[] };
 
 const STAGES: StageOption[] = [
@@ -28,28 +32,49 @@ const LOCATIONS: LocationOption[] = [
   { label: 'Другая', value: 4 },
 ];
 
+const INDUSTRIES: IndustryOption[] = [
+  { label: 'Другая',      value: 'Other' },
+  { label: 'SaaS',        value: 'Saas' },
+  { label: 'Финтех',      value: 'Fintech' },
+  { label: 'AI',          value: 'Ai' },
+  { label: 'E-commerce',  value: 'Ecommerce' },
+  { label: 'Маркетплейс', value: 'Marketplace' },
+  { label: 'Железо',      value: 'Hardware' },
+  { label: 'Биотех',      value: 'Biotech' },
+  { label: 'EdTech',      value: 'Edtech' },
+];
+
 const STEPS: WizardStep[] = [
   { label: 'Основное', controls: ['name', 'shortDesc', 'description'] },
-  { label: 'Продукт',  controls: ['productName', 'problemSolution', 'valueProposition', 'differentiators', 'stack'] },
+  { label: 'Продукт',  controls: ['problem', 'solution', 'valueProposition', 'differentiators', 'stack'] },
+  { label: 'Рынок',    controls: ['tam', 'sam', 'som', 'marketGrowthRate', 'targetRoundAmount'] },
   { label: 'Контакты', controls: ['publicEmail', 'billingEmail', 'url', 'socialLinks'] },
   { label: 'Проверка', controls: [] },
 ];
 
-const DRAFT_KEY     = 'devstart_startup_draft';
-const DRAFT_VERSION = 1;
+/** Шаги, которые можно проскочить целиком: ни одно поле в них не обязательно. */
+const OPTIONAL_STEPS: readonly number[] = [2];
 
-type StartupDraftForm = Partial<Record<
-  'name' | 'shortDesc' | 'description'
+const DRAFT_KEY     = 'devstart_startup_draft';
+// v2: «Название продукта» ушло (в домене его нет), появились Проблема/Решение и шаг «Рынок».
+const DRAFT_VERSION = 2;
+
+type StartupDraftField =
+  | 'name' | 'shortDesc' | 'description'
   | 'publicEmail' | 'billingEmail' | 'url' | 'socialLinks'
-  | 'productName' | 'problemSolution' | 'valueProposition' | 'differentiators' | 'stack',
-  string | null
->>;
+  | 'problem' | 'solution' | 'valueProposition' | 'differentiators' | 'stack'
+  | 'tam' | 'sam' | 'som' | 'marketGrowthRate' | 'targetRoundAmount';
+
+type StartupDraftForm =
+  Partial<Record<StartupDraftField, string | null>>
+  & Partial<Record<'hasPatents' | 'hasStrategicPartnerships', boolean | null>>;
 
 interface StartupDraft {
   version: number;
   step: number;
   stage: number;
   location: number | null;
+  industry: StartupIndustry;
   avatarId: string | null;
   form: StartupDraftForm;
 }
@@ -57,7 +82,9 @@ interface StartupDraft {
 const EMPTY_FORM: StartupDraftForm = {
   name: '', shortDesc: '', description: '',
   publicEmail: '', billingEmail: '', url: '', socialLinks: '',
-  productName: '', problemSolution: '', valueProposition: '', differentiators: '', stack: '',
+  problem: '', solution: '', valueProposition: '', differentiators: '', stack: '',
+  tam: '', sam: '', som: '', marketGrowthRate: '', targetRoundAmount: '',
+  hasPatents: false, hasStrategicPartnerships: false,
 };
 
 @Component({
@@ -75,15 +102,17 @@ export class StartupCreateComponent {
   private readonly router  = inject(Router);
   private readonly title   = inject(Title);
 
-  readonly stages    = STAGES;
-  readonly locations = LOCATIONS;
-  readonly steps     = STEPS;
+  readonly stages     = STAGES;
+  readonly locations  = LOCATIONS;
+  readonly industries = INDUSTRIES;
+  readonly steps      = STEPS;
 
   readonly step       = signal(0);
   readonly maxVisited = signal(0);
 
   readonly selectedStage    = signal<number>(0);
   readonly selectedLocation = signal<number | null>(null);
+  readonly selectedIndustry = signal<StartupIndustry>('Other');
   readonly selectedAvatarId = signal<string | null>(null);
   readonly loading          = signal(false);
   readonly error            = signal<string | null>(null);
@@ -95,26 +124,38 @@ export class StartupCreateComponent {
     const i = this.selectedLocation();
     return i === null ? '—' : LOCATIONS[i]?.label ?? '—';
   });
+  readonly industryLabel = computed(
+    () => INDUSTRIES.find(i => i.value === this.selectedIndustry())?.label ?? '—'
+  );
 
   readonly form = this.fb.group({
     name:        ['', [Validators.required, Validators.minLength(2)]],
     shortDesc:   ['', [Validators.required]],
     description: [''],
-    // Contacts
+    // Контакты
     publicEmail:   ['', [Validators.required, Validators.email]],
-    billingEmail:  [''],
+    billingEmail:  ['', [Validators.email]],
     url:           [''],
     socialLinks:   [''],
-    // Product
-    productName:         ['', [Validators.required]],
-    problemSolution:     ['', [Validators.required]],
+    // Продукт — обязательно только «Решение»: остальное поднимает балл, но не должно
+    // задерживать публикацию (см. CreateStartupCommandValidator на бэкенде).
+    problem:             [''],
+    solution:            ['', [Validators.required]],
     valueProposition:    [''],
     differentiators:     [''],
     stack:               [''],
+    // Рынок — шаг целиком необязательный
+    tam:               ['', [Validators.min(0)]],
+    sam:               ['', [Validators.min(0)]],
+    som:               ['', [Validators.min(0)]],
+    marketGrowthRate:  ['', [Validators.min(0), Validators.max(1000)]],
+    targetRoundAmount: ['', [Validators.min(0)]],
+    hasPatents:               [false],
+    hasStrategicPartnerships: [false],
   });
 
   // Сводка для шага «Проверка»: читается после клика по шагу, значения на превью не меняются
-  get v(): StartupDraftForm { return this.form.getRawValue(); }
+  get v(): StartupDraftForm { return this.form.getRawValue() as StartupDraftForm; }
 
   constructor() {
     this.title.setTitle('Новый стартап — DevStart');
@@ -130,11 +171,16 @@ export class StartupCreateComponent {
     if (c.hasError('required'))  return 'Обязательное поле';
     if (c.hasError('email'))     return 'Некорректный email';
     if (c.hasError('minlength')) return `Минимум ${c.errors?.['minlength']?.requiredLength} символов`;
+    if (c.hasError('min'))       return `Не меньше ${c.errors?.['min']?.min}`;
+    if (c.hasError('max'))       return `Не больше ${c.errors?.['max']?.max}`;
     return null;
   }
 
+  isOptionalStep(i: number): boolean { return OPTIONAL_STEPS.includes(i); }
+
   setStage(index: number): void    { this.selectedStage.set(index); this.saveDraft(); }
   setLocation(index: number): void { this.selectedLocation.set(index); this.saveDraft(); }
+  setIndustry(value: StartupIndustry): void { this.selectedIndustry.set(value); this.saveDraft(); }
   setAvatar(id: string | null): void { this.selectedAvatarId.set(id); this.saveDraft(); }
 
   isStepValid(i: number): boolean {
@@ -193,6 +239,13 @@ export class StartupCreateComponent {
     if (!user) return;
 
     const v = this.form.getRawValue();
+    const splitCsv = (s: string | null) =>
+      (s ?? '').split(',').map(x => x.trim()).filter(Boolean);
+    const parseDecimal = (s: string | null) => {
+      const n = parseFloat(s ?? '');
+      return isNaN(n) ? undefined : n;
+    };
+
     this.loading.set(true);
     this.error.set(null);
 
@@ -205,22 +258,33 @@ export class StartupCreateComponent {
       url:                      v.url ?? '',
       is_stopped:               false,
       stage:                    this.selectedStage(),
-      social_media_links:       v.socialLinks ? v.socialLinks.split(',').map(s => s.trim()).filter(Boolean) : [],
+      social_media_links:       splitCsv(v.socialLinks),
       location:                 this.selectedLocation() ?? 0,
       billing_email:            v.billingEmail ?? '',
       avatar_id:                this.selectedAvatarId() ?? undefined,
-      product_name:             v.productName!,
-      product_problem_solution: v.problemSolution!,
-      stack:                    v.stack ? v.stack.split(',').map(s => s.trim()).filter(Boolean) : [],
-      product_value_proposition: v.valueProposition ?? '',
-      product_differentiators:   v.differentiators ?? '',
+      product_problem:          v.problem || undefined,
+      product_solution:         v.solution!,
+      stack:                    splitCsv(v.stack),
+      product_value_proposition: v.valueProposition || undefined,
+      product_differentiators:   v.differentiators  || undefined,
+      tam:                      parseDecimal(v.tam),
+      sam:                      parseDecimal(v.sam),
+      som:                      parseDecimal(v.som),
+      market_growth_rate:       parseDecimal(v.marketGrowthRate),
+      has_patents:              v.hasPatents ?? false,
+      industry:                 INDUSTRY_NUM[this.selectedIndustry()],
+      target_round_amount:      parseDecimal(v.targetRoundAmount),
+      has_strategic_partnerships: v.hasStrategicPartnerships ?? false,
     }).subscribe({
       next: () => {
         this.loading.set(false);
         this.clearDraft();
         this.router.navigate(['/dashboard/my-startups']);
       },
-      error: () => { this.loading.set(false); this.error.set('Ошибка при создании стартапа. Попробуйте снова.'); },
+      error: err => {
+        this.loading.set(false);
+        this.error.set(apiErrorMessage(err, 'Ошибка при создании стартапа. Попробуйте снова.'));
+      },
     });
   }
 
@@ -229,6 +293,7 @@ export class StartupCreateComponent {
     this.form.reset(EMPTY_FORM);
     this.selectedStage.set(0);
     this.selectedLocation.set(null);
+    this.selectedIndustry.set('Other');
     this.selectedAvatarId.set(null);
     this.step.set(0);
     this.maxVisited.set(0);
@@ -246,8 +311,9 @@ export class StartupCreateComponent {
       step:     this.step(),
       stage:    this.selectedStage(),
       location: this.selectedLocation(),
+      industry: this.selectedIndustry(),
       avatarId: this.selectedAvatarId(),
-      form:     this.form.getRawValue(),
+      form:     this.form.getRawValue() as StartupDraftForm,
     };
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch { /* квота или приватный режим */ }
   }
@@ -262,11 +328,13 @@ export class StartupCreateComponent {
       const raw = localStorage.getItem(DRAFT_KEY);
       draft = raw ? JSON.parse(raw) as StartupDraft : null;
     } catch { return; }
-    if (!draft || draft.version !== DRAFT_VERSION) return;
+    // Черновик прошлой версии не мигрируем: поля переехали, а не переименовались.
+    if (!draft || draft.version !== DRAFT_VERSION) { this.clearDraft(); return; }
 
     this.form.patchValue(draft.form ?? {});
     this.selectedStage.set(draft.stage ?? 0);
     this.selectedLocation.set(draft.location ?? null);
+    this.selectedIndustry.set(draft.industry ?? 'Other');
     this.selectedAvatarId.set(draft.avatarId ?? null);
 
     const step = Math.min(Math.max(draft.step ?? 0, 0), STEPS.length - 1);

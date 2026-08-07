@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/auth/auth.guard';
 import { AdminGuard } from './core/auth/admin.guard';
+import { UnsavedChangesGuard } from './core/forms/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
@@ -32,6 +33,7 @@ export const routes: Routes = [
   {
     path: 'startups/:id/edit',
     canActivate: [AuthGuard],
+    canDeactivate: [UnsavedChangesGuard],
     loadComponent: () =>
       import('./features/startups/edit/startup-edit.component').then(m => m.StartupEditComponent),
   },

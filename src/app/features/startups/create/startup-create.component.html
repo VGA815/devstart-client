@@ -27,7 +27,10 @@
         <span class="wizard__num">
           @if (isStepDone(i)) { ✓ } @else { {{ i + 1 }} }
         </span>
-        <span class="wizard__label">{{ s.label }}</span>
+        <span class="wizard__label">
+          {{ s.label }}
+          @if (isOptionalStep(i)) { <span class="wizard__optional">необязательно</span> }
+        </span>
       </button>
       @if (!last) { <span class="wizard__divider" aria-hidden="true"></span> }
     }
@@ -113,36 +116,38 @@
           <div class="card__body card__body--lg">
 
             <div class="field">
-              <label class="field__label" for="cProductName">Название продукта *</label>
-              <input id="cProductName" class="field__input"
-                [class.field__input--error]="fieldError('productName')"
-                type="text" formControlName="productName"
-                placeholder="Название вашего основного продукта" />
-              @if (fieldError('productName')) {
-                <span class="field__hint field__hint--error">{{ fieldError('productName') }}</span>
-              }
-            </div>
-
-            <div class="field">
-              <label class="field__label" for="cProblem">Проблема и решение *</label>
+              <label class="field__label" for="cProblem">Проблема</label>
               <textarea id="cProblem" class="field__textarea"
-                [class.field__textarea--error]="fieldError('problemSolution')"
-                formControlName="problemSolution" rows="3"
-                placeholder="Какую проблему решаете и как"></textarea>
-              @if (fieldError('problemSolution')) {
-                <span class="field__hint field__hint--error">{{ fieldError('problemSolution') }}</span>
+                formControlName="problem" rows="2"
+                placeholder="Какую проблему решаете"></textarea>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="cSolution">Решение *</label>
+              <textarea id="cSolution" class="field__textarea"
+                [class.field__textarea--error]="fieldError('solution')"
+                formControlName="solution" rows="3"
+                placeholder="Как вы её решаете"></textarea>
+              @if (fieldError('solution')) {
+                <span class="field__hint field__hint--error">{{ fieldError('solution') }}</span>
               }
             </div>
 
             <div class="field">
-              <label class="field__label" for="cValue">Ценностное предложение</label>
+              <label class="field__label" for="cValue">
+                Ценностное предложение
+                <span class="field__hint field__hint--inline">влияет на скоринг</span>
+              </label>
               <input id="cValue" class="field__input"
                 type="text" formControlName="valueProposition"
                 placeholder="Почему клиенты выбирают именно вас" />
             </div>
 
             <div class="field">
-              <label class="field__label" for="cDiff">Конкурентные преимущества</label>
+              <label class="field__label" for="cDiff">
+                Конкурентные преимущества
+                <span class="field__hint field__hint--inline">влияет на скоринг</span>
+              </label>
               <input id="cDiff" class="field__input"
                 type="text" formControlName="differentiators"
                 placeholder="Чем вы отличаетесь от конкурентов" />
@@ -155,12 +160,135 @@
                 placeholder="React, .NET, PostgreSQL — через запятую" />
             </div>
 
+            <div class="field">
+              <label class="field__label field__label--checkbox">
+                <input type="checkbox" formControlName="hasPatents" />
+                <span>Есть патенты или ИС</span>
+              </label>
+              <p class="create-hint-block">Патенты, зарегистрированные торговые марки или другие объекты интеллектуальной собственности</p>
+            </div>
+
           </div>
         </div>
       }
 
-      <!-- Шаг 3: Контакты и брендинг -->
+      <!-- Шаг 3: Рынок и раунд (весь шаг необязательный) -->
       @case (2) {
+        <p class="summary-hint">
+          Шаг можно пропустить и заполнить позже — но именно эти поля кормят оценку стартапа
+          и балл рынка. Без них движок считает рынок незаявленным.
+        </p>
+
+        <div class="card">
+          <div class="card__header">
+            <span class="card__title">Рынок и раунд</span>
+          </div>
+          <div class="card__body card__body--lg">
+
+            <div class="field">
+              <label class="field__label">Отрасль</label>
+              <div class="chips">
+                @for (ind of industries; track ind.value) {
+                  <button type="button" class="chip"
+                    [class.chip--active]="selectedIndustry() === ind.value"
+                    (click)="setIndustry(ind.value)">
+                    {{ ind.label }}
+                  </button>
+                }
+              </div>
+              <p class="create-hint-block">
+                Задаёт секторные медианы оценки, мультипликаторы выручки и интенсивность конкуренции.
+              </p>
+            </div>
+
+            <p class="create-hint-block">Объём рынка в рублях. Оставьте пустым, если не применимо.</p>
+
+            <div class="field-grid create-tam-grid">
+              <div class="field">
+                <label class="field__label" for="cTam">
+                  TAM
+                  <span class="field__hint field__hint--inline">Total Addressable Market</span>
+                </label>
+                <input id="cTam" class="field__input"
+                  [class.field__input--error]="fieldError('tam')"
+                  type="number" min="0" formControlName="tam"
+                  placeholder="Весь возможный рынок, ₽" />
+                @if (fieldError('tam')) {
+                  <span class="field__hint field__hint--error">{{ fieldError('tam') }}</span>
+                }
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="cSam">
+                  SAM
+                  <span class="field__hint field__hint--inline">Serviceable Addressable</span>
+                </label>
+                <input id="cSam" class="field__input"
+                  [class.field__input--error]="fieldError('sam')"
+                  type="number" min="0" formControlName="sam"
+                  placeholder="Доступный сегмент, ₽" />
+                @if (fieldError('sam')) {
+                  <span class="field__hint field__hint--error">{{ fieldError('sam') }}</span>
+                }
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="cSom">
+                  SOM
+                  <span class="field__hint field__hint--inline">Serviceable Obtainable</span>
+                </label>
+                <input id="cSom" class="field__input"
+                  [class.field__input--error]="fieldError('som')"
+                  type="number" min="0" formControlName="som"
+                  placeholder="Достижимый рынок, ₽" />
+                @if (fieldError('som')) {
+                  <span class="field__hint field__hint--error">{{ fieldError('som') }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="cGrowthRate">
+                Темп роста рынка
+                <span class="field__hint field__hint--inline">% в год</span>
+              </label>
+              <input id="cGrowthRate" class="field__input"
+                [class.field__input--error]="fieldError('marketGrowthRate')"
+                type="number" min="0" max="1000" formControlName="marketGrowthRate"
+                placeholder="Например, 25 = 25% в год" />
+              @if (fieldError('marketGrowthRate')) {
+                <span class="field__hint field__hint--error">{{ fieldError('marketGrowthRate') }}</span>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="cTargetRound">
+                Целевой объём раунда
+                <span class="field__hint field__hint--inline">₽</span>
+              </label>
+              <input id="cTargetRound" class="field__input"
+                [class.field__input--error]="fieldError('targetRoundAmount')"
+                type="number" min="0" formControlName="targetRoundAmount"
+                placeholder="Сколько привлекаете сейчас, ₽" />
+              @if (fieldError('targetRoundAmount')) {
+                <span class="field__hint field__hint--error">{{ fieldError('targetRoundAmount') }}</span>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label field__label--checkbox">
+                <input type="checkbox" formControlName="hasStrategicPartnerships" />
+                <span>Есть стратегические партнёрства</span>
+              </label>
+              <p class="create-hint-block">Действующие соглашения с партнёрами, дающие доступ к рынку, каналам или технологиям</p>
+            </div>
+
+          </div>
+        </div>
+      }
+
+      <!-- Шаг 4: Контакты и брендинг -->
+      @case (3) {
         <div class="card">
           <div class="card__header">
             <span class="card__title">Контакты и брендинг</span>
@@ -181,8 +309,12 @@
             <div class="field">
               <label class="field__label" for="cBilling">Billing email</label>
               <input id="cBilling" class="field__input"
+                [class.field__input--error]="fieldError('billingEmail')"
                 type="email" formControlName="billingEmail"
                 placeholder="billing@startup.com" />
+              @if (fieldError('billingEmail')) {
+                <span class="field__hint field__hint--error">{{ fieldError('billingEmail') }}</span>
+              }
             </div>
 
             <div class="field">
@@ -211,8 +343,8 @@
         </div>
       }
 
-      <!-- Шаг 4: Проверка -->
-      @case (3) {
+      <!-- Шаг 5: Проверка -->
+      @case (4) {
         <p class="summary-hint">
           Проверьте данные перед публикацией — стартап сразу станет виден в каталоге.
           Всё можно будет изменить позже в редакторе.
@@ -241,11 +373,30 @@
           </div>
           <div class="card__body">
             <dl class="summary__list">
-              <div class="summary__row"><dt>Название продукта</dt><dd>{{ v.productName || '—' }}</dd></div>
-              <div class="summary__row"><dt>Проблема и решение</dt><dd>{{ v.problemSolution || '—' }}</dd></div>
+              <div class="summary__row"><dt>Проблема</dt><dd>{{ v.problem || '—' }}</dd></div>
+              <div class="summary__row"><dt>Решение</dt><dd>{{ v.solution || '—' }}</dd></div>
               <div class="summary__row"><dt>Ценностное предложение</dt><dd>{{ v.valueProposition || '—' }}</dd></div>
               <div class="summary__row"><dt>Преимущества</dt><dd>{{ v.differentiators || '—' }}</dd></div>
               <div class="summary__row"><dt>Стек</dt><dd>{{ v.stack || '—' }}</dd></div>
+              <div class="summary__row"><dt>Патенты / ИС</dt><dd>{{ v.hasPatents ? 'Да' : 'Нет' }}</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="card summary">
+          <div class="card__header">
+            <span class="card__title">Рынок и раунд</span>
+            <button type="button" class="btn btn--text btn--sm" (click)="goTo(2)">Изменить</button>
+          </div>
+          <div class="card__body">
+            <dl class="summary__list">
+              <div class="summary__row"><dt>Отрасль</dt><dd>{{ industryLabel() }}</dd></div>
+              <div class="summary__row"><dt>TAM</dt><dd>{{ v.tam || '—' }}</dd></div>
+              <div class="summary__row"><dt>SAM</dt><dd>{{ v.sam || '—' }}</dd></div>
+              <div class="summary__row"><dt>SOM</dt><dd>{{ v.som || '—' }}</dd></div>
+              <div class="summary__row"><dt>Темп роста рынка</dt><dd>{{ v.marketGrowthRate || '—' }}</dd></div>
+              <div class="summary__row"><dt>Целевой раунд</dt><dd>{{ v.targetRoundAmount || '—' }}</dd></div>
+              <div class="summary__row"><dt>Партнёрства</dt><dd>{{ v.hasStrategicPartnerships ? 'Да' : 'Нет' }}</dd></div>
             </dl>
           </div>
         </div>
@@ -253,7 +404,7 @@
         <div class="card summary">
           <div class="card__header">
             <span class="card__title">Контакты и брендинг</span>
-            <button type="button" class="btn btn--text btn--sm" (click)="goTo(2)">Изменить</button>
+            <button type="button" class="btn btn--text btn--sm" (click)="goTo(3)">Изменить</button>
           </div>
           <div class="card__body">
             <dl class="summary__list">

@@ -1,4 +1,6 @@
-import { Startup, StartupMember, StartupStage, StartupLocation, StartupRole, StartupPosition } from '../startup.model';
+import {
+  Startup, StartupMember, StartupStage, StartupLocation, StartupRole, StartupPosition, StartupIndustry,
+} from '../startup.model';
 import { mapCommunityStandardsLevel } from './community-standards.dto';
 
 // Stage/Location/Role/Position numeric values from API
@@ -7,6 +9,15 @@ const STAGE_MAP: Record<number, StartupStage> = {
 };
 const LOCATION_MAP: Record<number, StartupLocation> = {
   0: 'Russia', 1: 'USA', 2: 'China', 3: 'India', 4: 'Other',
+};
+const INDUSTRY_MAP: Record<number, StartupIndustry> = {
+  0: 'Other', 1: 'Saas', 2: 'Fintech', 3: 'Ai', 4: 'Ecommerce',
+  5: 'Marketplace', 6: 'Hardware', 7: 'Biotech', 8: 'Edtech',
+};
+
+export const INDUSTRY_NUM: Record<StartupIndustry, number> = {
+  Other: 0, Saas: 1, Fintech: 2, Ai: 3, Ecommerce: 4,
+  Marketplace: 5, Hardware: 6, Biotech: 7, Edtech: 8,
 };
 const ROLE_MAP: Record<number, StartupRole> = {
   0: 'Founder', 1: 'Administration', 2: 'Member',
@@ -39,6 +50,9 @@ export interface StartupDto {
   som?: number | null;
   hasPatents?: boolean;
   marketGrowthRate?: number | null;
+  industry?: number | null;
+  targetRoundAmount?: number | null;
+  hasStrategicPartnerships?: boolean;
   // Есть только в ответе списка каталога — карточка одного стартапа их не несёт.
   communityStandardsPercent?: number | null;
   communityStandardsLevel?: number | null;
@@ -80,6 +94,10 @@ export interface UpdateStartupRequestDto {
   som?: number;
   has_patents?: boolean;
   market_growth_rate?: number;
+  /** Опускать нельзя, если поле в форме: пропуск оставляет прежний сектор, а не сбрасывает его. */
+  industry?: number;
+  target_round_amount?: number;
+  has_strategic_partnerships?: boolean;
 }
 
 export interface CreateStartupRequestDto {
@@ -95,11 +113,19 @@ export interface CreateStartupRequestDto {
   location: number;
   billing_email: string;
   avatar_id?: string;
-  product_name: string;
-  product_problem_solution: string;
+  product_problem?: string;
+  product_solution: string;
   stack: string[];
-  product_value_proposition: string;
-  product_differentiators: string;
+  product_value_proposition?: string;
+  product_differentiators?: string;
+  tam?: number;
+  sam?: number;
+  som?: number;
+  market_growth_rate?: number;
+  has_patents?: boolean;
+  industry?: number;
+  target_round_amount?: number;
+  has_strategic_partnerships?: boolean;
 }
 
 export interface UpdateStartupMemberProfileRequestDto {
@@ -131,6 +157,9 @@ export function mapStartupDto(dto: StartupDto): Startup {
     som: dto.som ?? null,
     hasPatents: dto.hasPatents ?? false,
     marketGrowthRate: dto.marketGrowthRate ?? null,
+    industry: dto.industry != null ? INDUSTRY_MAP[dto.industry] ?? 'Other' : 'Other',
+    targetRoundAmount: dto.targetRoundAmount ?? null,
+    hasStrategicPartnerships: dto.hasStrategicPartnerships ?? false,
     communityStandardsPercent: dto.communityStandardsPercent ?? 0,
     communityStandardsLevel: mapCommunityStandardsLevel(dto.communityStandardsLevel),
     isFeatured: dto.isFeatured ?? false,

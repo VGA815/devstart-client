@@ -18,11 +18,14 @@
   @if (error()) {
     <div class="toast toast--error">{{ error() }}</div>
   }
+  @if (warning()) {
+    <div class="toast toast--warning">{{ warning() }}</div>
+  }
   @if (saveSuccess()) {
     <div class="toast toast--success">Изменения сохранены ✓</div>
   }
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
+  <form [formGroup]="form" (ngSubmit)="save(false)">
 
     <div class="card">
       <div class="card__header"><span class="card__title">Основная информация</span></div>
@@ -33,7 +36,7 @@
           <app-avatar-upload
             [avatarId]="selectedAvatarId()"
             [name]="form.get('name')?.value || ''"
-            (avatarIdChange)="selectedAvatarId.set($event)" />
+            (avatarIdChange)="setAvatar($event)" />
         </div>
 
         <div class="field">
@@ -102,7 +105,11 @@
         <div class="field">
           <label class="field__label" for="eBilling">Billing email</label>
           <input id="eBilling" class="field__input"
+            [class.field__input--error]="fieldError('billingEmail')"
             type="email" formControlName="billingEmail" />
+          @if (fieldError('billingEmail')) {
+            <span class="field__hint field__hint--error">{{ fieldError('billingEmail') }}</span>
+          }
         </div>
 
         <div class="field">
@@ -144,14 +151,20 @@
         </div>
 
         <div class="field">
-          <label class="field__label" for="eValue">Ценностное предложение</label>
+          <label class="field__label" for="eValue">
+            Ценностное предложение
+            <span class="field__hint field__hint--inline">влияет на скоринг</span>
+          </label>
           <input id="eValue" class="field__input"
             type="text" formControlName="valueProposition"
             placeholder="Почему клиенты выбирают именно вас" />
         </div>
 
         <div class="field">
-          <label class="field__label" for="eDiff">Конкурентные преимущества</label>
+          <label class="field__label" for="eDiff">
+            Конкурентные преимущества
+            <span class="field__hint field__hint--inline">влияет на скоринг</span>
+          </label>
           <input id="eDiff" class="field__input"
             type="text" formControlName="differentiators"
             placeholder="Чем вы отличаетесь от конкурентов" />
@@ -176,9 +189,27 @@
     </div>
 
     <div class="card">
-      <div class="card__header"><span class="card__title">Рынок</span></div>
+      <div class="card__header"><span class="card__title">Рынок и раунд</span></div>
       <div class="card__body card__body--lg">
-        <p class="edit-hint-block">Объём рынка в USD. Оставьте пустым, если не применимо.</p>
+
+        <div class="field">
+          <label class="field__label">
+            Отрасль
+            <span class="field__hint field__hint--inline">влияет на скоринг</span>
+          </label>
+          <div class="chips">
+            @for (ind of industries; track ind.value) {
+              <button type="button" class="chip"
+                [class.chip--active]="selectedIndustry() === ind.value"
+                (click)="setIndustry(ind.value)">{{ ind.label }}</button>
+            }
+          </div>
+          <p class="edit-hint-block">
+            Задаёт секторные медианы оценки, мультипликаторы выручки и интенсивность конкуренции.
+          </p>
+        </div>
+
+        <p class="edit-hint-block">Объём рынка в рублях. Оставьте пустым, если не применимо.</p>
 
         <div class="field-grid edit-tam-grid">
           <div class="field">
@@ -187,9 +218,13 @@
               <span class="field__hint field__hint--inline">Total Addressable Market</span>
             </label>
             <input id="eTam" class="field__input"
+              [class.field__input--error]="fieldError('tam')"
               type="number" min="0"
               formControlName="tam"
-              placeholder="Весь возможный рынок, $" />
+              placeholder="Весь возможный рынок, ₽" />
+            @if (fieldError('tam')) {
+              <span class="field__hint field__hint--error">{{ fieldError('tam') }}</span>
+            }
           </div>
 
           <div class="field">
@@ -198,9 +233,13 @@
               <span class="field__hint field__hint--inline">Serviceable Addressable</span>
             </label>
             <input id="eSam" class="field__input"
+              [class.field__input--error]="fieldError('sam')"
               type="number" min="0"
               formControlName="sam"
-              placeholder="Доступный сегмент, $" />
+              placeholder="Доступный сегмент, ₽" />
+            @if (fieldError('sam')) {
+              <span class="field__hint field__hint--error">{{ fieldError('sam') }}</span>
+            }
           </div>
 
           <div class="field">
@@ -209,9 +248,13 @@
               <span class="field__hint field__hint--inline">Serviceable Obtainable</span>
             </label>
             <input id="eSom" class="field__input"
+              [class.field__input--error]="fieldError('som')"
               type="number" min="0"
               formControlName="som"
-              placeholder="Достижимый рынок, $" />
+              placeholder="Достижимый рынок, ₽" />
+            @if (fieldError('som')) {
+              <span class="field__hint field__hint--error">{{ fieldError('som') }}</span>
+            }
           </div>
         </div>
 
@@ -221,17 +264,52 @@
             <span class="field__hint field__hint--inline">% в год</span>
           </label>
           <input id="eGrowthRate" class="field__input"
+            [class.field__input--error]="fieldError('marketGrowthRate')"
             type="number" min="0" max="1000"
             formControlName="marketGrowthRate"
             placeholder="Например, 25 = 25% в год" />
+          @if (fieldError('marketGrowthRate')) {
+            <span class="field__hint field__hint--error">{{ fieldError('marketGrowthRate') }}</span>
+          }
         </div>
+
+        <div class="field">
+          <label class="field__label" for="eTargetRound">
+            Целевой объём раунда
+            <span class="field__hint field__hint--inline">₽</span>
+          </label>
+          <input id="eTargetRound" class="field__input"
+            [class.field__input--error]="fieldError('targetRoundAmount')"
+            type="number" min="0"
+            formControlName="targetRoundAmount"
+            placeholder="Сколько привлекаете сейчас, ₽" />
+          @if (fieldError('targetRoundAmount')) {
+            <span class="field__hint field__hint--error">{{ fieldError('targetRoundAmount') }}</span>
+          }
+          <p class="edit-hint-block">Используется в VC-методе для разделения pre-money и post-money.</p>
+        </div>
+
+        <div class="field">
+          <label class="field__label field__label--checkbox">
+            <input type="checkbox" formControlName="hasStrategicPartnerships" />
+            <span>Есть стратегические партнёрства</span>
+          </label>
+          <p class="edit-hint-block">Действующие соглашения с партнёрами, дающие доступ к рынку, каналам или технологиям</p>
+        </div>
+
       </div>
     </div>
 
     <div class="edit-actions">
+      @if (isDirty()) {
+        <span class="edit-actions__state">Есть несохранённые изменения</span>
+      }
       <a class="btn btn--ghost" routerLink="/dashboard/my-startups">Отмена</a>
-      <button class="btn btn--primary" type="submit" [disabled]="saving()">
-        @if (saving()) { Сохраняем… } @else { Сохранить изменения }
+      <button class="btn btn--ghost" type="button"
+        [disabled]="saving() || !isDirty()"
+        (click)="save(true)">Сохранить и выйти</button>
+      <button class="btn btn--primary" type="submit" [disabled]="saving() || !isDirty()">
+        @if (saving()) { Сохраняем… } @else { Сохранить }
       </button>
     </div>
 

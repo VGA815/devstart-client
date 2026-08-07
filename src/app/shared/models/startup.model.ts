@@ -2,6 +2,11 @@ export type StartupStage = 'Idea' | 'PreSeed' | 'Mvp' | 'Seed' | 'SeriesA';
 export type StartupLocation = 'Russia' | 'USA' | 'China' | 'India' | 'Other';
 export type StartupRole = 'Founder' | 'Administration' | 'Member';
 
+/** Maps to DevStart.Domain.Startups.Industry enum */
+export type StartupIndustry =
+  | 'Other' | 'Saas' | 'Fintech' | 'Ai' | 'Ecommerce'
+  | 'Marketplace' | 'Hardware' | 'Biotech' | 'Edtech';
+
 /** Maps to DevStart.Domain.StartupMembers.StartupPosition enum */
 export type StartupPosition = 'Other' | 'CEO' | 'CTO' | 'CMO' | 'COO' | 'CFO' | 'CPO';
 
@@ -25,6 +30,11 @@ export interface Startup {
   som: number | null;
   hasPatents: boolean;
   marketGrowthRate: number | null;
+  /** Сектор — задаёт медианы, мультипликаторы и интенсивность конкуренции в скоринге. */
+  industry: StartupIndustry;
+  /** Целевой объём текущего раунда, ₽ — используется в VC Method для pre/post-money. */
+  targetRoundAmount: number | null;
+  hasStrategicPartnerships: boolean;
   /**
    * Доля выполненного чек-листа сообщества, 0–100. Приходит из проекции и может немного
    * отставать от живого расчёта на `api/startups/{id}/community`.
