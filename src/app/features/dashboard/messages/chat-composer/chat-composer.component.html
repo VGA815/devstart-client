@@ -2,12 +2,16 @@
 <input
   type="file"
   #fileInputEl
-  accept="image/*"
+  [accept]="fileAccept"
   style="display:none"
   (change)="onFileSelected($event)" />
 
 @if (errorSend()) {
   <p class="chat-input-area__error">Не удалось отправить. Попробуйте снова.</p>
+}
+
+@if (uploadError(); as uploadErr) {
+  <p class="chat-input-area__error">{{ uploadErr }}</p>
 }
 
 @if (showMetricPicker()) {
@@ -61,17 +65,22 @@
   </div>
 }
 
-@if (mediaIds().length > 0 || metricIds().length > 0 || documentIds().length > 0) {
+@if (metricIds().length > 0 || documentIds().length > 0 || fileIds().length > 0) {
   <div class="attach-strip">
-    @for (id of mediaIds(); track id) {
-      <div class="attach-strip__thumb">
-        @if (attachments.mediaUrl(id); as url) {
-          <img [src]="url" alt="" />
+    @for (id of fileIds(); track id) {
+      @if (attachments.file(id); as f) {
+        @if (isImage(f)) {
+          <div class="attach-strip__thumb">
+            <img [src]="f.presignedUrl" [alt]="f.fileName" />
+            <button class="attach-strip__remove" type="button" (click)="removeAttachedFile(id)">×</button>
+          </div>
         } @else {
-          <app-skeleton height="48px" width="64px" />
+          <div class="attach-strip__chip">
+            <span>{{ fileIcon(f.fileName) }} {{ f.fileName }} · {{ fileSize(f.fileSize) }}</span>
+            <button class="attach-strip__chip-remove" type="button" (click)="removeAttachedFile(id)">×</button>
+          </div>
         }
-        <button class="attach-strip__remove" type="button" (click)="removeAttachedMedia(id)">×</button>
-      </div>
+      }
     }
     @for (id of metricIds(); track id) {
       @if (attachments.metric(id); as metric) {
@@ -96,10 +105,10 @@
   <button
     class="chat-attach-btn"
     type="button"
-    title="Прикрепить изображение"
-    [disabled]="sending() || uploadingMedia()"
+    title="Прикрепить файл с компьютера"
+    [disabled]="sending() || uploadingFile()"
     (click)="triggerFileInput()">
-    @if (uploadingMedia()) { <span class="chat-attach-btn__spinner">…</span> } @else { 📎 }
+    @if (uploadingFile()) { <span class="chat-attach-btn__spinner">…</span> } @else { 📎 }
   </button>
   <button
     class="chat-attach-btn"
@@ -113,7 +122,7 @@
   <button
     class="chat-attach-btn"
     type="button"
-    title="Прикрепить документ"
+    title="Прикрепить документ стартапа"
     [class.chat-attach-btn--active]="showDocPicker()"
     [disabled]="sending()"
     (click)="toggleDocPicker()">

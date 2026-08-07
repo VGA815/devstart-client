@@ -5,11 +5,11 @@ import {
 import { forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../../../core/auth/auth.service';
-import { ImageService } from '../../../../shared/services/image.service';
 import { StartupService } from '../../../startups/startup.service';
 import { StartupMetricsService } from '../../../startups/startup-metrics.service';
 import { StartupDocumentsService } from '../../../startups/startup-documents.service';
 import { MessageService } from '../message.service';
+import { ChatFileService } from '../chat-file.service';
 import { ChatAttachmentsService } from '../chat-attachments.service';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 import {
@@ -17,6 +17,9 @@ import {
 } from '../../../../shared/models/message.model';
 import { StartupMetric } from '../../../../shared/models/startup-metric.model';
 import { StartupDocument } from '../../../../shared/models/startup-document.model';
+import {
+  CHAT_FILE_ACCEPT, CHAT_FILE_MAX_SIZE_BYTES, getChatFileIcon, isImageFile,
+} from '../../../../shared/models/chat-file.model';
 import {
   formatFileSize, formatMetricValue, getDocumentIcon, getDocumentTypeLabel, getMetricLabel,
 } from '../../../../shared/utils/startup.utils';
@@ -38,7 +41,7 @@ export class ChatComposerComponent implements OnChanges {
 
   private readonly auth = inject(AuthService);
   private readonly messageSvc = inject(MessageService);
-  private readonly imageSvc = inject(ImageService);
+  private readonly filesSvc = inject(ChatFileService);
   private readonly startupSvc = inject(StartupService);
   private readonly metricsSvc = inject(StartupMetricsService);
   private readonly docsSvc = inject(StartupDocumentsService);
@@ -49,10 +52,11 @@ export class ChatComposerComponent implements OnChanges {
   readonly text = signal('');
   readonly sending = signal(false);
   readonly errorSend = signal(false);
-  readonly mediaIds = signal<string[]>([]);
   readonly metricIds = signal<string[]>([]);
   readonly documentIds = signal<string[]>([]);
-  readonly uploadingMedia = signal(false);
+  readonly fileIds = signal<string[]>([]);
+  readonly uploadingFile = signal(false);
+  readonly uploadError = signal<string | null>(null);
 
   readonly showMetricPicker = signal(false);
   readonly showDocPicker = signal(false);
@@ -65,13 +69,15 @@ export class ChatComposerComponent implements OnChanges {
   private pickerLoaded = false;
   private pickerDocLoaded = false;
 
+  protected readonly fileAccept = CHAT_FILE_ACCEPT;
+
   readonly cannotSend = computed(() =>
     (!this.text().trim() &&
-      this.mediaIds().length === 0 &&
       this.metricIds().length === 0 &&
-      this.documentIds().length === 0) ||
+      this.documentIds().length === 0 &&
+      this.fileIds().length === 0) ||
     this.sending() ||
-    this.uploadingMedia()
+    this.uploadingFile()
   );
 
   protected readonly metricLabel = getMetricLabel;
@@ -79,6 +85,8 @@ export class ChatComposerComponent implements OnChanges {
   protected readonly docLabel = getDocumentTypeLabel;
   protected readonly docIcon = getDocumentIcon;
   protected readonly fileSize = formatFileSize;
+  protected readonly fileIcon = getChatFileIcon;
+  protected readonly isImage = isImageFile;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['conversation'] && !changes['conversation'].firstChange) {
@@ -97,11 +105,11 @@ export class ChatComposerComponent implements OnChanges {
 
   send(): void {
     const text = this.text().trim();
-    const mediaIds = this.mediaIds();
     const metricIds = this.metricIds();
     const documentIds = this.documentIds();
+    const fileIds = this.fileIds();
 
-    if (!text && mediaIds.length === 0 && metricIds.length === 0 && documentIds.length === 0) return;
+    if (!text && metricIds.length === 0 && documentIds.length === 0 && fileIds.length === 0) return;
     if (this.sending()) return;
 
     const user = this.auth.user();
@@ -115,9 +123,9 @@ export class ChatComposerComponent implements OnChanges {
       receiverId:   conv.otherParticipantId,
       receiverType: conv.otherParticipantType,
       textContent:  text || undefined,
-      mediaIds:     mediaIds.length    ? mediaIds    : undefined,
       metricIds:    metricIds.length   ? metricIds   : undefined,
       documentIds:  documentIds.length ? documentIds : undefined,
+      fileIds:      fileIds.length     ? fileIds     : undefined,
     }).subscribe({
       next: id => {
         const now = new Date().toISOString();
@@ -125,7 +133,8 @@ export class ChatComposerComponent implements OnChanges {
           id, textContent: text || null,
           senderId: user.id, senderType: ChatParticipant.User,
           receiverId: conv.otherParticipantId, receiverType: conv.otherParticipantType,
-          mediaIds: [...mediaIds], metricIds: [...metricIds], documentIds: [...documentIds],
+          mediaIds: [], metricIds: [...metricIds],
+          documentIds: [...documentIds], fileIds: [...fileIds],
           isRead: false, createdAt: now, updatedAt: now,
         };
         this.resetDraft();
@@ -141,9 +150,10 @@ export class ChatComposerComponent implements OnChanges {
 
   private resetDraft(): void {
     this.text.set('');
-    this.mediaIds.set([]);
     this.metricIds.set([]);
     this.documentIds.set([]);
+    this.fileIds.set([]);
+    this.uploadError.set(null);
   }
 
   triggerFileInput(): void {
@@ -156,26 +166,35 @@ export class ChatComposerComponent implements OnChanges {
     if (!file) return;
     input.value = '';
 
-    const user = this.auth.user();
-    if (!user) return;
+    this.uploadError.set(null);
 
-    this.uploadingMedia.set(true);
-    this.imageSvc.upload(file, user.id).pipe(
-      catchError(() => of<string | null>(null)),
-    ).subscribe(mediaId => {
-      this.uploadingMedia.set(false);
-      if (!mediaId) return;
+    const rejection = this.filesSvc.validate(file);
+    if (rejection === 'size') {
+      this.uploadError.set(`Файл больше ${formatFileSize(CHAT_FILE_MAX_SIZE_BYTES)}`);
+      return;
+    }
+    if (rejection === 'type') {
+      this.uploadError.set('Такой тип файла нельзя отправить');
+      return;
+    }
 
-      this.mediaIds.update(ids => [...ids, mediaId]);
+    this.uploadingFile.set(true);
+    this.filesSvc.upload(file).pipe(
+      catchError(() => of(null)),
+    ).subscribe(uploaded => {
+      this.uploadingFile.set(false);
+      if (!uploaded) {
+        this.uploadError.set('Не удалось загрузить файл');
+        return;
+      }
 
-      this.imageSvc.getPresignedUrl(mediaId).pipe(catchError(() => of(null))).subscribe(url => {
-        if (url) this.attachments.cacheMedia(mediaId, url);
-      });
+      this.attachments.cacheFile(uploaded);
+      this.fileIds.update(ids => [...ids, uploaded.id]);
     });
   }
 
-  removeAttachedMedia(id: string): void {
-    this.mediaIds.update(ids => ids.filter(x => x !== id));
+  removeAttachedFile(id: string): void {
+    this.fileIds.update(ids => ids.filter(x => x !== id));
   }
 
 

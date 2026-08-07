@@ -11,6 +11,7 @@ export interface MessageDto {
   mediaIds: string[];
   metricIds: string[];
   documentIds: string[];
+  fileIds: string[];
   isRead: boolean;
   createdAt: string;
   updatedAt: string;
@@ -31,6 +32,7 @@ export interface SendMessageRequestDto {
   mediaIds?: string[];
   metricIds?: string[];
   documentIds?: string[];
+  fileIds?: string[];
 }
 
 export function mapMessageDto(dto: MessageDto): Message {
@@ -44,6 +46,7 @@ export function mapMessageDto(dto: MessageDto): Message {
     mediaIds: dto.mediaIds ?? [],
     metricIds: dto.metricIds ?? [],
     documentIds: dto.documentIds ?? [],
+    fileIds: dto.fileIds ?? [],
     isRead: dto.isRead,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,

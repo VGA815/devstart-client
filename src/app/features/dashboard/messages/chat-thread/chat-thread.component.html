@@ -9,6 +9,16 @@
     <p>Нет сообщений. Напишите первым!</p>
   </div>
 } @else {
+  @if (hasMore) {
+    <button
+      class="chat-thread__load-more"
+      type="button"
+      [disabled]="loadingMore"
+      (click)="loadMore.emit()">
+      @if (loadingMore) { Загрузка… } @else { Показать более ранние сообщения }
+    </button>
+  }
+
   @for (msg of messages; track msg.id) {
     <div class="chat-msg" [class.chat-msg--mine]="isMine(msg)">
       @if (!isMine(msg)) {
@@ -29,6 +39,37 @@
             @for (mid of msg.mediaIds; track mid) {
               @if (attachments.mediaUrl(mid); as url) {
                 <img [src]="url" class="chat-msg__img" (error)="attachments.refetchMedia(mid)" loading="lazy" alt="" />
+              }
+            }
+          </div>
+        }
+
+        @if (msg.fileIds.length > 0) {
+          <div class="chat-msg__files">
+            @for (fid of msg.fileIds; track fid) {
+              @if (attachments.file(fid); as f) {
+                @if (isImage(f)) {
+                  <img
+                    [src]="f.presignedUrl"
+                    class="chat-msg__img"
+                    (error)="attachments.refetchFile(fid)"
+                    loading="lazy"
+                    [alt]="f.fileName" />
+                } @else {
+                  <a
+                    class="chat-msg__doc"
+                    [href]="f.presignedUrl"
+                    [download]="f.fileName"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    <span class="chat-msg__doc-icon">{{ fileIcon(f.fileName) }}</span>
+                    <div class="chat-msg__doc-info">
+                      <span class="chat-msg__doc-name">{{ f.fileName }}</span>
+                      <span class="chat-msg__doc-meta">{{ fileSize(f.fileSize) }}</span>
+                    </div>
+                    <span class="chat-msg__doc-arrow">↓</span>
+                  </a>
+                }
               }
             }
           </div>

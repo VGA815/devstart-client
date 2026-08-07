@@ -19,6 +19,8 @@ import {
   ChatParticipant, ChatParticipantType, ConversationSummary, Message, ParticipantInfo,
 } from '../../../shared/models/message.model';
 
+const PAGE_SIZE = 50;
+
 @Component({
   selector: 'app-messages-page',
   standalone: true,
@@ -44,10 +46,15 @@ export class MessagesPageComponent implements OnInit, OnDestroy {
 
   readonly loadingConvs = signal(true);
   readonly loadingThread = signal(false);
+  readonly loadingMore = signal(false);
+  readonly hasMoreMessages = signal(false);
   readonly conversations = signal<ConversationSummary[]>([]);
   readonly participants = signal<Map<string, ParticipantInfo>>(new Map());
   readonly selectedConv = signal<ConversationSummary | null>(null);
   readonly messages = signal<Message[]>([]);
+
+  /** Newest page is 1; "load more" walks backwards through the history. */
+  private threadPage = 1;
 
   protected readonly ChatParticipant = ChatParticipant;
 
@@ -186,13 +193,16 @@ export class MessagesPageComponent implements OnInit, OnDestroy {
     this.selectedConv.set(conv);
     this.messages.set([]);
     this.loadingThread.set(true);
+    this.threadPage = 1;
+    this.hasMoreMessages.set(false);
 
-    this.messageSvc.getConversation(conv.otherParticipantType, conv.otherParticipantId)
+    this.messageSvc.getConversation(conv.otherParticipantType, conv.otherParticipantId, this.threadPage, PAGE_SIZE)
       .pipe(catchError(() => of([])))
       .subscribe(msgs => {
         const ordered = [...msgs].reverse();
         this.messages.set(ordered);
         this.loadingThread.set(false);
+        this.hasMoreMessages.set(msgs.length === PAGE_SIZE);
         this.attachments.resolve(ordered);
 
         const userId = this.auth.user()?.id;
@@ -205,10 +215,35 @@ export class MessagesPageComponent implements OnInit, OnDestroy {
       });
   }
 
+  loadOlderMessages(): void {
+    const conv = this.selectedConv();
+    if (!conv || this.loadingMore() || !this.hasMoreMessages()) return;
+
+    const nextPage = this.threadPage + 1;
+    this.loadingMore.set(true);
+
+    this.messageSvc.getConversation(conv.otherParticipantType, conv.otherParticipantId, nextPage, PAGE_SIZE)
+      .pipe(catchError(() => of([])))
+      .subscribe(msgs => {
+        this.loadingMore.set(false);
+        if (msgs.length === 0) { this.hasMoreMessages.set(false); return; }
+
+        this.threadPage = nextPage;
+        this.hasMoreMessages.set(msgs.length === PAGE_SIZE);
+
+        const older = [...msgs].reverse();
+        this.messages.update(list => [...older, ...list]);
+        this.attachments.resolve(older);
+      });
+  }
+
   closeThread(): void {
     this.selectedConv.set(null);
     this.messages.set([]);
     this.loadingThread.set(false);
+    this.loadingMore.set(false);
+    this.hasMoreMessages.set(false);
+    this.threadPage = 1;
   }
 
   onSent(msg: Message): void {

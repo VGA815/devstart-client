@@ -34,8 +34,11 @@
       <app-chat-thread
         [messages]="messages()"
         [loading]="loadingThread()"
+        [loadingMore]="loadingMore()"
+        [hasMore]="hasMoreMessages()"
         [currentUserId]="auth.user()?.id ?? null"
-        [participants]="participants()" />
+        [participants]="participants()"
+        (loadMore)="loadOlderMessages()" />
 
       <app-chat-composer
         [conversation]="selectedConv()!"

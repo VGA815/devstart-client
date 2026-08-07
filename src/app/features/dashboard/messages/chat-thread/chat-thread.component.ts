@@ -1,11 +1,13 @@
 import {
-  ChangeDetectionStrategy, Component, ElementRef, Input, OnChanges, SimpleChanges, inject,
+  ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnChanges, Output,
+  SimpleChanges, inject,
 } from '@angular/core';
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 import {
   ChatParticipant, Message, ParticipantInfo,
 } from '../../../../shared/models/message.model';
+import { getChatFileIcon, isImageFile } from '../../../../shared/models/chat-file.model';
 import {
   formatFileSize, formatMetricValue, getDocumentIcon, getDocumentTypeLabel, getMetricLabel,
 } from '../../../../shared/utils/startup.utils';
@@ -23,8 +25,12 @@ import { ChatAttachmentsService } from '../chat-attachments.service';
 export class ChatThreadComponent implements OnChanges {
   @Input() messages: Message[] = [];
   @Input() loading = false;
+  @Input() loadingMore = false;
+  @Input() hasMore = false;
   @Input() currentUserId: string | null = null;
   @Input() participants = new Map<string, ParticipantInfo>();
+
+  @Output() loadMore = new EventEmitter<void>();
 
   protected readonly attachments = inject(ChatAttachmentsService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -36,9 +42,19 @@ export class ChatThreadComponent implements OnChanges {
   protected readonly docLabel = getDocumentTypeLabel;
   protected readonly docIcon = getDocumentIcon;
   protected readonly fileSize = formatFileSize;
+  protected readonly fileIcon = getChatFileIcon;
+  protected readonly isImage = isImageFile;
+
+  private lastMessageId: string | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['messages']) this.scrollToBottom();
+    if (!changes['messages']) return;
+
+    // Older messages prepended by "load more" keep the last id, so the view must stay where it is;
+    // only a genuinely new tail message scrolls down.
+    const lastId = this.messages.at(-1)?.id ?? null;
+    if (lastId !== this.lastMessageId) this.scrollToBottom();
+    this.lastMessageId = lastId;
   }
 
   isMine(msg: Message): boolean {

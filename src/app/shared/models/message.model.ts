@@ -16,6 +16,7 @@ export interface Message {
   mediaIds: string[];
   metricIds: string[];
   documentIds: string[];
+  fileIds: string[];
   isRead: boolean;
   createdAt: string;
   updatedAt: string;
