@@ -10,6 +10,11 @@ export interface Message {
   id: string;
   senderId: string;
   senderType: ChatParticipantType;
+  /**
+   * Кто из команды написал сообщение от лица стартапа. Приходит только своей стороне диалога —
+   * собеседник всегда видит null.
+   */
+  sentByProfileId: string | null;
   receiverId: string;
   receiverType: ChatParticipantType;
   textContent: string | null;
@@ -30,6 +35,21 @@ export interface ConversationSummary {
 }
 
 export interface ParticipantInfo {
+  name: string;
+  avatarId: string | null;
+}
+
+/** Стартап, от лица которого пользователь вправе вести переписку. */
+export interface ChatIdentity {
+  startupId: string;
+  name: string;
+  avatarId: string | null;
+}
+
+/** Кто «я» в мессенджере прямо сейчас: сам пользователь или один из моих стартапов. */
+export interface ActiveIdentity {
+  type: ChatParticipantType;
+  id: string;
   name: string;
   avatarId: string | null;
 }

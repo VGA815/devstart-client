@@ -2,10 +2,12 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Message, ConversationSummary, ChatParticipantType } from '../../../shared/models/message.model';
 import {
-  MessageDto, ConversationSummaryDto, SendMessageRequestDto,
-  mapMessageDto, mapConversationDto,
+  Message, ConversationSummary, ChatParticipantType, ChatIdentity,
+} from '../../../shared/models/message.model';
+import {
+  MessageDto, ConversationSummaryDto, SendMessageRequestDto, ChatIdentityDto,
+  mapMessageDto, mapConversationDto, mapChatIdentityDto,
 } from '../../../shared/models/dto/message.dto';
 
 @Injectable({ providedIn: 'root' })
@@ -13,9 +15,17 @@ export class MessageService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/messages`;
 
-  getConversations(page = 1, pageSize = 50): Observable<ConversationSummary[]> {
-    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
-    return this.http.get<ConversationSummaryDto[]>(`${this.base}/conversations`, { params }).pipe(
+  /** Стартапы, от лица которых пользователь вправе переписываться (Founder/Administration). */
+  getIdentities(): Observable<ChatIdentity[]> {
+    return this.http.get<ChatIdentityDto[]>(`${this.base}/identities`).pipe(
+      map(list => list.map(mapChatIdentityDto))
+    );
+  }
+
+  getConversations(page = 1, pageSize = 50, asStartupId?: string): Observable<ConversationSummary[]> {
+    return this.http.get<ConversationSummaryDto[]>(`${this.base}/conversations`, {
+      params: this.paged(page, pageSize, asStartupId),
+    }).pipe(
       map(list => list.map(mapConversationDto))
     );
   }
@@ -25,11 +35,11 @@ export class MessageService {
     otherId: string,
     page = 1,
     pageSize = 50,
+    asStartupId?: string,
   ): Observable<Message[]> {
-    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return this.http.get<MessageDto[]>(
       `${this.base}/conversations/${otherType}/${otherId}`,
-      { params },
+      { params: this.paged(page, pageSize, asStartupId) },
     ).pipe(map(list => list.map(mapMessageDto)));
   }
 
@@ -45,5 +55,10 @@ export class MessageService {
 
   markRead(messageId: string): Observable<void> {
     return this.http.put<void>(`${this.base}/${messageId}/read`, {});
+  }
+
+  private paged(page: number, pageSize: number, asStartupId?: string): HttpParams {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return asStartupId ? params.set('asStartupId', asStartupId) : params;
   }
 }

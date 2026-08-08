@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, Input, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, Input } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { ConsentService } from '../../../core/consents/consent.service';
@@ -13,7 +13,7 @@ import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
   styleUrl: './legal-document.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LegalDocumentComponent implements OnInit {
+export class LegalDocumentComponent {
   private readonly consentService = inject(ConsentService);
   private readonly titleService = inject(Title);
 
@@ -21,20 +21,25 @@ export class LegalDocumentComponent implements OnInit {
 
   @Input() set type(value: string) {
     this._type = parseInt(value, 10);
+    this.loadDocument(this._type);
   }
 
   readonly document = signal<ConsentDocumentDto | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 
-  ngOnInit(): void {
-    this.consentService.getDocument(this._type).subscribe({
+  private loadDocument(type: number): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.consentService.getDocument(type).subscribe({
       next: doc => {
+        if (type !== this._type) return;
         this.document.set(doc);
         this.titleService.setTitle(`${doc.title} — DevStart`);
         this.loading.set(false);
       },
       error: () => {
+        if (type !== this._type) return;
         this.error.set('Документ не найден.');
         this.loading.set(false);
       },

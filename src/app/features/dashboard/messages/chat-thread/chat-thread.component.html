@@ -30,6 +30,10 @@
           class="chat-msg__avatar" />
       }
       <div class="chat-msg__bubble">
+        @if (msg.sentByProfileId; as authorId) {
+          <span class="chat-msg__author">Написал(а): {{ participantName(authorId) }}</span>
+        }
+
         @if (msg.textContent) {
           <p class="chat-msg__text">{{ msg.textContent }}</p>
         }

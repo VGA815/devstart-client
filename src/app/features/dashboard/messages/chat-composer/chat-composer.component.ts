@@ -36,6 +36,8 @@ type PickerData = { metrics: StartupMetric[]; nameMap: Map<string, string> };
 })
 export class ChatComposerComponent implements OnChanges {
   @Input({ required: true }) conversation!: ConversationSummary;
+  /** Стартап, от лица которого отправляется сообщение; undefined — пишем от себя. */
+  @Input() senderStartupId?: string;
 
   @Output() sent = new EventEmitter<Message>();
 
@@ -119,9 +121,12 @@ export class ChatComposerComponent implements OnChanges {
     this.sending.set(true);
     this.errorSend.set(false);
 
+    const senderStartupId = this.senderStartupId;
+
     this.messageSvc.send({
       receiverId:   conv.otherParticipantId,
       receiverType: conv.otherParticipantType,
+      senderStartupId,
       textContent:  text || undefined,
       metricIds:    metricIds.length   ? metricIds   : undefined,
       documentIds:  documentIds.length ? documentIds : undefined,
@@ -131,7 +136,9 @@ export class ChatComposerComponent implements OnChanges {
         const now = new Date().toISOString();
         const msg: Message = {
           id, textContent: text || null,
-          senderId: user.id, senderType: ChatParticipant.User,
+          senderId: senderStartupId ?? user.id,
+          senderType: senderStartupId ? ChatParticipant.Startup : ChatParticipant.User,
+          sentByProfileId: senderStartupId ? user.id : null,
           receiverId: conv.otherParticipantId, receiverType: conv.otherParticipantType,
           mediaIds: [], metricIds: [...metricIds],
           documentIds: [...documentIds], fileIds: [...fileIds],

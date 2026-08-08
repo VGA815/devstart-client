@@ -5,7 +5,7 @@ import {
 import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 import {
-  ChatParticipant, Message, ParticipantInfo,
+  ChatParticipant, ChatParticipantType, Message, ParticipantInfo,
 } from '../../../../shared/models/message.model';
 import { getChatFileIcon, isImageFile } from '../../../../shared/models/chat-file.model';
 import {
@@ -27,7 +27,9 @@ export class ChatThreadComponent implements OnChanges {
   @Input() loading = false;
   @Input() loadingMore = false;
   @Input() hasMore = false;
-  @Input() currentUserId: string | null = null;
+  /** Текущая личность: её сообщения показываются справа. */
+  @Input() selfId: string | null = null;
+  @Input() selfType: ChatParticipantType = ChatParticipant.User;
   @Input() participants = new Map<string, ParticipantInfo>();
 
   @Output() loadMore = new EventEmitter<void>();
@@ -58,7 +60,7 @@ export class ChatThreadComponent implements OnChanges {
   }
 
   isMine(msg: Message): boolean {
-    return msg.senderType === ChatParticipant.User && msg.senderId === this.currentUserId;
+    return msg.senderType === this.selfType && msg.senderId === this.selfId;
   }
 
   participantName(id: string): string {

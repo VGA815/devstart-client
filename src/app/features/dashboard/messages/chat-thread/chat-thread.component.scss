@@ -95,6 +95,15 @@
   }
 }
 
+/* Автор сообщения, отправленного от лица стартапа: видит только своя команда. */
+.chat-msg__author {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 3px;
+}
+
 .chat-msg__images {
   display: flex;
   flex-wrap: wrap;

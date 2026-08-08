@@ -6,6 +6,7 @@ function dto(overrides: Partial<MessageDto> = {}): MessageDto {
     id: 'm1',
     senderId: 'u1',
     senderType: ChatParticipant.User,
+    sentByProfileId: null,
     receiverId: 'u2',
     receiverType: ChatParticipant.User,
     textContent: 'Привет',
@@ -33,6 +34,23 @@ describe('mapMessageDto', () => {
     expect(result.metricIds).toEqual(['metric-1']);
     expect(result.documentIds).toEqual(['doc-1', 'doc-2']);
     expect(result.fileIds).toEqual(['file-1']);
+  });
+
+  it('сохраняет автора сообщения от лица стартапа', () => {
+    const result = mapMessageDto(dto({
+      senderId: 'startup-1',
+      senderType: ChatParticipant.Startup,
+      sentByProfileId: 'profile-1',
+    }));
+
+    expect(result.senderType).toBe(ChatParticipant.Startup);
+    expect(result.sentByProfileId).toBe('profile-1');
+  });
+
+  it('автор равен null, когда сервер его не отдал (сторона собеседника)', () => {
+    const hidden = { ...dto(), sentByProfileId: undefined } as unknown as MessageDto;
+
+    expect(mapMessageDto(hidden).sentByProfileId).toBeNull();
   });
 
   it('нормализует отсутствующие списки вложений в пустые массивы', () => {

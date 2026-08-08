@@ -1,11 +1,69 @@
 <div class="msg-layout" [class.msg-layout--thread]="!!selectedConv()">
 
-  <app-chat-conversation-list
-    [conversations]="conversations()"
-    [participants]="participants()"
-    [selected]="selectedConv()"
-    [loading]="loadingConvs()"
-    (select)="selectConv($event)" />
+  <div class="msg-sidebar">
+
+    @if (identities().length > 0 && activeIdentity(); as identity) {
+      <div class="identity-switch">
+        <button
+          class="identity-switch__current"
+          type="button"
+          [attr.aria-expanded]="identityMenuOpen()"
+          (click)="toggleIdentityMenu()">
+          <app-avatar
+            [avatarId]="identity.avatarId"
+            [name]="identity.name"
+            size="sm"
+            [shape]="identity.type === ChatParticipant.Startup ? 'square' : 'circle'" />
+          <span class="identity-switch__text">
+            <span class="identity-switch__label">От имени</span>
+            <span class="identity-switch__name">{{ identity.name }}</span>
+          </span>
+          <span class="identity-switch__caret" aria-hidden="true">▾</span>
+        </button>
+
+        @if (identityMenuOpen()) {
+          <div class="identity-switch__menu">
+            <button
+              class="identity-switch__option"
+              [class.identity-switch__option--active]="identity.type === ChatParticipant.User"
+              type="button"
+              (click)="switchToUser()">
+              <app-avatar
+                [avatarId]="participantAvatarId(auth.user()!.id)"
+                [name]="participantName(auth.user()!.id)"
+                size="sm" />
+              <span class="identity-switch__option-name">{{ participantName(auth.user()!.id) }}</span>
+              <span class="identity-switch__option-kind">личные</span>
+            </button>
+
+            @for (candidate of identities(); track candidate.startupId) {
+              <button
+                class="identity-switch__option"
+                [class.identity-switch__option--active]="isActiveIdentity(candidate.startupId)"
+                type="button"
+                (click)="switchToStartup(candidate)">
+                <app-avatar
+                  [avatarId]="candidate.avatarId"
+                  [name]="candidate.name"
+                  size="sm"
+                  shape="square" />
+                <span class="identity-switch__option-name">{{ candidate.name }}</span>
+                <span class="identity-switch__option-kind">стартап</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <app-chat-conversation-list
+      [conversations]="conversations()"
+      [participants]="participants()"
+      [selected]="selectedConv()"
+      [loading]="loadingConvs()"
+      (select)="selectConv($event)" />
+
+  </div>
 
   <div class="chat-panel">
 
@@ -36,13 +94,21 @@
         [loading]="loadingThread()"
         [loadingMore]="loadingMore()"
         [hasMore]="hasMoreMessages()"
-        [currentUserId]="auth.user()?.id ?? null"
+        [selfId]="activeIdentity()?.id ?? null"
+        [selfType]="activeIdentity()?.type ?? ChatParticipant.User"
         [participants]="participants()"
         (loadMore)="loadOlderMessages()" />
 
-      <app-chat-composer
-        [conversation]="selectedConv()!"
-        (sent)="onSent($event)" />
+      @if (isSelfConversation()) {
+        <p class="chat-panel__blocked">
+          Нельзя написать самому себе — переключите личность, чтобы продолжить диалог.
+        </p>
+      } @else {
+        <app-chat-composer
+          [conversation]="selectedConv()!"
+          [senderStartupId]="senderStartupId()"
+          (sent)="onSent($event)" />
+      }
 
     }
 

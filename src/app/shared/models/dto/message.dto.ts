@@ -1,10 +1,11 @@
-import { Message, ConversationSummary, ChatParticipantType } from '../message.model';
+import { Message, ConversationSummary, ChatParticipantType, ChatIdentity } from '../message.model';
 
 
 export interface MessageDto {
   id: string;
   senderId: string;
   senderType: ChatParticipantType;
+  sentByProfileId: string | null;
   receiverId: string;
   receiverType: ChatParticipantType;
   textContent: string | null;
@@ -40,6 +41,7 @@ export function mapMessageDto(dto: MessageDto): Message {
     id: dto.id,
     senderId: dto.senderId,
     senderType: dto.senderType,
+    sentByProfileId: dto.sentByProfileId ?? null,
     receiverId: dto.receiverId,
     receiverType: dto.receiverType,
     textContent: dto.textContent,
@@ -50,6 +52,20 @@ export function mapMessageDto(dto: MessageDto): Message {
     isRead: dto.isRead,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
+  };
+}
+
+export interface ChatIdentityDto {
+  startupId: string;
+  name: string;
+  avatarId: string | null;
+}
+
+export function mapChatIdentityDto(dto: ChatIdentityDto): ChatIdentity {
+  return {
+    startupId: dto.startupId,
+    name: dto.name,
+    avatarId: dto.avatarId ?? null,
   };
 }
 
