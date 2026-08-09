@@ -6,12 +6,18 @@ import { StartupFilters } from '../../../shared/models/startup.model';
 export class StartupCatalogFacade {
   private readonly store = inject(StartupCatalogStore);
 
-  readonly startups = this.store.startups;
-  readonly loading  = this.store.loading;
-  readonly error    = this.store.error;
-  readonly filters  = this.store.filters;
+  readonly startups    = this.store.startups;
+  readonly loading     = this.store.loading;
+  readonly loadingMore = this.store.loadingMore;
+  readonly hasMore     = this.store.hasMore;
+  readonly error       = this.store.error;
+  readonly filters     = this.store.filters;
 
   load(filters: StartupFilters = {}): void {
     this.store.loadStartups(filters);
+  }
+
+  loadMore(): void {
+    this.store.loadMoreStartups();
   }
 }

@@ -2,11 +2,14 @@
 
   <header class="page__heading">
     <h1 class="page__title page__title--sm">Каталог стартапов</h1>
+    <!-- Раньше здесь было «N стартапов на платформе», но N — это размер
+         загруженной страницы, а не всего каталога. С постраничной загрузкой
+         формулировка стала бы совсем неверной. -->
     <p class="page__sub">
-      @if (!facade.loading()) {
-        {{ facade.startups().length }} стартапов на платформе
-      } @else {
+      @if (facade.loading()) {
         Загрузка…
+      } @else {
+        Показано стартапов: {{ filteredStartups().length }}
       }
     </p>
   </header>
@@ -99,21 +102,27 @@
             </p>
           </div>
 
-          @let metrics = getStartupMetrics(startup.id);
-          @if (metrics.length > 0) {
-            <div class="sr-metrics">
-              @for (m of metrics; track m.id) {
-                <div class="sr-metric-cell">
-                  <span class="sr-metric-val" [style.color]="metricCssColor(m.metricType)">
-                    {{ formatMetric(m) }}
-                  </span>
-                  <span class="sr-metric-lbl">{{ getMetricLabel(m.metricType) }}</span>
-                </div>
-              }
-            </div>
+          <!-- Метрики грузятся по одной строке и только когда строка видна:
+               заглушка ниже и есть цель для on viewport. -->
+          @defer (on viewport) {
+            <app-startup-row-metrics class="sr-metrics" [startupId]="startup.id" />
+          } @placeholder {
+            <div class="sr-metrics"></div>
           }
 
         </a>
+      }
+
+      @if (canLoadMore()) {
+        <div class="catalog-more">
+          <button
+            type="button"
+            class="btn btn--ghost btn--sm"
+            [disabled]="facade.loadingMore()"
+            (click)="loadMore()">
+            {{ facade.loadingMore() ? 'Загрузка…' : 'Показать ещё' }}
+          </button>
+        </div>
       }
     }
 

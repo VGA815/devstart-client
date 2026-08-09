@@ -11,6 +11,8 @@ export const routes: Routes = [
   },
   {
     path: 'startups',
+    // preload: главный переход с лендинга — фильтр-бар и кнопки ведут сюда.
+    data: { preload: true },
     loadComponent: () =>
       import('./features/startups/catalog/startup-catalog.component').then(m => m.StartupCatalogComponent),
   },
@@ -27,6 +29,8 @@ export const routes: Routes = [
   },
   {
     path: 'startups/:id',
+    // preload: из каталога открывают карточку — это второй по частоте переход.
+    data: { preload: true },
     loadComponent: () =>
       import('./features/startups/detail/startup-detail.component').then(m => m.StartupDetailComponent),
   },
@@ -95,6 +99,8 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    // preload: кнопка «Войти» есть в шапке на каждой странице.
+    data: { preload: true },
     loadComponent: () =>
       import('./features/auth/login/login.component').then(m => m.LoginComponent),
   },

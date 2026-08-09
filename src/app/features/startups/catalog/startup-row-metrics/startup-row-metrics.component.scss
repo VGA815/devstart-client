@@ -1,0 +1,32 @@
+// Раскладку самой полосы (.sr-metrics) задаёт родитель — она висит на
+// host-элементе этого компонента и на его @placeholder. Здесь только ячейки.
+
+.sr-metric-cell {
+  flex: 1 0 0;
+  min-width: 0;
+  background: var(--bg3);
+  border: 1px solid var(--bg3);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sr-metric-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-metric-lbl {
+  font-size: 9px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

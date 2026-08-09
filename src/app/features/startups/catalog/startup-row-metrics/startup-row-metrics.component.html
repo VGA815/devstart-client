@@ -1,0 +1,8 @@
+@for (m of metrics(); track m.id) {
+  <div class="sr-metric-cell">
+    <span class="sr-metric-val" [style.color]="metricCssColor(m.metricType)">
+      {{ formatMetric(m) }}
+    </span>
+    <span class="sr-metric-lbl">{{ getMetricLabel(m.metricType) }}</span>
+  </div>
+}

@@ -1,61 +1,32 @@
 import {
-  Component, ChangeDetectionStrategy, inject, OnInit,
-  signal, computed, effect, untracked,
+  Component, ChangeDetectionStrategy, inject, OnInit, signal, computed,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { StartupCatalogFacade } from './startup-catalog.facade';
+import { CATALOG_PAGE_SIZE } from './startup-catalog.store';
+import { StartupRowMetricsComponent } from './startup-row-metrics/startup-row-metrics.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
-import { StartupMetricsService } from '../startup-metrics.service';
 import { StartupStage, StartupLocation } from '../../../shared/models/startup.model';
-import { StartupMetric, MetricType } from '../../../shared/models/startup-metric.model';
 import { CommunityStandardsLevel } from '../../../shared/models/community-standards.model';
-import { getStageBadgeClass, getStageBadgeLabel, getMetricLabel } from '../../../shared/utils/startup.utils';
+import { getStageBadgeClass, getStageBadgeLabel } from '../../../shared/utils/startup.utils';
 import { getCommunityLevelLabel, getCommunityLevelMod } from '../../../shared/utils/community-standards.utils';
 
 const LOCATION_LABELS: Record<StartupLocation, string> = {
   Russia: 'Россия', USA: 'США', China: 'Китай', India: 'Индия', Other: 'Другое',
 };
 
-const METRIC_CSS_COLOR: Record<MetricType, string> = {
-  Revenue:    'var(--green)',
-  Users:      'var(--accent)',
-  GrowthRate: 'var(--green)',
-  Cac:        'var(--yellow)',
-  Lvt:        'var(--accent)',
-  Etc:        'var(--text)',
-  Mrr:        'var(--green)',
-  Mau:        'var(--accent)',
-  MomGrowth:  'var(--green)',
-};
-
-function formatCatalogMetric(m: StartupMetric): string {
-  const v = m.value;
-  if (m.metricType === 'Revenue') {
-    if (v >= 1_000_000) return `₽${(v / 1_000_000).toFixed(1)}M`;
-    if (v >= 1_000)     return `₽${(v / 1_000).toFixed(0)}K`;
-    return `₽${v}`;
-  }
-  if (m.metricType === 'GrowthRate') return `${v}%`;
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000)     return `${(v / 1_000).toFixed(1)}K`;
-  return v.toLocaleString('ru');
-}
-
 @Component({
   selector: 'app-startup-catalog',
   standalone: true,
-  imports: [RouterLink, SkeletonComponent, AvatarComponent],
+  imports: [RouterLink, SkeletonComponent, AvatarComponent, StartupRowMetricsComponent],
   templateUrl: './startup-catalog.component.html',
   styleUrl: './startup-catalog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StartupCatalogComponent implements OnInit {
   protected readonly facade      = inject(StartupCatalogFacade);
-  private readonly metricsSvc    = inject(StartupMetricsService);
   private readonly route         = inject(ActivatedRoute);
   private readonly title         = inject(Title);
   private readonly meta          = inject(Meta);
@@ -67,10 +38,12 @@ export class StartupCatalogComponent implements OnInit {
   readonly selectedCommunity = signal<CommunityStandardsLevel | null>(null);
   readonly searchQuery       = signal('');
 
-
-  readonly metricsMap = signal(new Map<string, StartupMetric[]>());
-  private readonly metricsLoadedIds = new Set<string>();
-
+  /**
+   * Поиск клиентский: у `GET api/startups` нет текстового параметра, искать
+   * можно только по уже загруженным страницам. Пока поле не пустое, прячем
+   * «Показать ещё» — иначе кнопка догружала бы страницы, которых в
+   * отфильтрованном списке может и не быть видно.
+   */
   readonly filteredStartups = computed(() => {
     const q = this.searchQuery().trim().toLowerCase();
     if (!q) return this.facade.startups();
@@ -80,18 +53,9 @@ export class StartupCatalogComponent implements OnInit {
     );
   });
 
-  constructor() {
-    effect(() => {
-      const startups = this.facade.startups();
-      const loading  = this.facade.loading();
-      if (!loading && startups.length > 0) {
-        const missing = startups.filter(s => !this.metricsLoadedIds.has(s.id));
-        if (missing.length > 0) {
-          untracked(() => this.loadMetrics(missing.map(s => s.id)));
-        }
-      }
-    });
-  }
+  readonly canLoadMore = computed(() =>
+    this.facade.hasMore() && this.searchQuery().trim() === ''
+  );
 
   ngOnInit(): void {
     this.title.setTitle('Каталог стартапов — DevStart');
@@ -105,21 +69,6 @@ export class StartupCatalogComponent implements OnInit {
     this.selectedCommunity.set(params.get('community') as CommunityStandardsLevel | null);
 
     this.reload();
-  }
-
-  private loadMetrics(ids: string[]): void {
-    ids.forEach(id => this.metricsLoadedIds.add(id));
-    forkJoin(
-      Object.fromEntries(
-        ids.map(id => [id, this.metricsSvc.getMetrics(id).pipe(catchError(() => of([])))])
-      )
-    ).subscribe(result => {
-      const updated = new Map(this.metricsMap());
-      for (const [id, list] of Object.entries(result)) {
-        updated.set(id, (list as StartupMetric[]).slice(0, 4));
-      }
-      this.metricsMap.set(updated);
-    });
   }
 
   selectStage(value: string): void {
@@ -144,11 +93,15 @@ export class StartupCatalogComponent implements OnInit {
     const loc   = this.selectedLocation();
     const level = this.selectedCommunity();
     this.facade.load({
-      page: 1, pageSize: 50,
+      page: 1, pageSize: CATALOG_PAGE_SIZE,
       ...(stage ? { stage } : {}),
       ...(loc   ? { location: loc } : {}),
       ...(level ? { minCommunityStandards: level } : {}),
     });
+  }
+
+  loadMore(): void {
+    this.facade.loadMore();
   }
 
   onSearch(query: string): void {
@@ -159,18 +112,8 @@ export class StartupCatalogComponent implements OnInit {
     return loc ? (LOCATION_LABELS[loc] ?? loc) : '';
   }
 
-  getStartupMetrics(startupId: string): StartupMetric[] {
-    return this.metricsMap().get(startupId) ?? [];
-  }
-
-  metricCssColor(type: MetricType): string {
-    return METRIC_CSS_COLOR[type] ?? 'var(--text)';
-  }
-
-  protected readonly getStageBadgeClass    = getStageBadgeClass;
-  protected readonly getStageBadgeLabel    = getStageBadgeLabel;
+  protected readonly getStageBadgeClass     = getStageBadgeClass;
+  protected readonly getStageBadgeLabel     = getStageBadgeLabel;
   protected readonly getCommunityLevelLabel = getCommunityLevelLabel;
   protected readonly getCommunityLevelMod   = getCommunityLevelMod;
-  protected readonly getMetricLabel      = getMetricLabel;
-  protected readonly formatMetric        = formatCatalogMetric;
 }

@@ -1,15 +1,22 @@
-import { ApplicationConfig, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import {
+  ApplicationConfig, inject, provideAppInitializer,
+  provideExperimentalZonelessChangeDetection,
+} from '@angular/core';
+import { provideRouter, withComponentInputBinding, withPreloading } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
+import { IdlePreloadStrategy } from './core/routing/idle-preload.strategy';
 import { MatomoService } from './core/analytics/matomo.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withComponentInputBinding()),
+    // Zoneless: zone.js убран и из polyfills в angular.json. Весь рендерящийся
+    // стейт живёт в сигналах, поэтому планировщику хватает их записей —
+    // плоские поля в компонентах приватные и в шаблоны не попадают.
+    provideExperimentalZonelessChangeDetection(),
+    provideRouter(routes, withComponentInputBinding(), withPreloading(IdlePreloadStrategy)),
     provideHttpClient(
       withInterceptors([authInterceptor, errorInterceptor])
     ),
