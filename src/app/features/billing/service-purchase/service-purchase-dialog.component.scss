@@ -1,0 +1,295 @@
+@use '../../../../styles/mixins' as *;
+
+:host { display: contents; }
+
+.sp {
+  // Модалка выбора выше типовой: список объектов должен показывать 4-5 строк без прокрутки.
+  width: min(520px, calc(100vw - 32px));
+
+  &__steps {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  &__step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+
+    // Разделитель между шагами — стрелка перед каждым, кроме первого.
+    & + &::before {
+      content: '→';
+      color: var(--text-dim);
+    }
+
+    &--done   { color: var(--text-muted); }
+    &--active { color: var(--accent); }
+  }
+
+  &__section {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &--scroll {
+      // 4 строки видно сразу, дальше прокрутка внутри списка, а не всей модалки.
+      max-height: 264px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--text-muted);
+  }
+
+  &__hint {
+    margin: 0;
+    padding: 12px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  &__owned {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--green-border);
+    border-radius: var(--radius);
+    background: var(--green-soft);
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--green);
+
+    a {
+      color: inherit;
+      text-decoration: underline;
+      white-space: nowrap;
+    }
+  }
+
+  &__note {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--red);
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+
+    @include mobile {
+      // На узком экране кнопки растягиваются: «Перейти к оплате» — главное действие экрана.
+      flex-direction: row-reverse;
+      justify-content: stretch;
+
+      .btn { flex: 1; }
+    }
+  }
+}
+
+// Строка выбора: и услуга на первом шаге, и объект на втором.
+.sp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  text-align: left;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover:not(:disabled) { border-color: var(--border-strong); }
+
+  &--picked,
+  &--picked:hover:not(:disabled) {
+    background: var(--accent-glow);
+    border-color: var(--accent-border);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__meta {
+    font-size: 12px;
+    line-height: 17px;
+    color: var(--text-muted);
+  }
+
+  // Название объекта короткое, а описание услуги — в две строки: обрезаем только первое.
+  &--target &__meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  &__side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  &__price {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  &__access {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  &__radio {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    transition: var(--transition);
+  }
+
+  &--picked &__radio {
+    border-color: var(--accent);
+    border-width: 5px;
+  }
+}
+
+// Напоминание о выбранной услуге на шаге выбора объекта.
+.sp-recap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+
+  &__name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  &__price {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+}
+
+// Сводка заказа перед редиректом на оплату.
+.sp-summary {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg3);
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+
+    &:first-child { border-top: none; }
+
+    &--total { background: var(--bg2); }
+  }
+
+  &__label {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  &__value {
+    font-size: 13px;
+    color: var(--text);
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &--target {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+  }
+
+  &__total {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+  }
+}

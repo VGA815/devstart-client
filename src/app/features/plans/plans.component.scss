@@ -162,12 +162,6 @@
     @include mobile { grid-template-columns: 1fr; }
   }
 
-  &__error {
-    margin: 0;
-    font-size: 12px;
-    color: var(--red);
-  }
-
   &__note {
     margin: 0;
     font-size: 11px;
@@ -217,47 +211,27 @@
     color: var(--text-muted);
   }
 
-  &__access {
-    margin: 0;
+  // Срок доступа и вид объекта — одной мета-строкой над кнопкой.
+  &__foot {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-family: var(--font-mono);
     font-size: 11px;
-    font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--text-dim);
   }
 
-  &__target {
+  &__target-hint {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
+    align-items: center;
+    gap: 8px;
 
-  &__target-label {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  &__select {
-    width: 100%;
-    padding: 8px 10px;
-    font: inherit;
-    font-size: 13px;
-    color: var(--text);
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm, 4px);
-    transition: var(--transition);
-
-    &:focus-visible {
-      outline: none;
-      border-color: var(--border-strong);
+    &::before {
+      content: '·';
+      color: var(--text-dim);
     }
-  }
-
-  &__hint {
-    margin: 0;
-    font-size: 12px;
-    line-height: 18px;
-    color: var(--text-dim);
   }
 }

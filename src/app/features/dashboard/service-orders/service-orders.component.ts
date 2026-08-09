@@ -9,6 +9,7 @@ import {
   SERVICE_TYPE_LABELS,
   ServiceOrder,
 } from '../../../shared/models/service-order.model';
+import { ServicePurchaseFacade } from '../../billing/service-purchase/service-purchase.facade';
 
 @Component({
   selector: 'app-service-orders',
@@ -20,12 +21,18 @@ import {
 })
 export class ServiceOrdersComponent implements OnInit {
   private readonly serviceSvc = inject(ServiceOrderService);
+  private readonly purchase   = inject(ServicePurchaseFacade);
 
   readonly orders = signal<ServiceOrder[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
 
   constructor() { inject(Title).setTitle('Разовые услуги — DevStart'); }
+
+  /** Диалог покупки с нуля: сначала услуга, затем объект. */
+  buyService(): void {
+    this.purchase.open();
+  }
 
   ngOnInit(): void {
     this.serviceSvc.getMine().pipe(

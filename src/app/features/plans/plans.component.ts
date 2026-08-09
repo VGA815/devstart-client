@@ -4,34 +4,14 @@ import { Title, Meta } from '@angular/platform-browser';
 import { catchError, of } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { SubscriptionService } from '../../shared/services/subscription.service';
-import { ServiceOrderService } from '../../shared/services/service-order.service';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { CurrentSubscription } from '../../shared/models/subscription.model';
-import { StartupService } from '../startups/startup.service';
-import { InvestmentDealService } from '../investors/investment-deal.service';
-import { ServiceCatalogItem, ServiceType } from '../../shared/models/service-order.model';
-
-/** Вариант выбора объекта, для которого покупается услуга. */
-export interface ServiceTargetOption {
-  id: string;
-  name: string;
-}
-
-/** Витринные подписи разовых услуг. Цена и валюта — только из каталога бэка. */
-const SERVICE_META: Record<ServiceType, { title: string; desc: string }> = {
-  ScoringReport: {
-    title: 'Скоринг-отчёт',
-    desc: 'Разовый расчёт скоринга и ориентира диапазона стоимости по данным проекта — без подписки.',
-  },
-  TermSheet: {
-    title: 'Генерация term sheet',
-    desc: 'Документ с предлагаемыми условиями сделки на основе профиля стартапа и скоринга.',
-  },
-  Promotion: {
-    title: 'Продвижение проекта',
-    desc: 'Приоритетное размещение карточки стартапа в каталоге платформы.',
-  },
-};
+import {
+  SERVICE_TYPE_DESCRIPTIONS,
+  SERVICE_TYPE_LABELS,
+  ServiceCatalogItem,
+} from '../../shared/models/service-order.model';
+import { ServicePurchaseFacade, checkoutErrorMessage } from '../billing/service-purchase/service-purchase.facade';
 
 @Component({
   selector: 'app-plans',
@@ -44,9 +24,7 @@ const SERVICE_META: Record<ServiceType, { title: string; desc: string }> = {
 export class PlansComponent implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly billingSvc = inject(SubscriptionService);
-  private readonly serviceSvc = inject(ServiceOrderService);
-  private readonly startupSvc = inject(StartupService);
-  private readonly dealSvc = inject(InvestmentDealService);
+  private readonly purchase = inject(ServicePurchaseFacade);
   private readonly router = inject(Router);
   private readonly titleSvc = inject(Title);
   private readonly metaSvc = inject(Meta);
@@ -58,19 +36,10 @@ export class PlansComponent implements OnInit {
   readonly checkoutError = signal('');
   readonly promoCode = signal('');
 
-  // SC-49: разовые услуги
-  readonly services = signal<ServiceCatalogItem[]>([]);
-  readonly servicesLoading = signal(false);
-  /** Тип услуги, по которой сейчас открывается оплата (блокирует только её кнопку). */
-  readonly serviceBusy = signal<ServiceType | null>(null);
-  readonly serviceError = signal('');
-
-  /** Объекты, для которых можно купить услугу: свои стартапы и свои сделки (как инвестор). */
-  readonly myStartups = signal<ServiceTargetOption[]>([]);
-  readonly myDeals = signal<ServiceTargetOption[]>([]);
-  readonly targetsLoading = signal(false);
-  /** Выбранная цель по каждой услуге. */
-  readonly selectedTarget = signal<Partial<Record<ServiceType, string>>>({});
+  // SC-49: разовые услуги. Каталог, объекты покупки и сам чекаут живут в фасаде — витрина
+  // только показывает цены, а выбор объекта и подтверждение идут в общем диалоге.
+  readonly services = this.purchase.catalog;
+  readonly servicesLoading = this.purchase.catalogLoading;
 
   readonly proFeatures = [
     'Скоринг DevStart по ключевым осям проекта',
@@ -93,12 +62,9 @@ export class PlansComponent implements OnInit {
       content: 'Планы DevStart: Free для базовой работы и Pro для расширенной аналитики стартапов.',
     });
 
-    if (this.auth.user()) {
-      this.loadSubscription();
-      this.loadTargets();
-    }
+    this.purchase.ensureLoaded();
 
-    this.loadServices();
+    if (this.auth.user()) this.loadSubscription();
   }
 
   checkout(): void {
@@ -137,31 +103,9 @@ export class PlansComponent implements OnInit {
     });
   }
 
-  /** Варианты выбора для карточки услуги: свои стартапы, свои сделки либо ничего. */
-  targetOptions(item: ServiceCatalogItem): ServiceTargetOption[] {
-    if (item.targetKind === 'Startup') return this.myStartups();
-    if (item.targetKind === 'Deal') return this.myDeals();
-    return [];
-  }
-
-  targetLabel(item: ServiceCatalogItem): string {
-    return item.targetKind === 'Deal' ? 'Сделка' : 'Стартап';
-  }
-
-  targetOf(item: ServiceCatalogItem): string {
-    return this.selectedTarget()[item.serviceType] ?? '';
-  }
-
-  onTargetChange(item: ServiceCatalogItem, value: string): void {
-    this.selectedTarget.update(current => ({ ...current, [item.serviceType]: value }));
-    this.serviceError.set('');
-  }
-
-  /** Кнопка активна, только когда услуге есть что покупать: цель выбрана либо не требуется. */
-  canBuy(item: ServiceCatalogItem): boolean {
-    if (this.serviceBusy() !== null) return false;
-    if (!this.auth.user()) return true;
-    return item.targetKind === 'None' || this.targetOf(item) !== '';
+  /** Открывает диалог покупки на шаге выбора объекта — карточка уже задала услугу. */
+  buyService(item: ServiceCatalogItem): void {
+    this.purchase.open({ serviceType: item.serviceType });
   }
 
   /** Срок доступа в человекочитаемом виде; 0 в каталоге означает бессрочно. */
@@ -169,89 +113,24 @@ export class PlansComponent implements OnInit {
     return item.accessDays > 0 ? `Доступ на ${item.accessDays} дн.` : 'Бессрочно';
   }
 
-  /** Заводит заказ разовой услуги и уводит на оплату ЮKassa. */
-  buyService(item: ServiceCatalogItem): void {
-    if (!this.auth.user()) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    if (this.serviceBusy()) return;
-
-    const targetId = item.targetKind === 'None' ? null : this.targetOf(item);
-    if (item.targetKind !== 'None' && !targetId) {
-      this.serviceError.set(`Выберите, для чего покупается услуга (${this.targetLabel(item).toLowerCase()}).`);
-      return;
-    }
-
-    this.serviceBusy.set(item.serviceType);
-    this.serviceError.set('');
-
-    this.serviceSvc.checkout(item.serviceType, targetId).subscribe({
-      next: order => {
-        if (order.confirmationUrl) {
-          // Страница возврата у подписки и услуг одна — оставляем метку, чем закончился заход.
-          this.serviceSvc.rememberPending(order.paymentId, item.serviceType);
-          window.location.assign(order.confirmationUrl);
-          return;
-        }
-        this.serviceBusy.set(null);
-        this.serviceError.set('Не удалось открыть оплату. Попробуйте ещё раз.');
-      },
-      error: err => {
-        this.serviceBusy.set(null);
-        this.serviceError.set(checkoutErrorMessage(err?.error?.title));
-      },
-    });
+  /** Подсказка, для чего покупается услуга: видно до открытия диалога. */
+  targetHint(item: ServiceCatalogItem): string | null {
+    if (item.targetKind === 'Startup') return 'Для одного проекта';
+    if (item.targetKind === 'Deal')    return 'Для одной сделки';
+    return null;
   }
 
   serviceTitle(item: ServiceCatalogItem): string {
-    return SERVICE_META[item.serviceType].title;
+    return SERVICE_TYPE_LABELS[item.serviceType];
   }
 
   serviceDesc(item: ServiceCatalogItem): string {
-    return SERVICE_META[item.serviceType].desc;
+    return SERVICE_TYPE_DESCRIPTIONS[item.serviceType];
   }
 
   formatPrice(item: ServiceCatalogItem): string {
     const amount = new Intl.NumberFormat('ru-RU').format(item.price);
     return `${amount} ${item.currency === 'RUB' ? '₽' : item.currency}`;
-  }
-
-  /**
-   * Подтягивает объекты для выбора. Скоринг-отчёт на чужой стартап покупается с карточки этого
-   * стартапа — здесь предлагаем только свои, иначе список был бы во весь каталог платформы.
-   */
-  private loadTargets(): void {
-    const userId = this.auth.user()?.id;
-    if (!userId) return;
-
-    this.targetsLoading.set(true);
-
-    this.startupSvc.getStartupsByProfile(userId).pipe(
-      catchError(() => of([]))
-    ).subscribe(startups => {
-      this.myStartups.set(startups.map(s => ({ id: s.id, name: s.name })));
-      this.targetsLoading.set(false);
-    });
-
-    this.dealSvc.getByInvestor(userId).pipe(
-      catchError(() => of([]))
-    ).subscribe(deals => {
-      this.myDeals.set(deals.map(d => ({ id: d.id, name: d.startupName })));
-    });
-  }
-
-  private loadServices(): void {
-    this.servicesLoading.set(true);
-
-    // Каталог пустой или недоступный — секцию просто не показываем: подписка не должна страдать.
-    this.serviceSvc.getCatalog().pipe(
-      catchError(() => of([] as ServiceCatalogItem[]))
-    ).subscribe(items => {
-      this.services.set(items);
-      this.servicesLoading.set(false);
-    });
   }
 
   private loadSubscription(): void {
@@ -277,30 +156,4 @@ export class PlansComponent implements OnInit {
       year: 'numeric',
     }).format(new Date(value));
   }
-}
-
-// Ветвимся по `title` из Problem Details — это стабильный код ошибки, в отличие от detail.
-const CHECKOUT_ERRORS: Record<string, string> = {
-  'PromoCodes.InvalidCode':          'Промокод недействителен.',
-  'PromoCodes.Inactive':             'Промокод больше не активен.',
-  'PromoCodes.NotYetValid':          'Промокод ещё не начал действовать.',
-  'PromoCodes.Expired':              'Срок действия промокода истёк.',
-  'PromoCodes.GlobalLimitReached':   'Лимит использований промокода исчерпан.',
-  'PromoCodes.AlreadyRedeemedByUser':'Вы уже использовали этот промокод.',
-  'PromoCodes.PlanMismatch':         'Промокод не подходит для этого плана.',
-  // SC-42: достигнут годовой лимит дохода НПД — новые платные операции недоступны до конца года.
-  'Payments.IncomeLimitReached':     'Приём оплат временно приостановлен до конца календарного года. ' +
-                                     'Напишите в поддержку — подскажем, когда оплата снова откроется.',
-  'Payments.CustomerEmailMissing':   'Для оплаты нужен подтверждённый email в профиле.',
-  'Payments.ProviderUnavailable':    'Платёжный сервис временно недоступен. Попробуйте позже.',
-  'ServiceOrders.UnknownServiceType':'Эта услуга сейчас недоступна.',
-  // SC-49: услуга покупается для конкретного объекта, и не для любого.
-  'ServiceOrders.TargetRequired':    'Выберите, для чего покупается услуга.',
-  'ServiceOrders.TargetNotFound':    'Объект не найден или недоступен.',
-  'ServiceOrders.TargetNotAllowed':  'Эту услугу можно купить только для своего проекта или своей сделки.',
-  'ServiceOrders.AlreadyOwned':      'Доступ уже оплачен и действует — второй раз платить не нужно.',
-};
-
-function checkoutErrorMessage(title?: string): string {
-  return (title && CHECKOUT_ERRORS[title]) ?? 'Не удалось открыть оплату. Попробуйте ещё раз.';
 }

@@ -46,6 +46,22 @@
     line-height: 1.5;
     color: var(--text-muted);
   }
+
+  // Подписка и разовая покупка — два равноправных выхода из замка.
+  &__actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  @include mobile {
+    flex-direction: column;
+    align-items: flex-start;
+
+    &__actions { width: 100%; }
+    &__actions .btn { flex: 1; }
+  }
 }
 
 .sc-hero {

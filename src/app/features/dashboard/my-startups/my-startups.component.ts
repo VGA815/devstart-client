@@ -12,6 +12,8 @@ import { StartupTeamCardComponent } from './team-card/team-card.component';
 import { StartupDocsCardComponent } from './docs-card/docs-card.component';
 import { StartupCapTableCardComponent } from './cap-table-card/cap-table-card.component';
 import { StartupCommunityCardComponent } from './community-card/community-card.component';
+import { ServicePurchaseFacade } from '../../billing/service-purchase/service-purchase.facade';
+import { toStartupTarget } from '../../billing/service-purchase/service-purchase.store';
 
 @Component({
   selector: 'app-my-startups',
@@ -33,6 +35,7 @@ import { StartupCommunityCardComponent } from './community-card/community-card.c
 export class MyStartupsComponent implements OnInit {
   private readonly auth       = inject(AuthService);
   private readonly startupSvc = inject(StartupService);
+  private readonly purchase   = inject(ServicePurchaseFacade);
 
   readonly loading       = signal(true);
   readonly startups      = signal<Startup[]>([]);
@@ -71,4 +74,14 @@ export class MyStartupsComponent implements OnInit {
     this.myRole.set(null);
   }
 
+  /**
+   * Открывает диалог покупки с уже выбранным проектом: остаётся указать услугу.
+   * Список услуг фасад сузит до тех, что покупаются для стартапа.
+   */
+  buyService(): void {
+    const startup = this.startup();
+    if (!startup) return;
+
+    this.purchase.open({ target: toStartupTarget(startup) });
+  }
 }

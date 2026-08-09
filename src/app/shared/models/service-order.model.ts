@@ -45,10 +45,43 @@ export interface ServiceOrder {
   expiresAt: string | null;
 }
 
+/**
+ * Объект, для которого покупается услуга, в виде, пригодном для показа в списке выбора.
+ * Собирается из своих стартапов и своих сделок — общая форма нужна, чтобы диалог покупки
+ * не ветвился на «стартап или сделка» в разметке.
+ */
+export interface ServiceTarget {
+  id: string;
+  kind: Exclude<ServiceTargetKind, 'None'>;
+  name: string;
+  /** Логотип стартапа; у сделки его нет — аватар рисуется инициалами. */
+  avatarId: string | null;
+  /** Вторая строка: стадия стартапа либо сумма и статус сделки. */
+  meta: string;
+  /** Проект остановлен — покупать услугу для него бессмысленно, строка блокируется. */
+  inactive: boolean;
+}
+
 export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
   ScoringReport: 'Скоринг-отчёт',
   TermSheet:     'Генерация term sheet',
-  Promotion:     'Продвижение',
+  Promotion:     'Продвижение проекта',
+};
+
+/**
+ * Витринные описания услуг. Каталог бэка присылает своё `description`, но оно техническое —
+ * на страницу планов и в диалог покупки идёт этот текст. Цена, срок и вид объекта — только из каталога.
+ */
+export const SERVICE_TYPE_DESCRIPTIONS: Record<ServiceType, string> = {
+  ScoringReport: 'Разовый расчёт скоринга и ориентира диапазона стоимости по данным проекта — без подписки.',
+  TermSheet:     'Документ с предлагаемыми условиями сделки на основе профиля стартапа и скоринга.',
+  Promotion:     'Приоритетное размещение карточки стартапа в каталоге платформы.',
+};
+
+/** Подпись объекта услуги в родительном падеже — для подсказок и заголовков шага выбора. */
+export const SERVICE_TARGET_LABELS: Record<Exclude<ServiceTargetKind, 'None'>, string> = {
+  Startup: 'Проект',
+  Deal:    'Сделка',
 };
 
 export const SERVICE_ORDER_STATUS_LABELS: Record<ServiceOrderStatus, string> = {

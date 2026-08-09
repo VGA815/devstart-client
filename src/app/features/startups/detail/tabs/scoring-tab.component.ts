@@ -1,8 +1,11 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 import { ScoreFactor } from '../../../../shared/models/startup-score.model';
+import { ServiceOrder } from '../../../../shared/models/service-order.model';
 import { formatMoney, formatRelativeTime } from '../../../../shared/utils/format.utils';
+import { ServicePurchaseFacade } from '../../../billing/service-purchase/service-purchase.facade';
+import { toStartupTarget } from '../../../billing/service-purchase/service-purchase.store';
 import {
   formatHintTargets, formatPoints, formatScoreValue,
   getComponentLabel, getHintLabel, getInputLabel,
@@ -48,6 +51,38 @@ const METHOD_LABELS: Record<string, string> = {
 })
 export class ScoringTabComponent {
   protected readonly facade = inject(StartupDetailFacade);
+  private readonly purchase = inject(ServicePurchaseFacade);
+
+  /**
+   * Скоринг закрыт подпиской, но тот же разбор продаётся разово именно по этому проекту (SC-49).
+   * Каталог и свои заказы подтягиваем только при заходе на вкладку — на остальных экранах
+   * карточки стартапа эти запросы не нужны.
+   */
+  constructor() {
+    this.purchase.ensureLoaded();
+  }
+
+  /** Цена разового отчёта; пусто — каталог ещё не загружен либо услуга отключена. */
+  protected readonly reportPrice = computed<string>(() => {
+    const item = this.purchase.catalog().find(i => i.serviceType === 'ScoringReport');
+    if (!item) return '';
+    const amount = new Intl.NumberFormat('ru-RU').format(item.price);
+    return `${amount} ${item.currency === 'RUB' ? '₽' : item.currency}`;
+  });
+
+  /** Отчёт по этому проекту уже оплачен — предлагать покупку второй раз нельзя. */
+  protected readonly reportAccess = computed<ServiceOrder | null>(() => {
+    const startup = this.facade.startup();
+    return startup ? this.purchase.accessFor('ScoringReport', startup.id) : null;
+  });
+
+  /** Цель предвыбрана — диалог открывается сразу на сводке заказа. */
+  protected buyReport(): void {
+    const startup = this.facade.startup();
+    if (!startup) return;
+
+    this.purchase.open({ serviceType: 'ScoringReport', target: toStartupTarget(startup) });
+  }
 
   protected readonly formatMoney         = formatMoney;
   protected readonly formatRelativeTime  = formatRelativeTime;

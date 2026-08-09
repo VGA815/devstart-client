@@ -1,7 +1,7 @@
 <div class="page">
   <header class="page__heading">
     <h1 class="page__title page__title--sm">Разовые услуги</h1>
-    <a class="btn btn--ghost btn--sm" routerLink="/plans">Купить услугу →</a>
+    <button class="btn btn--primary btn--sm" type="button" (click)="buyService()">+ Купить услугу</button>
   </header>
 
   @if (loading()) {
@@ -12,7 +12,11 @@
     </div>
   } @else if (orders().length === 0) {
     <div class="empty-state empty-state--card">
-      <p class="empty-state__sub">Вы ещё не покупали разовые услуги.</p>
+      <p class="empty-state__title">Вы ещё не покупали разовые услуги</p>
+      <p class="empty-state__sub">
+        Скоринг-отчёт, term sheet и продвижение проекта оплачиваются по отдельности — подписка не нужна.
+      </p>
+      <button class="btn btn--primary btn--sm" type="button" (click)="buyService()">Выбрать услугу</button>
     </div>
   } @else {
     <div class="order-list">

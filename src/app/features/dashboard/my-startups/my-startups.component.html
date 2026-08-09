@@ -42,6 +42,8 @@
           [class.badge--green]="roleBadge().mod === 'member'">{{ roleBadge().label }}</span>
       </div>
       <div class="ms-header__actions">
+        <!-- Разовые услуги (SC-49): проект уже выбран, в диалоге остаётся указать услугу. -->
+        <button class="btn btn--ghost-accent" type="button" (click)="buyService()">⚡ Услуги</button>
         <a class="btn btn--ghost" [routerLink]="['/startups', s.id, 'edit']">✏ Редактировать</a>
         <a class="btn btn--primary" [routerLink]="['/startups', s.id]">Просмотр →</a>
       </div>

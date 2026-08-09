@@ -7,8 +7,26 @@
       <div class="sd-pro-lock__body">
         <span class="sd-pro-lock__title">Скоринг доступен в DevStart Pro</span>
         <span class="sd-pro-lock__text">Подписка открывает скоринг проекта, расчётный ориентир диапазона стоимости и расширенные метрики для внешних зрителей.</span>
+        @if (reportAccess()) {
+          <span class="sd-pro-lock__text">
+            Скоринг-отчёт по этому проекту уже оплачен — доступ появится после обновления страницы.
+          </span>
+        } @else if (reportPrice()) {
+          <!-- SC-49: разовая покупка отчёта именно по этому проекту — без подписки. -->
+          <span class="sd-pro-lock__text">
+            Нужен разбор только этого проекта? Купите скоринг-отчёт отдельно.
+          </span>
+        }
       </div>
-      <a class="btn btn--primary btn--sm" routerLink="/plans">Подключить Pro</a>
+
+      <div class="sd-pro-lock__actions">
+        <a class="btn btn--primary btn--sm" routerLink="/plans">Подключить Pro</a>
+        @if (!reportAccess() && reportPrice(); as price) {
+          <button class="btn btn--ghost-accent btn--sm" type="button" (click)="buyReport()">
+            Отчёт за {{ price }}
+          </button>
+        }
+      </div>
     </div>
   } @else {
     <div class="empty-state empty-state--card"><p class="empty-state__title">Скоринг недоступен — заполните данные стартапа</p></div>

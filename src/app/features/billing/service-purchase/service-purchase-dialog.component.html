@@ -1,0 +1,195 @@
+@if (facade.isOpen()) {
+  <div class="modal-backdrop" (click)="facade.close()"></div>
+
+  <div class="modal sp" #dialog tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="sp-title">
+    <div class="modal__header">
+      <span class="modal__title" id="sp-title">
+        @switch (facade.step()) {
+          @case ('service') { Разовые услуги }
+          @case ('target')  { Выбор объекта }
+          @case ('confirm') { Подтверждение заказа }
+        }
+      </span>
+      <button class="modal__close" type="button" (click)="facade.close()" aria-label="Закрыть">×</button>
+    </div>
+
+    <!-- Прогресс показываем, только когда шагов действительно больше одного. -->
+    @if (facade.canGoBack() || facade.step() !== 'confirm') {
+      <div class="sp__steps">
+        <span class="sp__step" [class.sp__step--done]="facade.step() !== 'service'"
+          [class.sp__step--active]="facade.step() === 'service'">Услуга</span>
+        <span class="sp__step" [class.sp__step--done]="facade.step() === 'confirm'"
+          [class.sp__step--active]="facade.step() === 'target'">Объект</span>
+        <span class="sp__step" [class.sp__step--active]="facade.step() === 'confirm'">Оплата</span>
+      </div>
+    }
+
+    <div class="modal__body">
+      @if (facade.pending()) {
+        <!-- Каталог ещё не пришёл: вид объекта у услуги неизвестен, шаг рисовать рано. -->
+        <app-skeleton height="72px" border-radius="6px" />
+        <app-skeleton height="72px" border-radius="6px" />
+      } @else {
+
+      @switch (facade.step()) {
+
+        <!-- ── Шаг 1: какая услуга ───────────────────────────────────────────── -->
+        @case ('service') {
+          @if (!facade.loading() && facade.serviceOptions().length === 0) {
+            <div class="empty-state empty-state--compact">
+              <p class="empty-state__title">Разовые услуги сейчас недоступны</p>
+              <p class="empty-state__sub">Попробуйте позже или напишите в поддержку.</p>
+            </div>
+          }
+
+          <div class="sp__list" role="radiogroup" aria-labelledby="sp-title">
+            @for (option of facade.serviceOptions(); track option.serviceType) {
+              <button class="sp-row" type="button" role="radio" [attr.aria-checked]="false"
+                (click)="facade.pickService(option.serviceType)">
+                <span class="sp-row__body">
+                  <span class="sp-row__name">{{ serviceTitle(option.serviceType) }}</span>
+                  <span class="sp-row__meta">{{ serviceDesc(option.serviceType) }}</span>
+                </span>
+                <span class="sp-row__side">
+                  <span class="sp-row__price">{{ price(option) }}</span>
+                  <span class="sp-row__access">{{ access(option) }}</span>
+                </span>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- ── Шаг 2: для какого объекта ─────────────────────────────────────── -->
+        @case ('target') {
+          @let item = facade.item()!;
+
+          <div class="sp-recap">
+            <span class="sp-recap__name">{{ serviceTitle(item.serviceType) }}</span>
+            <span class="sp-recap__price">{{ price(item) }}</span>
+          </div>
+
+          <span class="sp__section">{{ targetStepTitle(item) }}</span>
+
+          @if (facade.showSearch()) {
+            <input class="field__input field__input--sm" type="search"
+              placeholder="Поиск по названию"
+              [value]="facade.query()"
+              (input)="facade.setQuery($any($event.target).value)"
+              aria-label="Поиск по названию" />
+          }
+
+          @if (facade.allRows().length === 0) {
+            <div class="empty-state empty-state--compact">
+              @if (item.targetKind === 'Deal') {
+                <p class="empty-state__title">Нет сделок</p>
+                <p class="empty-state__sub">Term sheet генерируется для вашей сделки — она появится здесь после подтверждения инвестиции.</p>
+              } @else {
+                <p class="empty-state__title">Нет проектов</p>
+                <p class="empty-state__sub">Услуга покупается для конкретного стартапа. Скоринг-отчёт по чужому проекту оплачивается с его карточки.</p>
+              }
+            </div>
+          } @else if (facade.rows().length === 0) {
+            <p class="sp__hint">Ничего не найдено по запросу «{{ facade.query() }}».</p>
+          } @else {
+            <div class="sp__list sp__list--scroll" role="radiogroup" [attr.aria-label]="targetStepTitle(item)">
+              @for (row of facade.rows(); track trackRow($index, row)) {
+                <button class="sp-row sp-row--target" type="button" role="radio"
+                  [class.sp-row--picked]="facade.isPicked(row.target)"
+                  [attr.aria-checked]="facade.isPicked(row.target)"
+                  [disabled]="rowDisabled(row)"
+                  (click)="facade.pickTarget(row.target)">
+                  <app-avatar [avatarId]="row.target.avatarId" [name]="row.target.name"
+                    size="sm" shape="square" />
+                  <span class="sp-row__body">
+                    <span class="sp-row__name">{{ row.target.name }}</span>
+                    <span class="sp-row__meta">{{ row.target.meta }}</span>
+                  </span>
+                  @if (row.access) {
+                    <span class="badge badge--mono badge--green">{{ accessUntil(row.access) }}</span>
+                  } @else if (row.target.inactive) {
+                    <span class="badge badge--mono">Недоступен</span>
+                  } @else {
+                    <span class="sp-row__radio" aria-hidden="true"></span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        }
+
+        <!-- ── Шаг 3: сводка заказа ──────────────────────────────────────────── -->
+        @case ('confirm') {
+          @if (facade.item(); as item) {
+            <div class="sp-summary">
+              <div class="sp-summary__row">
+                <span class="sp-summary__label">Услуга</span>
+                <span class="sp-summary__value">{{ serviceTitle(item.serviceType) }}</span>
+              </div>
+
+              @if (facade.target(); as target) {
+                <div class="sp-summary__row">
+                  <span class="sp-summary__label">{{ targetLabel(target) }}</span>
+                  <span class="sp-summary__value sp-summary__value--target">
+                    <app-avatar [avatarId]="target.avatarId" [name]="target.name" size="sm" shape="square" />
+                    {{ target.name }}
+                  </span>
+                </div>
+              }
+
+              <div class="sp-summary__row">
+                <span class="sp-summary__label">Доступ</span>
+                <span class="sp-summary__value">{{ access(item) }}</span>
+              </div>
+
+              <div class="sp-summary__row sp-summary__row--total">
+                <span class="sp-summary__label">К оплате</span>
+                <span class="sp-summary__total">{{ price(item) }}</span>
+              </div>
+            </div>
+
+            <p class="sp__desc">{{ serviceDesc(item.serviceType) }}</p>
+
+            @if (facade.alreadyOwned(); as owned) {
+              <p class="sp__owned">
+                Доступ уже оплачен и действует{{ owned.expiresAt ? ' — ' + accessUntil(owned).toLowerCase() : '' }}.
+                Платить второй раз не нужно.
+                <a routerLink="/dashboard/service-orders" (click)="facade.close()">Мои заказы →</a>
+              </p>
+            }
+
+            <p class="sp__note">
+              Услуга оказывается платформой от своего имени по фиксированной цене. Чек направляется
+              на email, указанный в профиле. Скоринг-отчёт и term sheet содержат расчётный ориентир
+              диапазона стоимости и не являются отчётом об оценке (ФЗ-135) или инвестиционной
+              рекомендацией (ФЗ-39).
+            </p>
+          }
+        }
+      }
+
+      }
+
+      @if (facade.error()) {
+        <p class="sp__error" role="alert">{{ facade.error() }}</p>
+      }
+    </div>
+
+    @if (facade.step() !== 'service' && !facade.pending()) {
+      <div class="sp__footer">
+        @if (facade.canGoBack()) {
+          <button class="btn btn--ghost" type="button" (click)="facade.back()">← Назад</button>
+        }
+
+        @if (facade.step() === 'target') {
+          <button class="btn btn--primary" type="button"
+            [disabled]="!facade.canProceed()" (click)="facade.toConfirm()">Далее</button>
+        } @else {
+          <button class="btn btn--primary" type="button"
+            [disabled]="!facade.canPay()" (click)="facade.pay()">
+            {{ facade.busy() ? 'Открываем оплату…' : 'Перейти к оплате' }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+}
