@@ -23,6 +23,12 @@ const TYPE_MAP: Record<number, NotificationType> = {
   18: 'CommunityStandardsIncomplete',
   19: 'IncomeLimitWarning',
   20: 'ServiceOrderFulfilled',
+  21: 'ExpertCollaborationRequestExpired',
+  22: 'ExpertCollaborationInvitationReceived',
+  23: 'ExpertCollaborationInvitationWithdrawn',
+  24: 'ExpertCollaborationInvitationAccepted',
+  25: 'ExpertCollaborationInvitationRejected',
+  26: 'ExpertCollaborationInvitationExpired',
 };
 
 // Shape returned by GET /api/notifications and GET /api/notifications/:id

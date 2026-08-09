@@ -5,7 +5,9 @@ import { catchError, of } from 'rxjs';
 import { ExpertCollaborationRequestService } from '../../experts/expert-collaboration-request.service';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { CollabRequestRowComponent } from '../../../shared/components/collab-request-row/collab-request-row.component';
-import { ExpertCollaborationRequest } from '../../../shared/models/expert-collaboration-request.model';
+import {
+  CollaborationRequestStatus, ExpertCollaborationRequest,
+} from '../../../shared/models/expert-collaboration-request.model';
 import { optimisticPatch } from '../../../shared/utils/optimistic.utils';
 
 @Component({
@@ -30,36 +32,32 @@ export class IncomingCollaborationRequestsComponent implements OnChanges {
 
   private load(): void {
     this.loading.set(true);
+    // The API already returns Pending first, newest first within each group.
     this.svc.getByStartup(this.startupId)
       .pipe(catchError(() => of([] as ExpertCollaborationRequest[])))
       .subscribe(list => {
-        const ordered = [...list].sort((a, b) => {
-          if (a.status === 'Pending' && b.status !== 'Pending') return -1;
-          if (b.status === 'Pending' && a.status !== 'Pending') return 1;
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
-        this.requests.set(ordered);
+        this.requests.set(list);
         this.loading.set(false);
       });
   }
 
   accept(req: ExpertCollaborationRequest): void {
-    optimisticPatch(
-      this.requests,
-      r => r.id === req.id,
-      { status: 'Accepted' },
-      this.svc.accept(req.id),
-      () => this.load(),
-    );
+    this.patch(req, 'Accepted', this.svc.accept(req.id));
   }
 
   reject(req: ExpertCollaborationRequest): void {
-    optimisticPatch(
-      this.requests,
-      r => r.id === req.id,
-      { status: 'Rejected' },
-      this.svc.reject(req.id),
-      () => this.load(),
-    );
+    this.patch(req, 'Rejected', this.svc.reject(req.id));
+  }
+
+  withdraw(req: ExpertCollaborationRequest): void {
+    this.patch(req, 'Withdrawn', this.svc.withdraw(req.id));
+  }
+
+  private patch(
+    req: ExpertCollaborationRequest,
+    status: CollaborationRequestStatus,
+    request: ReturnType<ExpertCollaborationRequestService['accept']>,
+  ): void {
+    optimisticPatch(this.requests, r => r.id === req.id, { status }, request, () => this.load());
   }
 }

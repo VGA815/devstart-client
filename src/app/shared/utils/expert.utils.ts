@@ -54,8 +54,13 @@ const COLLAB_STATUS_LABELS: Record<CollaborationRequestStatus, string> = {
   Accepted:  'Принято',
   Rejected:  'Отклонено',
   Withdrawn: 'Отозвано',
+  Expired:   'Истекло',
 };
 
 export function getCollaborationStatusLabel(status: CollaborationRequestStatus): string {
   return COLLAB_STATUS_LABELS[status] ?? status;
 }
+
+export const ALL_COLLABORATION_STATUSES: CollaborationRequestStatus[] = [
+  'Pending', 'Accepted', 'Rejected', 'Withdrawn', 'Expired',
+];

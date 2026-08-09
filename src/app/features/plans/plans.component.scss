@@ -3,13 +3,14 @@
 :host { display: block; }
 
 .plans-page {
-  padding: 48px 170px 72px;
+  @include page-shell;
+  padding-block: 48px 72px;
   display: flex;
   flex-direction: column;
   gap: 28px;
 
-  @include tablet { padding: 40px; }
-  @include mobile { padding: 28px 16px 48px; }
+  @include tablet { padding-block: 40px; }
+  @include mobile { padding-block: 28px 48px; }
 
   &__header {
     max-width: 680px;

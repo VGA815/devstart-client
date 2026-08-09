@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 .status-page {
   display: flex;
   align-items: center;
@@ -52,10 +54,21 @@
     gap: 8px;
     width: 100%;
     margin-top: 6px;
+
+    // Поле ввода + «Отправить снова» (nowrap, ~145px) в одну строку требуют
+    // ~400px карточки — на узких экранах кладём их в столбец
+    @include mobile-sm {
+      flex-direction: column;
+
+      .status-page__btn { justify-content: center; }
+    }
   }
 
   &__input {
     flex: 1;
+    // Иначе intrinsic-ширина input'а не даёт flex-элементу сжаться и строка
+    // распирает карточку шире вьюпорта
+    min-width: 0;
     height: 38px;
     padding: 0 12px;
     border-radius: var(--radius);

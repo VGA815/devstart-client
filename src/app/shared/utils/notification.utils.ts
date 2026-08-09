@@ -22,6 +22,12 @@ const ICON: Record<NotificationType, string> = {
   ExpertCollaborationRequestAccepted: '🤝',
   ExpertCollaborationRequestRejected: '✕',
   ExpertCollaborationRequestWithdrawn:'↩',
+  ExpertCollaborationRequestExpired:  '⌛',
+  ExpertCollaborationInvitationReceived:  '🎓',
+  ExpertCollaborationInvitationAccepted:  '🤝',
+  ExpertCollaborationInvitationRejected:  '✕',
+  ExpertCollaborationInvitationWithdrawn: '↩',
+  ExpertCollaborationInvitationExpired:   '⌛',
   SubscriptionExpiringSoon:           '⏳',
   SubscriptionExpired:                '⌛',
   PaymentRefunded:                    '💸',
@@ -85,15 +91,25 @@ export function getNotificationLink(notification: Notification): NotificationLin
     case 'PaymentRefunded':
       return { commands: ['/dashboard/subscriptions'] };
 
-    // Приходят основателям стартапа — входящие заявки экспертов лежат в «Моих стартапах».
+    // Заявка открыта экспертом: «получено/отозвано» видит стартап, ответ — сам эксперт.
     case 'ExpertCollaborationRequestReceived':
     case 'ExpertCollaborationRequestWithdrawn':
       return { commands: ['/dashboard/my-startups'] };
 
-    // Приходят эксперту — это его исходящие заявки.
     case 'ExpertCollaborationRequestAccepted':
     case 'ExpertCollaborationRequestRejected':
+    case 'ExpertCollaborationRequestExpired':
       return { commands: ['/dashboard/collaboration-requests'] };
+
+    // Приглашение открыто стартапом — стороны меняются местами.
+    case 'ExpertCollaborationInvitationReceived':
+    case 'ExpertCollaborationInvitationWithdrawn':
+      return { commands: ['/dashboard/collaboration-requests'] };
+
+    case 'ExpertCollaborationInvitationAccepted':
+    case 'ExpertCollaborationInvitationRejected':
+    case 'ExpertCollaborationInvitationExpired':
+      return { commands: ['/dashboard/my-startups'] };
 
     case 'CommunityStandardsIncomplete':
       return ref

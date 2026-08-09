@@ -1,7 +1,17 @@
 @use 'variables' as *;
 
+// Компоненты подключают только mixins — пробрасываем токены брейкпоинтов
+// ($bp-*, $page-max, $page-gutter), чтобы им не требовался второй @use.
+@forward 'variables';
+
 @mixin mobile {
   @media (max-width: #{$bp-md - 1}) { @content; }
+}
+
+// Узкие телефоны (< 480px): применять поверх `mobile` там, где строка из двух
+// контролов перестаёт помещаться даже после общих мобильных правок.
+@mixin mobile-sm {
+  @media (max-width: #{$bp-sm - 1}) { @content; }
 }
 
 @mixin tablet {
@@ -10,6 +20,34 @@
 
 @mixin desktop {
   @media (min-width: $bp-lg) { @content; }
+}
+
+// Всё, что уже `mobile`, и планшетный диапазон вдобавок. Нужен там, где
+// планшет по доступному месту ближе к телефону, чем к десктопу: сайдбар
+// дашборда/админки и таблицы, которые в узкой колонке разворачиваются в карточки.
+@mixin below-desktop {
+  @media (max-width: #{$bp-lg - 1}) { @content; }
+}
+
+// Диапазон, в котором сайдбар уже виден, но места ещё мало (1024–1279).
+@mixin desktop-narrow {
+  @media (min-width: $bp-lg) and (max-width: #{$bp-xl - 1}) { @content; }
+}
+
+// Шапка в компактном виде (бургер вместо меню) — см. $bp-nav.
+@mixin nav-compact {
+  @media (max-width: #{$bp-nav - 1}) { @content; }
+}
+
+// Горизонтальные поля страницы: контент центрируется и упирается в те же
+// границы, что и .nav__inner, поэтому заголовок страницы всегда выровнен по
+// логотипу — на любой ширине экрана. Вертикальные отступы задаёт сама страница.
+@mixin page-shell {
+  max-width: $page-max;
+  margin-inline: auto;
+  padding-inline: $page-gutter;
+
+  @include mobile { padding-inline: $page-gutter-mobile; }
 }
 
 @mixin flex-center {

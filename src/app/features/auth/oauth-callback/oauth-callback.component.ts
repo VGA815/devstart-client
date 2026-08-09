@@ -76,17 +76,30 @@ export class OAuthCallbackComponent implements OnInit {
   }
 }
 
+/**
+ * Разбирает ответ `GET api/auth/oauth/{provider}/callback` — это наш собственный эндпоинт, он
+ * отвечает через `CustomResults.Problem`, который кладёт код ошибки в `title` ProblemDetails.
+ * Отказ самого провайдера приходит query-параметром `error` и разбирается в `ngOnInit`, сюда он
+ * не попадает.
+ */
 function mapErrorMessage(err: HttpErrorResponse): string {
-  const code = err.error?.code ?? err.error?.error?.code ?? '';
+  const code = err.error?.title ?? '';
   switch (code) {
-    case 'EmailMatchesUnverifiedAccount':
+    case 'ExternalLogins.EmailMatchesUnverifiedAccount':
       return 'Аккаунт с таким email уже существует, но email не подтверждён. ' +
              'Войдите паролем и привяжите этот аккаунт в настройках.';
-    case 'AlreadyLinkedToAnotherUser':
+    case 'ExternalLogins.AlreadyLinkedToAnotherUser':
       return 'Этот внешний аккаунт уже привязан к другому пользователю.';
-    case 'Invalid':
-    case 'Expired':
+    // Один код на «недействителен, истёк или уже использован».
+    case 'ExternalLogins.InvalidState':
       return 'Сессия авторизации устарела. Попробуйте войти ещё раз.';
+    case 'ExternalLogins.EmailRequired':
+      return 'Провайдер не передал email — он обязателен для регистрации. ' +
+             'Откройте доступ к email у провайдера или зарегистрируйтесь по паролю.';
+    case 'ExternalLogins.ProviderError':
+      return 'Провайдер вернул ошибку. Попробуйте войти ещё раз.';
+    case 'Users.Banned':
+      return 'Этот аккаунт заблокирован.';
     default:
       return 'Не удалось завершить вход. Попробуйте снова.';
   }

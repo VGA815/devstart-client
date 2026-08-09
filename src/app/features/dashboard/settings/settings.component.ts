@@ -250,8 +250,9 @@ export class SettingsComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.oauthBusy.set(null);
-        const code = err.error?.code ?? err.error?.error?.code ?? '';
-        if (code === 'CannotUnlinkLastCredential') {
+        // CustomResults.Problem puts the domain error code in the ProblemDetails `title`.
+        const code = err.error?.title ?? '';
+        if (code === 'ExternalLogins.CannotUnlinkLastCredential') {
           this.oauthMessage.set({
             kind: 'err',
             text: 'Нельзя отвязать единственный способ входа. Сначала задайте пароль.',
@@ -376,11 +377,18 @@ export class SettingsComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.passwordLoading.set(false);
-        const code = err.error?.code ?? err.error?.error?.code ?? '';
-        if (code === 'InvalidCurrentPassword' || err.status === 400) {
+        // CustomResults.Problem puts the domain error code in the ProblemDetails `title`. Matching on
+        // the code rather than the status matters here: a failed validation is also a 400, and the
+        // old status fallback reported it as a wrong current password.
+        const code = err.error?.title ?? '';
+        if (code === 'Users.InvalidCurrentPassword') {
           this.passwordError.set('Текущий пароль неверен.');
-        } else if (code === 'PasswordNotSet' || err.status === 409) {
+        } else if (code === 'Users.PasswordNotSet') {
           this.passwordError.set('Пароль ещё не задан — войдите через провайдера и используйте «Забыли пароль?», чтобы создать его.');
+        } else if (code === 'Validation.General') {
+          this.passwordError.set('Проверьте поля: новый пароль должен быть не короче 8 символов.');
+        } else if (err.status === 429) {
+          this.passwordError.set('Слишком много попыток. Попробуйте через минуту.');
         } else {
           this.passwordError.set('Не удалось изменить пароль. Попробуйте позже.');
         }

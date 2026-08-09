@@ -3,14 +3,15 @@
 :host { display: block; }
 
 .profile-page {
-  padding: 32px 170px 48px;
+  @include page-shell;
+  padding-block: 32px 48px;
   display: grid;
   grid-template-columns: 1fr 300px;
   gap: 24px;
   align-items: start;
 
-  @include tablet { padding: 24px 40px; grid-template-columns: 1fr 260px; }
-  @include mobile { padding: 20px 16px; grid-template-columns: 1fr; }
+  @include tablet { padding-block: 24px; grid-template-columns: 1fr 260px; }
+  @include mobile { padding-block: 20px; grid-template-columns: 1fr; }
 }
 
 .profile-main,

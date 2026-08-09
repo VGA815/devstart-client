@@ -1,23 +1,28 @@
 @use '../../../styles/mixins' as *;
 
 .dash-layout {
+  @include page-shell;
+  padding-block: 32px;
   display: flex;
   gap: 24px;
-  padding: 32px 170px;
   align-items: flex-start;
 
-  @include tablet { padding: 24px 40px; }
-  @include mobile {
+  @include tablet { padding-block: 24px; }
+
+  // Сайдбар уходит в drawer уже с планшета: при фиксированных 240px колонка
+  // контента на 768–1023px оказывалась уже, чем на телефоне.
+  @include below-desktop {
     flex-direction: column;
-    padding: 12px;
     gap: 12px;
   }
+
+  @include mobile { padding-block: 12px; }
 }
 
 .dash-mobile-bar {
   display: none;
 
-  @include mobile {
+  @include below-desktop {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -43,7 +48,7 @@
 .dash-overlay {
   display: none;
 
-  @include mobile {
+  @include below-desktop {
     display: block;
     position: fixed;
     inset: 0;
@@ -66,7 +71,10 @@
   flex-direction: column;
   gap: 4px;
 
-  @include mobile {
+  // 1024–1279: сайдбар уже виден, но места ещё мало — отдаём 40px контенту
+  @include desktop-narrow { width: 200px; }
+
+  @include below-desktop {
     position: fixed;
     top: 0;
     left: 0;
@@ -84,7 +92,7 @@
   }
 
   &--open {
-    @include mobile { transform: translateX(0); }
+    @include below-desktop { transform: translateX(0); }
   }
 
   &__group {

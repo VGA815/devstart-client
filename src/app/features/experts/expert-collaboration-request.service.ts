@@ -1,12 +1,20 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ExpertCollaborationRequest } from '../../shared/models/expert-collaboration-request.model';
+import {
+  ExpertCollaborationRequest, CollaborationRequestStatus,
+} from '../../shared/models/expert-collaboration-request.model';
 import {
   ExpertCollaborationRequestDto, mapExpertCollaborationRequestDto,
-  CreateExpertCollaborationRequestDto,
+  CreateExpertCollaborationRequestDto, STATUS_NUM,
 } from '../../shared/models/dto/expert-collaboration-request.dto';
+
+export interface CollabRequestPage {
+  status?: CollaborationRequestStatus;
+  pageNumber?: number;
+  pageSize?: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ExpertCollaborationRequestService {
@@ -24,15 +32,17 @@ export class ExpertCollaborationRequestService {
     );
   }
 
-  getByExpertProfile(expertProfileId: string): Observable<ExpertCollaborationRequest[]> {
+  getByExpertProfile(expertProfileId: string, page: CollabRequestPage = {}): Observable<ExpertCollaborationRequest[]> {
     return this.http.get<ExpertCollaborationRequestDto[]>(
-      `${this.api}/expert-profiles/${expertProfileId}/expert-collaboration-requests`
+      `${this.api}/expert-profiles/${expertProfileId}/expert-collaboration-requests`,
+      { params: toParams(page) },
     ).pipe(map(list => list.map(mapExpertCollaborationRequestDto)));
   }
 
-  getByStartup(startupId: string): Observable<ExpertCollaborationRequest[]> {
+  getByStartup(startupId: string, page: CollabRequestPage = {}): Observable<ExpertCollaborationRequest[]> {
     return this.http.get<ExpertCollaborationRequestDto[]>(
-      `${this.api}/startups/${startupId}/expert-collaboration-requests`
+      `${this.api}/startups/${startupId}/expert-collaboration-requests`,
+      { params: toParams(page) },
     ).pipe(map(list => list.map(mapExpertCollaborationRequestDto)));
   }
 
@@ -47,4 +57,12 @@ export class ExpertCollaborationRequestService {
   withdraw(requestId: string): Observable<void> {
     return this.http.post<void>(`${this.base}/${requestId}/withdraw`, {});
   }
+}
+
+function toParams({ status, pageNumber, pageSize }: CollabRequestPage): HttpParams {
+  let params = new HttpParams();
+  if (status)     params = params.set('status', STATUS_NUM[status]);
+  if (pageNumber) params = params.set('pageNumber', pageNumber);
+  if (pageSize)   params = params.set('pageSize', pageSize);
+  return params;
 }

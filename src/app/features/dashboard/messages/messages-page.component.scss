@@ -5,13 +5,16 @@
   display: grid;
   grid-template-columns: 280px 1fr;
 
-  margin-right: -170px;
+  // Гасим правое поле страницы, чтобы панель чата доходила до края контейнера
+  margin-right: -$page-gutter;
   height: calc(100vh - 120px); // 56px nav + 32px top + 32px bottom
   overflow: hidden;
 
+  // С планшета над контентом появляется кнопка открытия сайдбара (41px)
+  // и отступ под ней (12px) — иначе панель уезжает за нижний край экрана.
   @include tablet {
-    margin-right: -40px;
-    height: calc(100vh - 104px); // 56px nav + 24px top + 24px bottom
+    margin-right: -$page-gutter;
+    height: calc(100vh - 157px); // 56 nav + 24 сверху + 24 снизу + 41 бар + 12 gap
     grid-template-columns: 240px 1fr;
   }
 

@@ -20,6 +20,14 @@ export type NotificationType =
   | 'ExpertCollaborationRequestAccepted'
   | 'ExpertCollaborationRequestRejected'
   | 'ExpertCollaborationRequestWithdrawn'
+  | 'ExpertCollaborationRequestExpired'
+  // Зеркало Request*-семейства для приглашений, которые открыл стартап. Тип разведён, чтобы по
+  // нему одному было понятно, на чьей стороне получатель, и клик вёл в нужный дашборд.
+  | 'ExpertCollaborationInvitationReceived'
+  | 'ExpertCollaborationInvitationWithdrawn'
+  | 'ExpertCollaborationInvitationAccepted'
+  | 'ExpertCollaborationInvitationRejected'
+  | 'ExpertCollaborationInvitationExpired'
   | 'SubscriptionExpiringSoon'
   | 'SubscriptionExpired'
   | 'PaymentRefunded'

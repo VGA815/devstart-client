@@ -134,6 +134,9 @@ export class ExpertDetailComponent implements OnInit {
 
     this.collabSvc.create({
       startup_id:               v.startupId!,
+      // Without this the API would read the request as "the caller applies as an expert" and reject
+      // it — the invited expert is the profile being viewed, not the founder filling in the form.
+      expert_profile_id:        this.id,
       collaboration_type:       TYPE_NUM[v.collaborationType as CollaborationType],
       message:                  v.message?.trim() || undefined,
       proposed_hours_per_week:  v.hoursPerWeek ?? undefined,
@@ -146,7 +149,8 @@ export class ExpertDetailComponent implements OnInit {
       },
       error: err => {
         this.inviteSending.set(false);
-        const code = err?.error?.code ?? err?.error?.error?.code ?? '';
+        // CustomResults.Problem puts the error code in the ProblemDetails `title`.
+        const code = err?.error?.title ?? '';
         this.inviteError.set(this.resolveErrorMessage(code, err?.status));
       },
     });
@@ -155,19 +159,23 @@ export class ExpertDetailComponent implements OnInit {
   private resolveErrorMessage(code: string, status?: number): string {
     switch (code) {
       case 'ExpertCollaborationRequests.AlreadyExistsForStartup':
-        return 'Активная заявка для этого стартапа уже есть.';
-      case 'ExpertCollaborationRequests.ExpertProfileRequired':
-        return 'У вас ещё нет профиля эксперта. Создайте его в дашборде.';
+        return 'Активная заявка с этим экспертом уже есть.';
+      case 'ExpertCollaborationRequests.ExpertProfileNotFound':
+        return 'У этого пользователя нет профиля эксперта.';
+      case 'ExpertCollaborationRequests.ExpertAlreadyMember':
+        return 'Этот эксперт уже в команде стартапа.';
       case 'ExpertCollaborationRequests.CannotApplyToOwnStartup':
-        return 'Нельзя отправить заявку в свой собственный стартап.';
-      case 'ExpertCollaborationRequests.InvalidProposedHours':
-        return 'Часы в неделю должны быть от 1 до 168.';
-      case 'ExpertCollaborationRequests.InvalidProposedRate':
-        return 'Ставка должна быть больше нуля.';
+        // Reached when the caller is only a plain member: the API then reads the call as an
+        // application rather than an invitation.
+        return 'Приглашать экспертов может основатель или администратор стартапа.';
+      case 'ExpertCollaborationRequests.StartupUnavailable':
+        return 'Стартап сейчас недоступен для заявок.';
+      case 'ExpertCollaborationRequests.RejectionCooldownActive':
+        return 'Недавно по этой паре был отказ. Повторить можно будет позже.';
       default:
-        return status === 401
-          ? 'Войдите, чтобы отправить заявку'
-          : 'Не удалось отправить заявку. Попробуйте позже.';
+        if (status === 401) return 'Войдите, чтобы отправить заявку';
+        if (status === 429) return 'Слишком много заявок подряд. Попробуйте через минуту.';
+        return 'Не удалось отправить заявку. Попробуйте позже.';
     }
   }
 

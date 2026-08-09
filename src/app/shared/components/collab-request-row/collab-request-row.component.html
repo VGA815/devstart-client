@@ -4,12 +4,13 @@
   }
 
   <div class="crr__info">
-    @if (direction === 'incoming') {
+    @if (viewerSide === 'startup') {
       <a class="crr__name" [routerLink]="['/experts', request.expertProfileId]">{{ request.expertDisplayName }}</a>
     } @else {
       <a class="crr__name" [routerLink]="['/startups', request.startupId]">{{ request.startupName }}</a>
     }
     <span class="crr__sub">{{ getTypeLabel(request.collaborationType) }}</span>
+    <span class="crr__sub">{{ isOurs ? 'Исходящая' : 'Входящая' }}</span>
     @if (request.message) {
       <span class="crr__msg">«{{ request.message }}»</span>
     }
@@ -23,15 +24,13 @@
   }
   <span class="crr__time">{{ formatDate(request.createdAt) }}</span>
 
-  @if (request.status === 'Pending') {
-    @if (direction === 'incoming') {
-      <div class="crr__actions">
-        <button class="crr-btn crr-btn--accept" type="button" (click)="accept.emit(request)">Принять</button>
-        <button class="crr-btn crr-btn--decline" type="button" (click)="reject.emit(request)">Отклонить</button>
-      </div>
-    } @else {
-      <button class="crr-btn crr-btn--decline" type="button" (click)="withdraw.emit(request)">Отозвать</button>
-    }
+  @if (canRespond) {
+    <div class="crr__actions">
+      <button class="crr-btn crr-btn--accept" type="button" (click)="accept.emit(request)">Принять</button>
+      <button class="crr-btn crr-btn--decline" type="button" (click)="reject.emit(request)">Отклонить</button>
+    </div>
+  } @else if (canWithdraw) {
+    <button class="crr-btn crr-btn--decline" type="button" (click)="withdraw.emit(request)">Отозвать</button>
   } @else {
     <span class="crr__status crr__status--{{ request.status.toLowerCase() }}">
       {{ getStatusLabel(request.status) }}

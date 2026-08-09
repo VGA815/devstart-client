@@ -1,5 +1,6 @@
 import {
   ExpertCollaborationRequest, CollaborationType, CollaborationRequestStatus,
+  CollaborationRequestInitiator,
 } from '../expert-collaboration-request.model';
 
 const TYPE_MAP: Record<number, CollaborationType> = {
@@ -21,6 +22,20 @@ const STATUS_MAP: Record<number, CollaborationRequestStatus> = {
   1: 'Accepted',
   2: 'Rejected',
   3: 'Withdrawn',
+  4: 'Expired',
+};
+
+export const STATUS_NUM: Record<CollaborationRequestStatus, number> = {
+  Pending:   0,
+  Accepted:  1,
+  Rejected:  2,
+  Withdrawn: 3,
+  Expired:   4,
+};
+
+const INITIATOR_MAP: Record<number, CollaborationRequestInitiator> = {
+  0: 'Expert',
+  1: 'Startup',
 };
 
 
@@ -30,6 +45,7 @@ export interface ExpertCollaborationRequestDto {
   expertDisplayName: string;
   startupId: string;
   startupName: string;
+  initiator: number;
   collaborationType: number;
   message: string | null;
   proposedHoursPerWeek: number | null;
@@ -41,6 +57,8 @@ export interface ExpertCollaborationRequestDto {
 
 export interface CreateExpertCollaborationRequestDto {
   startup_id:               string;
+  /** Required only when a startup invites an expert; omitted when an expert applies. */
+  expert_profile_id?:       string;
   collaboration_type:       number;
   message?:                 string;
   proposed_hours_per_week?: number;
@@ -54,6 +72,7 @@ export function mapExpertCollaborationRequestDto(dto: ExpertCollaborationRequest
     expertDisplayName:    dto.expertDisplayName,
     startupId:            dto.startupId,
     startupName:          dto.startupName,
+    initiator:            INITIATOR_MAP[dto.initiator] ?? 'Expert',
     collaborationType:    TYPE_MAP[dto.collaborationType] ?? 'Advisor',
     message:              dto.message,
     proposedHoursPerWeek: dto.proposedHoursPerWeek,

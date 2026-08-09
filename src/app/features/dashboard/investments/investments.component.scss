@@ -306,8 +306,9 @@
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
-// На мобайле таблица превращается в стопку карточек «лейбл: значение»
-@include mobile {
+// На мобайле и планшете таблица превращается в стопку карточек «лейбл: значение»:
+// в узкой колонке столбцы не помещаются, а .inv-section их обрезает (overflow: hidden)
+@include below-desktop {
   .inv-table {
     display: block;
 

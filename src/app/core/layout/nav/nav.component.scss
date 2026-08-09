@@ -9,15 +9,18 @@
   border-bottom: 1px solid var(--border);
   height: 56px;
 
+  // Те же границы, что и у @mixin page-shell: логотип шапки стоит ровно над
+  // заголовком страницы на любой ширине.
   &__inner {
-    max-width: 1280px;
+    max-width: $page-max;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 $page-gutter;
     height: 100%;
     @include flex-between;
     gap: 24px;
 
-    @include mobile { padding: 0 16px; gap: 12px; }
+    @include nav-compact { gap: 12px; }
+    @include mobile { padding: 0 $page-gutter-mobile; }
   }
 
   &__logo {
@@ -58,7 +61,15 @@
     align-items: center;
     gap: 4px;
     flex: 1;
-    @include mobile { display: none; }
+
+    // Страховка на случай лишнего пункта (напр. «Админ») у самой границы
+    // $bp-nav: меню скроллится, а не выталкивает кнопки авторизации за экран.
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+
+    @include nav-compact { display: none; }
   }
 
   &__link {
@@ -98,7 +109,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    @include mobile { display: none; }
+    @include nav-compact { display: none; }
   }
 
   // Видна на всех брейкпоинтах: .nav__actions, в отличие от .nav__auth,
@@ -126,7 +137,7 @@
       border-color: var(--border-strong);
     }
 
-    @include mobile {
+    @include nav-compact {
       width: 36px;
       height: 36px;
       svg { width: 17px; height: 17px; }
@@ -174,7 +185,7 @@
     cursor: pointer;
     transition: var(--transition);
 
-    @include mobile { display: inline-flex; }
+    @include nav-compact { display: inline-flex; }
 
     span {
       display: block;
@@ -199,7 +210,7 @@
   &__mobile {
     display: none;
 
-    @include mobile {
+    @include nav-compact {
       display: flex;
       flex-direction: column;
       gap: 2px;
