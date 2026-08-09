@@ -194,7 +194,8 @@
   position: sticky;              // остаётся под nav при скролле длинных вкладок
   top: 56px;
   z-index: 10;
-  background: var(--bg);
+  background: var(--glass);      // тот же приём, что у .nav — иначе плоский блок «режет» контент при скролле
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
   scrollbar-width: none; // Firefox

@@ -78,6 +78,16 @@
             }
           </div>
 
+          <label class="tfa-remember">
+            <input type="checkbox" formControlName="rememberDevice" />
+            <span>
+              Запомнить это устройство
+              <span class="tfa-remember__hint">
+                На этом браузере код больше не понадобится. Не отмечайте на чужом компьютере.
+              </span>
+            </span>
+          </label>
+
           <button class="btn btn--primary btn--lg btn--block" type="submit"
             [disabled]="submitting() || (mode() === 'setup' && !otpAuthUri())">
             @if (submitting()) { Проверяем… } @else { Подтвердить }

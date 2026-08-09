@@ -30,19 +30,30 @@ export interface TwoFactorSetupChallengeDto {
   pendingToken: string;
 }
 
+// "Remember this device" secret, handed over exactly once after a successful second factor.
+// Never part of TokenPairDto: that type is also the /auth/refresh response, where it means nothing.
+export interface TrustedDeviceGrantDto {
+  deviceToken: string;
+  deviceId:    string;
+  expiresAt:   string;
+}
+
 // Envelope returned by /users/login, /auth/oauth/{p}/callback and /auth/2fa/verify.
-// Exactly one of the four fields is non-null.
+// Exactly one of tokens/consent/twoFactor/twoFactorSetup is non-null; trustedDevice is not part of
+// that choice — it rides along with `tokens` or `consent` when the user asked to be remembered.
 export interface AuthResultDto {
   tokens:          TokenPairDto | null;
   consent:         ConsentChallengeDto | null;
   twoFactor?:      TwoFactorChallengeDto | null;
   twoFactorSetup?: TwoFactorSetupChallengeDto | null;
+  trustedDevice?:  TrustedDeviceGrantDto | null;
 }
 
 // POST /auth/2fa/verify — snake_case request. `code` is a 6-digit TOTP or a recovery code.
 export interface TwoFactorVerifyRequestDto {
-  pending_token: string;
-  code:          string;
+  pending_token:    string;
+  code:             string;
+  remember_device?: boolean;
 }
 
 // POST /auth/2fa/setup (login-time mandatory enrollment) → secret + otpauth URI + a fresh pending token.

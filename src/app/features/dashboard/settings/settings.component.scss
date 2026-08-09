@@ -7,6 +7,76 @@
   &--row { gap: 8px; }
 }
 
+// 2FA strictness, sessions and trusted devices
+.sec-policy,
+.sec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+
+  &__title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+  }
+}
+
+.sec-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+
+  input { margin-top: 3px; flex-shrink: 0; }
+
+  &__hint {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+}
+
+.sec-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  &__name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  &__meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+}
+
 // 2FA section
 .tfa-note {
   margin: 0;

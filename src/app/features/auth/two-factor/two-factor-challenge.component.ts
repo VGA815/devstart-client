@@ -40,8 +40,12 @@ export class TwoFactorChallengeComponent implements OnInit {
   // Where to go once the challenge chain is finished (tokens or consent may follow).
   private nextOutcome: AuthOutcome | null = null;
 
+  // Unchecked by default, and shown unconditionally: this screen is pre-authentication, so reading
+  // the account's 2FA policy here would leak per-account state to an anonymous caller. When the
+  // policy is "код при каждом входе" the server simply ignores the flag.
   readonly form = this.fb.group({
     code: ['', [Validators.required, Validators.minLength(6)]],
+    rememberDevice: [false],
   });
 
   ngOnInit(): void {
@@ -78,17 +82,19 @@ export class TwoFactorChallengeComponent implements OnInit {
     if (this.submitting()) return;
     this.error.set(null);
 
-    const code = this.form.getRawValue().code!.trim();
+    const { code: rawCode, rememberDevice } = this.form.getRawValue();
+    const code = rawCode!.trim();
+    const remember = rememberDevice ?? false;
 
     if (this.mode() === 'verify') {
-      this.auth.verifyTwoFactor(code).subscribe({
+      this.auth.verifyTwoFactor(code, remember).subscribe({
         next: outcome => this.continueWith(outcome),
         error: (err: HttpErrorResponse) => this.handleError(err),
       });
       return;
     }
 
-    this.auth.confirmTwoFactorLoginSetup(code).subscribe({
+    this.auth.confirmTwoFactorLoginSetup(code, remember).subscribe({
       next: ({ recoveryCodes, outcome }) => {
         // Park the outcome and show the codes — they are visible exactly once.
         this.nextOutcome = outcome;

@@ -5,6 +5,8 @@ import { ConsentItemDto } from './consent.dto';
 export interface LoginRequestDto {
   email: string;
   password: string;
+  /** "Remember this device" token from a previous 2FA verification; lets the server skip the code. */
+  device_token?: string | null;
 }
 
 export interface ForgotPasswordRequestDto {

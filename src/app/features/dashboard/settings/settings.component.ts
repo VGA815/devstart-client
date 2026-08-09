@@ -1,22 +1,32 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { OAuthService } from '../../../core/auth/oauth.service';
 import { TwoFactorService } from '../../../core/auth/two-factor.service';
+import { SessionsService } from '../../../core/auth/sessions.service';
+import { DeviceTrustStore } from '../../../core/auth/device-trust.store';
 import { UserPreferencesService } from '../../../core/preferences/user-preferences.service';
 import { ProfileService } from '../../startups/profile.service';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { QrCodeComponent } from '../../../shared/components/qr-code/qr-code.component';
 import { OAuthProvider } from '../../../shared/models/dto/auth.dto';
+import {
+  SessionDto,
+  TrustedDeviceDto,
+  SecuritySettingsDto,
+  TwoFactorStrictness,
+  UpdateSecuritySettingsRequestDto,
+} from '../../../shared/models/dto/session.dto';
 import { ThemePreference } from '../../../shared/models/user-preference.model';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [ReactiveFormsModule, AvatarUploadComponent, QrCodeComponent],
+  imports: [ReactiveFormsModule, DatePipe, AvatarUploadComponent, QrCodeComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +37,9 @@ export class SettingsComponent implements OnInit {
   protected readonly auth         = inject(AuthService);
   private readonly oauth          = inject(OAuthService);
   private readonly twoFactorSvc   = inject(TwoFactorService);
+  // Named with a trailing underscore: `sessions` is the signal holding the list.
+  private readonly sessions_      = inject(SessionsService);
+  private readonly deviceTrust    = inject(DeviceTrustStore);
   private readonly profileService = inject(ProfileService);
   protected readonly prefs        = inject(UserPreferencesService);
 
@@ -56,6 +69,155 @@ export class SettingsComponent implements OnInit {
   readonly tfaCodesCopied   = signal(false);
 
   readonly twoFactorEnabled = computed(() => this.auth.user()?.twoFactorEnabled ?? false);
+
+  // ——— Строгость 2FA, сессии и доверенные устройства ———
+
+  readonly security        = signal<SecuritySettingsDto | null>(null);
+  readonly securityBusy    = signal(false);
+  readonly securityError   = signal<string | null>(null);
+  readonly securitySuccess = signal<string | null>(null);
+
+  readonly sessions       = signal<SessionDto[]>([]);
+  readonly devices        = signal<TrustedDeviceDto[]>([]);
+  readonly sessionsLoaded = signal(false);
+  readonly sessionsBusy   = signal(false);
+  readonly sessionsError  = signal<string | null>(null);
+
+  /** Id of this browser's own trusted device, so its row can be labelled. */
+  readonly currentDeviceId = computed(() => this.deviceTrust.deviceId());
+
+  readonly strictnessOptions: { value: TwoFactorStrictness; label: string; hint: string }[] = [
+    {
+      value: 0,
+      label: 'Запрашивать код при каждом входе',
+      hint: 'Самый строгий режим. Доверенные устройства не используются.',
+    },
+    {
+      value: 1,
+      label: 'Не спрашивать код на доверенном устройстве',
+      hint: 'После подтверждения кода браузер запоминается на выбранный срок.',
+    },
+    {
+      value: 2,
+      label: 'Не спрашивать код, пока я в той же сети',
+      hint: 'Как выше, но при смене сети код запросят снова. На мобильном интернете IP меняется часто — код будет запрашиваться почти каждый раз.',
+    },
+  ];
+
+  loadSecurity(): void {
+    this.sessions_.getSecurity().subscribe({
+      next: settings => this.security.set(settings),
+      error: () => this.securityError.set('Не удалось загрузить настройки безопасности.'),
+    });
+  }
+
+  loadSessionsAndDevices(): void {
+    this.sessionsBusy.set(true);
+    this.sessionsError.set(null);
+
+    forkJoin({
+      sessions: this.sessions_.listSessions(),
+      devices:  this.sessions_.listDevices(),
+    }).subscribe({
+      next: ({ sessions, devices }) => {
+        this.sessions.set(sessions);
+        this.devices.set(devices);
+        this.sessionsLoaded.set(true);
+        this.sessionsBusy.set(false);
+      },
+      error: () => {
+        this.sessionsBusy.set(false);
+        this.sessionsError.set('Не удалось загрузить сессии и устройства.');
+      },
+    });
+  }
+
+  setStrictness(value: TwoFactorStrictness): void {
+    const current = this.security();
+    if (!current || this.securityBusy()) return;
+    this.saveSecurity({ ...current, strictness: value });
+  }
+
+  setTrustDuration(value: string): void {
+    const current = this.security();
+    const days = Number(value);
+    if (!current || this.securityBusy() || Number.isNaN(days)) return;
+    this.saveSecurity({ ...current, trustDurationDays: days });
+  }
+
+  toggleNewDeviceEmail(): void {
+    const current = this.security();
+    if (!current || this.securityBusy()) return;
+    this.saveSecurity({ ...current, notifyOnNewDeviceLogin: !current.notifyOnNewDeviceLogin });
+  }
+
+  private saveSecurity(next: SecuritySettingsDto): void {
+    this.securityBusy.set(true);
+    this.securityError.set(null);
+    this.securitySuccess.set(null);
+
+    const body: UpdateSecuritySettingsRequestDto = {
+      strictness:                 next.strictness,
+      trust_duration_days:        next.trustDurationDays,
+      notify_on_new_device_login: next.notifyOnNewDeviceLogin,
+    };
+
+    this.sessions_.updateSecurity(body).subscribe({
+      next: () => {
+        this.securityBusy.set(false);
+        this.security.set(next);
+        this.securitySuccess.set('Настройки сохранены.');
+        setTimeout(() => this.securitySuccess.set(null), 3000);
+        // A policy change revokes every trusted device server-side; reflect that in the list.
+        if (this.sessionsLoaded()) this.loadSessionsAndDevices();
+      },
+      error: () => {
+        this.securityBusy.set(false);
+        this.securityError.set('Не удалось сохранить настройки безопасности.');
+      },
+    });
+  }
+
+  revokeSession(sessionId: string): void {
+    if (this.sessionsBusy()) return;
+    this.sessionsBusy.set(true);
+    this.sessions_.revokeSession(sessionId).subscribe({
+      next: () => { this.sessionsBusy.set(false); this.loadSessionsAndDevices(); },
+      error: () => this.failSessions(),
+    });
+  }
+
+  revokeOtherSessions(): void {
+    if (this.sessionsBusy()) return;
+    this.sessionsBusy.set(true);
+    this.sessions_.revokeAllSessions(false).subscribe({
+      next: () => { this.sessionsBusy.set(false); this.loadSessionsAndDevices(); },
+      error: () => this.failSessions(),
+    });
+  }
+
+  revokeDevice(deviceId: string): void {
+    if (this.sessionsBusy()) return;
+    this.sessionsBusy.set(true);
+    this.sessions_.revokeDevice(deviceId).subscribe({
+      next: () => { this.sessionsBusy.set(false); this.loadSessionsAndDevices(); },
+      error: () => this.failSessions(),
+    });
+  }
+
+  revokeAllDevices(): void {
+    if (this.sessionsBusy()) return;
+    this.sessionsBusy.set(true);
+    this.sessions_.revokeAllDevices().subscribe({
+      next: () => { this.sessionsBusy.set(false); this.loadSessionsAndDevices(); },
+      error: () => this.failSessions(),
+    });
+  }
+
+  private failSessions(): void {
+    this.sessionsBusy.set(false);
+    this.sessionsError.set('Не удалось выполнить операцию. Попробуйте позже.');
+  }
 
   linkProvider(provider: OAuthProvider): void {
     if (this.oauthBusy()) return;
@@ -256,6 +418,8 @@ export class SettingsComponent implements OnInit {
         this.tfaRecoveryCodes.set(codes);
         this.tfaCode.set('');
         this.refreshUser();
+        // Enabling 2FA revokes the other sessions, so the list on screen is already stale.
+        this.loadSessionsAndDevices();
       },
       error: (err: HttpErrorResponse) => this.failTfa(err),
     });
@@ -276,6 +440,8 @@ export class SettingsComponent implements OnInit {
         this.tfaSuccess.set('Двухфакторная аутентификация отключена.');
         setTimeout(() => this.tfaSuccess.set(null), 4000);
         this.refreshUser();
+        // Disabling 2FA revokes every session and trusted device server-side.
+        this.loadSessionsAndDevices();
       },
       error: (err: HttpErrorResponse) => this.failTfa(err),
     });
@@ -379,6 +545,8 @@ export class SettingsComponent implements OnInit {
     // Preferences may not exist yet — the service keeps prefsLoaded() false and
     // the form stays disabled rather than PUTting a guessed notifications flag.
     this.prefs.load(user.id).subscribe({ error: () => { /* defaults stay */ } });
+    this.loadSecurity();
+    this.loadSessionsAndDevices();
     this.profileService.getProfile(user.id).subscribe({
       next: profile => {
         this.profileExists = true;

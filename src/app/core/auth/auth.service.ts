@@ -24,6 +24,7 @@ import {
   TwoFactorSetupCompleteResponseDto,
 } from '../../shared/models/dto/auth.dto';
 import { ConsentItemDto } from '../../shared/models/dto/consent.dto';
+import { DeviceTrustStore } from './device-trust.store';
 
 const ACCESS_KEY  = 'devstart_access';
 const REFRESH_KEY = 'devstart_refresh';
@@ -50,8 +51,9 @@ export interface PendingTwoFactor {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http   = inject(HttpClient);
-  private readonly router = inject(Router);
+  private readonly http        = inject(HttpClient);
+  private readonly router      = inject(Router);
+  private readonly deviceTrust = inject(DeviceTrustStore);
 
   private readonly _user    = signal<User | null>(null);
   private readonly _loading = signal(false);
@@ -98,9 +100,11 @@ export class AuthService {
   // forms, so opt out of the global /403 redirect.
   login(body: LoginRequestDto): Observable<AuthOutcome> {
     this._loading.set(true);
+    // A trusted-device token, when this browser has one, lets the server skip the 2FA challenge.
+    const withDevice: LoginRequestDto = { ...body, device_token: this.deviceTrust.token() };
     return this.http.post<AuthResultDto>(
       `${environment.apiUrl}/users/login`,
-      body,
+      withDevice,
       { context: new HttpContext().set(BYPASS_403, true) }
     ).pipe(
       switchMap(res => this.processAuthResult(res)),
@@ -141,6 +145,10 @@ export class AuthService {
     if (bare.accessToken) return this.toAuthenticated(bare);
 
     const env = res as AuthResultDto;
+    // Before the branches below: the grant accompanies `tokens` OR `consent`, since the second
+    // factor is proven either way.
+    if (env.trustedDevice) this.deviceTrust.save(env.trustedDevice);
+
     if (env.tokens) return this.toAuthenticated(env.tokens);
     if (env.twoFactor) {
       this._pendingTwoFactor.set({ kind: 'verify', pendingToken: env.twoFactor.pendingToken });
@@ -201,12 +209,16 @@ export class AuthService {
 
   // Finish a 2FA-gated login with a 6-digit TOTP or a recovery code. The response is
   // another auth envelope — tokens, or a consent challenge that still has to be satisfied.
-  verifyTwoFactor(code: string): Observable<AuthOutcome> {
+  verifyTwoFactor(code: string, rememberDevice = false): Observable<AuthOutcome> {
     const pending = this._pendingTwoFactor();
     if (!pending) return throwError(() => new Error('No pending 2FA challenge'));
 
     this._loading.set(true);
-    const body: TwoFactorVerifyRequestDto = { pending_token: pending.pendingToken, code };
+    const body: TwoFactorVerifyRequestDto = {
+      pending_token: pending.pendingToken,
+      code,
+      remember_device: rememberDevice,
+    };
     return this.http.post<AuthResultDto>(`${environment.apiUrl}/auth/2fa/verify`, body).pipe(
       switchMap(res => this.processAuthResult(res)),
       finalize(() => this._loading.set(false)),
@@ -229,12 +241,19 @@ export class AuthService {
 
   // Mandatory enrollment, step 2: confirm with the first TOTP code. Returns the one-time
   // recovery codes alongside the auth outcome (tokens or a consent challenge).
-  confirmTwoFactorLoginSetup(code: string): Observable<{ recoveryCodes: string[]; outcome: AuthOutcome }> {
+  confirmTwoFactorLoginSetup(
+    code: string,
+    rememberDevice = false,
+  ): Observable<{ recoveryCodes: string[]; outcome: AuthOutcome }> {
     const pending = this._pendingTwoFactor();
     if (!pending) return throwError(() => new Error('No pending 2FA challenge'));
 
     this._loading.set(true);
-    const body: TwoFactorVerifyRequestDto = { pending_token: pending.pendingToken, code };
+    const body: TwoFactorVerifyRequestDto = {
+      pending_token: pending.pendingToken,
+      code,
+      remember_device: rememberDevice,
+    };
     return this.http.post<TwoFactorSetupCompleteResponseDto>(
       `${environment.apiUrl}/auth/2fa/setup/confirm`,
       body,
@@ -304,6 +323,8 @@ export class AuthService {
 
   
   
+  // Deliberately leaves the trusted-device token in place: "remember this device" is meant to
+  // survive signing out. It is cleared only by revoking the device or disabling 2FA.
   logout(): void {
     const refreshToken = this.getRefreshToken();
     const finishLocal = () => {

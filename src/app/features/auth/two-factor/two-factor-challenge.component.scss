@@ -77,6 +77,26 @@
   line-height: 1.5;
 }
 
+.tfa-remember {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 16px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+
+  input { margin-top: 2px; flex-shrink: 0; }
+
+  &__hint {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+}
+
 .tfa-back {
   background: none;
   border: none;

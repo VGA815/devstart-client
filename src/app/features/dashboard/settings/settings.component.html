@@ -348,6 +348,143 @@
 
       }
 
+      @if (twoFactorEnabled() && security(); as sec) {
+        <div class="sec-policy">
+          <span class="sec-policy__title">Когда запрашивать код</span>
+
+          @if (securitySuccess()) {
+            <div class="toast toast--success">{{ securitySuccess() }}</div>
+          }
+          @if (securityError()) {
+            <div class="toast toast--error">{{ securityError() }}</div>
+          }
+
+          @for (opt of strictnessOptions; track opt.value) {
+            <label class="sec-option">
+              <input type="radio" name="strictness"
+                [checked]="sec.strictness === opt.value"
+                [disabled]="securityBusy()"
+                (change)="setStrictness(opt.value)" />
+              <span>
+                {{ opt.label }}
+                <span class="sec-option__hint">{{ opt.hint }}</span>
+              </span>
+            </label>
+          }
+
+          @if (sec.strictness !== 0) {
+            <div class="field">
+              <label class="field__label" for="trustDays">Помнить устройство</label>
+              <select id="trustDays" class="field__input"
+                [disabled]="securityBusy()"
+                (change)="setTrustDuration($any($event.target).value)">
+                @for (days of sec.availableDurations; track days) {
+                  <option [value]="days" [selected]="days === sec.trustDurationDays">{{ days }} дн.</option>
+                }
+              </select>
+              <span class="field__hint">Максимум для вашей роли — {{ sec.maxTrustDurationDays }} дн.</span>
+            </div>
+          }
+
+          <label class="sec-option">
+            <input type="checkbox"
+              [checked]="sec.notifyOnNewDeviceLogin"
+              [disabled]="securityBusy()"
+              (change)="toggleNewDeviceEmail()" />
+            <span>
+              Присылать письмо при входе с нового устройства
+              <span class="sec-option__hint">Придёт на почту, если в аккаунт вошли из непривычного браузера.</span>
+            </span>
+          </label>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Активные сессии и устройства</span>
+    </div>
+
+    <div class="card__body card__body--lg">
+
+      @if (sessionsError()) {
+        <div class="toast toast--error">{{ sessionsError() }}</div>
+      }
+
+      <div class="sec-list">
+        <span class="sec-list__title">Где выполнен вход</span>
+
+        @if (!sessionsLoaded()) {
+          <p class="tfa-note">Загружаем…</p>
+        } @else if (sessions().length === 0) {
+          <p class="tfa-note">Активных сессий нет.</p>
+        } @else {
+          @for (s of sessions(); track s.id) {
+            <div class="sec-row">
+              <div class="sec-row__main">
+                <span class="sec-row__name">
+                  {{ s.browser }} на {{ s.os }}
+                  @if (s.current) { <span class="badge badge--green">Текущая</span> }
+                </span>
+                <span class="sec-row__meta">
+                  {{ s.ipAddress ?? 'IP неизвестен' }} · вход {{ s.createdAt | date:'d MMM y, HH:mm' }}
+                </span>
+              </div>
+              @if (!s.current) {
+                <button class="btn btn--ghost btn--sm" type="button"
+                  [disabled]="sessionsBusy()" (click)="revokeSession(s.id)">Завершить</button>
+              }
+            </div>
+          }
+
+          @if (sessions().length > 1) {
+            <div class="settings-actions settings-actions--row">
+              <button class="btn btn--ghost" type="button"
+                [disabled]="sessionsBusy()" (click)="revokeOtherSessions()">
+                Завершить все другие сессии
+              </button>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="sec-list">
+        <span class="sec-list__title">Доверенные устройства</span>
+
+        @if (!sessionsLoaded()) {
+          <p class="tfa-note">Загружаем…</p>
+        } @else if (devices().length === 0) {
+          <p class="tfa-note">
+            Ни одно устройство не запомнено. Отметьте «Запомнить это устройство» при следующем вводе кода.
+          </p>
+        } @else {
+          @for (d of devices(); track d.id) {
+            <div class="sec-row">
+              <div class="sec-row__main">
+                <span class="sec-row__name">
+                  {{ d.label ?? d.browser + ' на ' + d.os }}
+                  @if (d.id === currentDeviceId()) { <span class="badge badge--green">Это устройство</span> }
+                </span>
+                <span class="sec-row__meta">
+                  {{ d.ipAddress ?? 'IP неизвестен' }} · до {{ d.expiresAt | date:'d MMM y' }}
+                </span>
+              </div>
+              <button class="btn btn--ghost btn--sm" type="button"
+                [disabled]="sessionsBusy()" (click)="revokeDevice(d.id)">Отозвать</button>
+            </div>
+          }
+
+          <div class="settings-actions settings-actions--row">
+            <button class="btn btn--ghost" type="button"
+              [disabled]="sessionsBusy()" (click)="revokeAllDevices()">
+              Отозвать все устройства
+            </button>
+          </div>
+        }
+      </div>
+
     </div>
   </div>
 
