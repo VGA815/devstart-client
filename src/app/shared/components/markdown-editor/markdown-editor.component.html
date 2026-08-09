@@ -1,0 +1,88 @@
+<div class="md-editor" [class.md-editor--invalid]="invalid()">
+
+  <div class="md-editor__toolbar" role="toolbar" aria-label="Форматирование Markdown">
+    <div class="md-editor__group">
+      <button class="md-editor__tool" type="button" [disabled]="disabled()"
+        title="Жирный (Ctrl+B)" aria-label="Жирный" (click)="wrap('**')"><b>B</b></button>
+      <button class="md-editor__tool" type="button" [disabled]="disabled()"
+        title="Курсив (Ctrl+I)" aria-label="Курсив" (click)="wrap('*')"><i>I</i></button>
+      <button class="md-editor__tool md-editor__tool--mono" type="button" [disabled]="disabled()"
+        title="Моноширинный" aria-label="Моноширинный" (click)="wrap('`')">&lt;/&gt;</button>
+    </div>
+
+    <span class="md-editor__sep" aria-hidden="true"></span>
+
+    <div class="md-editor__group">
+      <button class="md-editor__tool" type="button" [disabled]="disabled()"
+        title="Заголовок" aria-label="Заголовок" (click)="prefixLines('## ')">H</button>
+      <button class="md-editor__tool" type="button" [disabled]="disabled()"
+        title="Маркированный список" aria-label="Маркированный список" (click)="prefixLines('- ')">•</button>
+      <button class="md-editor__tool md-editor__tool--mono" type="button" [disabled]="disabled()"
+        title="Нумерованный список" aria-label="Нумерованный список" (click)="prefixLines('', true)">1.</button>
+      <button class="md-editor__tool" type="button" [disabled]="disabled()"
+        title="Цитата" aria-label="Цитата" (click)="prefixLines('> ')">❝</button>
+      <button class="md-editor__tool" type="button" [disabled]="disabled()"
+        title="Ссылка (Ctrl+K)" aria-label="Ссылка" (click)="insertLink()">🔗</button>
+    </div>
+
+    <span class="md-editor__spacer"></span>
+
+    <ng-content select="[mdToolbarExtra]" />
+
+    <button class="md-editor__tool md-editor__tool--wide" type="button"
+      [class.md-editor__tool--on]="showPreview()"
+      [attr.aria-pressed]="showPreview()"
+      title="Показать превью" (click)="togglePreview()">👁 Превью</button>
+  </div>
+
+  @if (showCheatsheet()) {
+    <div class="md-editor__cheatsheet">
+      <code>**жирный**</code>
+      <code>*курсив*</code>
+      <code>## заголовок</code>
+      <code>- список</code>
+      <code>1. нумерация</code>
+      <code>[текст](url)</code>
+      <code>&gt; цитата</code>
+      <code>`код`</code>
+      <code>--- разделитель</code>
+    </div>
+  }
+
+  <div class="md-editor__panes" [class.md-editor__panes--preview]="showPreview()">
+    <textarea #ta class="md-editor__input"
+      [id]="editorId()"
+      [value]="value()"
+      [attr.maxlength]="maxLength()"
+      [placeholder]="placeholder()"
+      [disabled]="disabled()"
+      [style.min-height.px]="minHeight()"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+      (blur)="blur()"></textarea>
+
+    @if (showPreview()) {
+      <div class="md-editor__preview" [style.min-height.px]="minHeight()">
+        @if (value().trim()) {
+          <div class="md-editor__preview-body" [innerHTML]="value() | markdown"></div>
+        } @else {
+          <p class="md-editor__preview-empty">Здесь появится отформатированный текст</p>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="md-editor__footer">
+    <button class="md-editor__hint-btn" type="button"
+      [attr.aria-expanded]="showCheatsheet()" (click)="toggleCheatsheet()">
+      {{ showCheatsheet() ? 'Скрыть подсказку' : 'Поддерживается Markdown' }}
+    </button>
+
+    @if (maxLength(); as max) {
+      <span class="md-editor__counter" [class.md-editor__counter--warn]="counterWarn()">
+        {{ value().length }} / {{ max }}
+      </span>
+    }
+  </div>
+
+</div>

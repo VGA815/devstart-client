@@ -70,16 +70,6 @@
 
       @if (isEditing) {
         <div class="cc-editor" [formGroup]="form">
-          <div class="cc-editor__toolbar">
-            <button class="btn btn--ghost btn--xs" type="button"
-              [disabled]="loadingTemplate()" (click)="applyTemplate()">
-              @if (loadingTemplate()) { Загружаем… } @else { 📄 Вставить шаблон }
-            </button>
-            <button class="btn btn--ghost btn--xs" type="button" (click)="togglePreview()">
-              {{ showPreview() ? '✎ Редактировать' : '👁 Превью' }}
-            </button>
-          </div>
-
           <label class="field__label field__label--mono" for="ccTitle">Заголовок</label>
           <input id="ccTitle" class="field__input field__input--sm"
             [class.field__input--error]="fieldError('title')"
@@ -89,19 +79,24 @@
             <span class="field__hint field__hint--error">{{ fieldError('title') }}</span>
           }
 
-          <label class="field__label field__label--mono cc-editor__label">
-            Текст <span class="field__hint field__hint--inline">markdown</span>
+          <label class="field__label field__label--mono cc-editor__label" for="ccContent">
+            Текст документа
           </label>
 
-          @if (showPreview()) {
-            <div class="cc-editor__preview cc-editor__preview--md"
-              [innerHTML]="form.getRawValue().content | markdown"></div>
-          } @else {
-            <textarea class="field__textarea cc-editor__textarea"
-              [class.field__textarea--error]="fieldError('content')"
-              formControlName="content" rows="12"
-              placeholder="# Заголовок&#10;&#10;Текст документа в формате markdown…"></textarea>
-          }
+          <app-markdown-editor
+            editorId="ccContent"
+            formControlName="content"
+            [minHeight]="240"
+            [maxLength]="maxContentLength"
+            [invalid]="!!fieldError('content')"
+            placeholder="# Заголовок&#10;&#10;Текст документа…">
+            <button mdToolbarExtra class="md-editor__tool md-editor__tool--wide" type="button"
+              title="Подставить шаблон платформы"
+              [disabled]="loadingTemplate()" (click)="applyTemplate()">
+              @if (loadingTemplate()) { Загружаем… } @else { 📄 Шаблон }
+            </button>
+          </app-markdown-editor>
+
           @if (fieldError('content')) {
             <span class="field__hint field__hint--error">{{ fieldError('content') }}</span>
           }

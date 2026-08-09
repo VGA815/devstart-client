@@ -1,13 +1,14 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { catchError, of } from 'rxjs';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { MarkdownEditorComponent } from '../../../shared/components/markdown-editor/markdown-editor.component';
 import { AdminService } from '../admin.service';
 import { ConsentDocument, CONSENT_TYPE_LABELS } from '../admin.models';
 
 @Component({
   selector: 'app-admin-legal-docs',
   standalone: true,
-  imports: [SkeletonComponent],
+  imports: [SkeletonComponent, MarkdownEditorComponent],
   templateUrl: './admin-legal-docs.component.html',
   styleUrl: '../admin-shared.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

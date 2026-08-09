@@ -39,11 +39,12 @@
           </div>
         </div>
         <div class="field">
-          <label class="field__label">Содержимое
-            <span class="field__hint field__hint--inline">markdown</span>
-          </label>
-          <textarea class="field__textarea" rows="10"
-            [value]="content()" (input)="content.set($any($event.target).value)"></textarea>
+          <label class="field__label" for="alContent">Содержимое</label>
+          <app-markdown-editor editorId="alContent" [(value)]="content" [minHeight]="260"
+            placeholder="# Заголовок документа&#10;&#10;Текст, который увидит пользователь при согласии…" />
+          <span class="field__hint">
+            Проверьте превью: после активации версии документ увидят все пользователи при входе.
+          </span>
         </div>
         @if (formError()) { <p class="adm-error">{{ formError() }}</p> }
         <div class="adm-inline-form__actions">

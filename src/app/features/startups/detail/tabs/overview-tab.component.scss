@@ -12,6 +12,10 @@
     max-height: 9999px;
   }
 
+  // Описание короче лимита — кнопки «Читать полностью» под ним нет,
+  // отступ до следующего блока берёт на себя сама обёртка
+  &--solo { margin-bottom: 20px; }
+
   &__fade {
     position: absolute;
     bottom: 0;
@@ -50,127 +54,7 @@
 }
 
 :host ::ng-deep .sd-markdown {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text);
-
-  h1, h2, h3, h4, h5, h6 {
-    color: var(--text);
-    font-weight: 600;
-    line-height: 1.3;
-    margin-top: 20px;
-    margin-bottom: 8px;
-    &:first-child { margin-top: 0; }
-  }
-
-  h1, h2 {
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  h1 { font-size: 20px; }
-  h2 { font-size: 17px; }
-  h3 { font-size: 15px; }
-  h4, h5, h6 { font-size: 14px; }
-
-  p {
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    &:last-child { margin-bottom: 0; }
-  }
-
-  ul, ol {
-    padding-left: 20px;
-    margin-bottom: 12px;
-    color: var(--text-muted);
-    li { margin-bottom: 4px; }
-  }
-
-  ul li { list-style-type: disc; }
-  ol li { list-style-type: decimal; }
-
-  strong { font-weight: 600; color: var(--text); }
-  em     { font-style: italic; }
-
-  a {
-    color: var(--accent);
-    text-decoration: none;
-    &:hover { text-decoration: underline; }
-  }
-
-  code {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 1px 5px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--text);
-  }
-
-  pre {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    overflow-x: auto;
-    margin-bottom: 12px;
-
-    code {
-      padding: 0;
-      background: none;
-      border: none;
-      font-size: 13px;
-    }
-  }
-
-  blockquote {
-    border-left: 3px solid var(--accent);
-    background: var(--bg3);
-    padding: 10px 14px;
-    margin: 12px 0;
-    border-radius: 0 4px 4px 0;
-    color: var(--text-muted);
-    font-style: italic;
-  }
-
-  hr {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 20px 0;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-
-    th, td {
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      text-align: left;
-    }
-
-    th {
-      background: var(--bg3);
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    td { color: var(--text-muted); }
-
-    tr:hover td { background: var(--bg-hover); }
-
-    // Широкие markdown-таблицы скроллятся внутри себя на мобайле
-    @include mobile {
-      display: block;
-      overflow-x: auto;
-    }
-  }
+  @include markdown-body;
 }
 
 .sd-score-badge {

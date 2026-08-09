@@ -7,7 +7,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, catchError, of } from 'rxjs';
 
 import { CommunityStandardsService } from '../../../startups/community-standards.service';
-import { MarkdownPipe } from '../../../../shared/pipes/markdown.pipe';
+import { MarkdownEditorComponent } from '../../../../shared/components/markdown-editor/markdown-editor.component';
 import {
   CommunityDocumentSummary, CommunityDocumentType, CommunityStandards,
 } from '../../../../shared/models/community-standards.model';
@@ -21,7 +21,7 @@ const MAX_CONTENT_LENGTH = 100_000;
 @Component({
   selector: 'app-startup-community-card',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, MarkdownPipe],
+  imports: [ReactiveFormsModule, RouterLink, MarkdownEditorComponent],
   templateUrl: './community-card.component.html',
   styleUrl: './community-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,13 +33,13 @@ export class StartupCommunityCardComponent implements OnChanges {
   private readonly fb  = inject(FormBuilder);
 
   readonly docTypes = COMMUNITY_DOC_TYPES;
+  readonly maxContentLength = MAX_CONTENT_LENGTH;
 
   readonly standards = signal<CommunityStandards | null>(null);
   readonly docs      = signal<CommunityDocumentSummary[]>([]);
   readonly loading   = signal(true);
 
   readonly editingType = signal<CommunityDocumentType | null>(null);
-  readonly showPreview = signal(false);
   readonly saving      = signal(false);
   readonly deletingType = signal<CommunityDocumentType | null>(null);
   readonly loadingTemplate = signal(false);
@@ -90,7 +90,6 @@ export class StartupCommunityCardComponent implements OnChanges {
     if (this.editingType() === type) { this.closeEditor(); return; }
 
     this.editingType.set(type);
-    this.showPreview.set(false);
     this.error.set(null);
     this.form.reset({ title: '', content: '' });
 
@@ -108,19 +107,17 @@ export class StartupCommunityCardComponent implements OnChanges {
 
   closeEditor(): void {
     this.editingType.set(null);
-    this.showPreview.set(false);
     this.error.set(null);
     this.form.reset({ title: '', content: '' });
-  }
-
-  togglePreview(): void {
-    this.showPreview.update(v => !v);
   }
 
   /** Подставляет стартовый текст платформы, не затирая уже написанное без подтверждения. */
   applyTemplate(): void {
     const type = this.editingType();
     if (!type || this.loadingTemplate()) return;
+
+    const written = this.form.getRawValue().content?.trim();
+    if (written && !confirm('Шаблон заменит уже написанный текст. Продолжить?')) return;
 
     this.loadingTemplate.set(true);
     this.svc.getTemplates().pipe(

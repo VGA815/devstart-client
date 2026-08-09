@@ -13,6 +13,7 @@ import { StartupProductService } from '../startup-product.service';
 import { Startup, StartupStage, StartupIndustry } from '../../../shared/models/startup.model';
 import { INDUSTRY_NUM } from '../../../shared/models/dto/startup.dto';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { MarkdownEditorComponent } from '../../../shared/components/markdown-editor/markdown-editor.component';
 import { HasUnsavedChanges } from '../../../core/forms/unsaved-changes.guard';
 import { apiErrorMessage } from '../../../core/http/api-error';
 
@@ -68,7 +69,10 @@ type EditSnapshot = {
 @Component({
   selector: 'app-startup-edit',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SkeletonComponent, AvatarUploadComponent],
+  imports: [
+    ReactiveFormsModule, RouterLink, SkeletonComponent, AvatarUploadComponent,
+    MarkdownEditorComponent,
+  ],
   templateUrl: './startup-edit.component.html',
   styleUrl:    './startup-edit.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

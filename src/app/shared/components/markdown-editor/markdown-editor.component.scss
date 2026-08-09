@@ -1,0 +1,205 @@
+@use '../../../../styles/mixins' as *;
+
+:host { display: block; }
+
+.md-editor {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+
+  &:hover:not(:focus-within) { border-color: var(--border-strong); }
+  &:focus-within { @include focus-ring; }
+
+  &--invalid {
+    border-color: var(--red);
+    &:focus-within {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px var(--red-soft);
+    }
+  }
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 8px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  &__group {
+    display: flex;
+    gap: 2px;
+  }
+
+  &__sep {
+    width: 1px;
+    height: 16px;
+    margin: 0 4px;
+    background: var(--border);
+  }
+
+  &__spacer { flex: 1 1 auto; }
+
+  &__cheatsheet {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 6px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+  }
+
+  &__panes {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  // Узкой колонке две панели не помещаются — превью подменяет ввод.
+  // Textarea остаётся в DOM, поэтому каретка и скролл переживают переключение.
+  &__panes--preview {
+    .md-editor__input { display: none; }
+
+    @include desktop {
+      grid-template-columns: 1fr 1fr;
+
+      .md-editor__input { display: block; }
+
+      .md-editor__preview {
+        border-top: none;
+        border-left: 1px solid var(--border);
+      }
+    }
+  }
+
+  &__input {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    background: none;
+    border: none;
+    outline: none;
+    resize: vertical;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+
+    &::placeholder { color: var(--text-dim); }
+
+    &:disabled {
+      color: var(--text-dim);
+      cursor: not-allowed;
+    }
+  }
+
+  &__preview {
+    padding: 12px 14px;
+    max-height: 520px;
+    overflow-y: auto;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+
+  &__preview-empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+  }
+
+  &__hint-btn {
+    padding: 0;
+    background: none;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: var(--transition);
+
+    &:hover { color: var(--accent); }
+  }
+
+  &__counter {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+
+    &--warn { color: var(--yellow); }
+  }
+}
+
+// Кнопки тулбара — через ::ng-deep, чтобы так же выглядела и проецируемая
+// через <ng-content select="[mdToolbarExtra]"> кнопка вызывающего компонента.
+:host ::ng-deep .md-editor__tool {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover:not(:disabled) {
+    background: var(--bg3);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  &:disabled {
+    color: var(--text-dim);
+    cursor: not-allowed;
+  }
+
+  &--mono {
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  &--wide { padding: 0 10px; }
+
+  &--on {
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+    color: var(--accent);
+  }
+}
+
+:host ::ng-deep .md-editor__preview-body {
+  @include markdown-body;
+}

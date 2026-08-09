@@ -72,9 +72,11 @@
 
             <div class="field">
               <label class="field__label" for="cDesc">Полное описание</label>
-              <textarea id="cDesc" class="field__textarea"
-                formControlName="description" rows="4"
-                placeholder="Проблема, решение, целевая аудитория, бизнес-модель..."></textarea>
+              <app-markdown-editor
+                editorId="cDesc"
+                formControlName="description"
+                [minHeight]="160"
+                placeholder="Проблема, решение, целевая аудитория, бизнес-модель…" />
             </div>
 
             <div class="field">

@@ -57,10 +57,12 @@
         </div>
 
         <div class="field">
-          <label class="field__label" for="eDesc">Полное описание <span class="field__hint field__hint--inline">Markdown</span></label>
-          <textarea id="eDesc" class="field__textarea"
-            formControlName="description" rows="6"
-            placeholder="Поддерживает Markdown: **жирный**, ## заголовок, - список…"></textarea>
+          <label class="field__label" for="eDesc">Полное описание</label>
+          <app-markdown-editor
+            editorId="eDesc"
+            formControlName="description"
+            [minHeight]="180"
+            placeholder="Проблема, решение, целевая аудитория, бизнес-модель…" />
         </div>
 
         <div class="field">

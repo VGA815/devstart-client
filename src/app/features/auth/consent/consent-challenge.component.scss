@@ -1,3 +1,5 @@
+@use '../../../../styles/mixins' as *;
+
 .consent-challenge {
   display: flex;
   justify-content: center;
@@ -69,16 +71,22 @@
     color: var(--text-dim);
   }
 
+  // Обрезанный по высоте текст без рамки читался как весь документ — оформляем
+  // явной скролл-областью. Типографика — ниже через ::ng-deep: innerHTML не
+  // получает scoped-атрибуты, и вложенные селекторы отсюда до него не доходят.
   &__doc-body {
     max-height: 220px;
     overflow-y: auto;
-    padding-right: 8px;
-    font-size: 13px;
-    line-height: 1.6;
-    color: var(--text-muted);
+    padding: 12px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
 
-    :is(h1, h2, h3) { color: var(--text); }
-    a { color: var(--accent); }
+  &__doc-scroll-hint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
   }
 
   &__accept {
@@ -138,3 +146,18 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+// Документ приходит через [innerHTML] — стили детей достижимы только через ::ng-deep.
+// Кегль чуть меньше общего: документ читают в скролл-боксе внутри карточки входа.
+:host ::ng-deep .consent-challenge__doc-body {
+  @include markdown-body;
+
+  & {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  h1 { font-size: 16px; }
+  h2 { font-size: 15px; }
+  h3, h4, h5, h6 { font-size: 13px; }
+}

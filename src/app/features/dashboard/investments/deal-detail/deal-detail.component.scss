@@ -292,12 +292,15 @@
   line-height: 1.35;
 }
 
-.dd-ts-body {
+// Term sheet приходит через [innerHTML] — без ::ng-deep вложенные селекторы
+// не долетают до вставленных узлов и вёрстка договора остаётся нестилизованной.
+:host ::ng-deep .dd-ts-body {
   font-family: var(--font-ui);
   font-size: 13.5px;
   line-height: 1.7;
   color: var(--text-muted);
   padding: 14px 18px 18px;
+  overflow-wrap: break-word;
 
   h3 {
     font-size: 13px;

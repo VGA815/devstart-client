@@ -58,6 +58,17 @@
   font-size: 14px;
   line-height: 1.7;
   color: var(--text);
+  // Длинный URL без пробелов иначе распирает страницу шире 320px
+  overflow-wrap: break-word;
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 12px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
 
   h1, h2, h3, h4, h5, h6 {
     color: var(--text);

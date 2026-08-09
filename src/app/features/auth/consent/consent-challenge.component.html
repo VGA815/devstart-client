@@ -24,6 +24,9 @@
             <span class="consent-challenge__doc-version">v{{ row.documentVersion }}</span>
           </header>
           <div class="consent-challenge__doc-body" [innerHTML]="row.content | markdown"></div>
+          <span class="consent-challenge__doc-scroll-hint">
+            Прокрутите блок, чтобы прочитать документ целиком
+          </span>
           <label class="consent-challenge__accept">
             <input
               type="checkbox"

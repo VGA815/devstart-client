@@ -1,14 +1,19 @@
 @if (facade.startup(); as s) {
   @if (s.description) {
-    <div class="sd-desc-wrap" [class.sd-desc-wrap--expanded]="descExpanded()">
-      <div class="sd-markdown" [innerHTML]="s.description | markdown"></div>
-      @if (!descExpanded()) {
+    <div class="sd-desc-wrap"
+      [class.sd-desc-wrap--expanded]="descExpanded()"
+      [class.sd-desc-wrap--solo]="!descOverflows()">
+      <div class="sd-markdown" #desc [innerHTML]="s.description | markdown"></div>
+      @if (descOverflows() && !descExpanded()) {
         <div class="sd-desc-wrap__fade"></div>
       }
     </div>
-    <button class="sd-desc-toggle" type="button" (click)="toggleDesc()">
-      {{ descExpanded() ? '▲ Свернуть' : '▼ Читать полностью' }}
-    </button>
+    @if (descOverflows()) {
+      <button class="sd-desc-toggle" type="button"
+        [attr.aria-expanded]="descExpanded()" (click)="toggleDesc()">
+        {{ descExpanded() ? '▲ Свернуть' : '▼ Читать полностью' }}
+      </button>
+    }
   }
 
   @if (facade.score(); as sc) {

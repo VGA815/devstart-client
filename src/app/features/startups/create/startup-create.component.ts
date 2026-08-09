@@ -7,6 +7,7 @@ import { debounceTime } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { StartupService } from '../startup.service';
 import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
+import { MarkdownEditorComponent } from '../../../shared/components/markdown-editor/markdown-editor.component';
 import { StartupIndustry } from '../../../shared/models/startup.model';
 import { INDUSTRY_NUM } from '../../../shared/models/dto/startup.dto';
 import { apiErrorMessage } from '../../../core/http/api-error';
@@ -90,7 +91,7 @@ const EMPTY_FORM: StartupDraftForm = {
 @Component({
   selector: 'app-startup-create',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AvatarUploadComponent],
+  imports: [ReactiveFormsModule, RouterLink, AvatarUploadComponent, MarkdownEditorComponent],
   templateUrl: './startup-create.component.html',
   styleUrl:    './startup-create.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
