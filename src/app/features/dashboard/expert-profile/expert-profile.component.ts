@@ -5,6 +5,7 @@ import { catchError, of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ExpertProfileService } from '../../experts/expert-profile.service';
 import { ExpertExperienceService } from '../../experts/expert-experience.service';
+import { ProfileService } from '../../startups/profile.service';
 import {
   ExpertProfile, ExpertSpecialization,
 } from '../../../shared/models/expert-profile.model';
@@ -28,6 +29,7 @@ export class DashboardExpertProfileComponent implements OnInit {
   private readonly auth          = inject(AuthService);
   private readonly profileSvc    = inject(ExpertProfileService);
   private readonly experienceSvc = inject(ExpertExperienceService);
+  private readonly sharedProfile = inject(ProfileService);
 
   readonly loading       = signal(true);
   readonly saving        = signal(false);
@@ -86,8 +88,27 @@ export class DashboardExpertProfileComponent implements OnInit {
         });
         this.loadExperiences(profile.id);
       } else {
-        this.loading.set(false);
+        this.seedFromSharedProfile(user.id);
       }
+    });
+  }
+
+  /**
+   * Нет профиля эксперта — форма всё равно редактирует общий профиль (имя, био, сайт, приватность),
+   * поэтому её надо заполнить текущими значениями. Иначе сохранение затрёт то, что пользователь
+   * задал в настройках, пустой формой.
+   */
+  private seedFromSharedProfile(userId: string): void {
+    this.sharedProfile.getProfile(userId).pipe(catchError(() => of(null))).subscribe(shared => {
+      if (shared) {
+        this.isPublic.set(shared.isPublic);
+        this.profileForm.patchValue({
+          displayName: shared.name ?? '',
+          bio:         shared.bio  ?? '',
+          website:     shared.url  ?? '',
+        });
+      }
+      this.loading.set(false);
     });
   }
 

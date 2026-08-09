@@ -4,6 +4,7 @@ import { Title } from '@angular/platform-browser';
 import { catchError, of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ExpertCollaborationRequestService } from '../../experts/expert-collaboration-request.service';
+import { ExpertProfileService } from '../../experts/expert-profile.service';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { CollabRequestRowComponent } from '../../../shared/components/collab-request-row/collab-request-row.component';
 import {
@@ -23,8 +24,9 @@ const PAGE_SIZE = 25;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CollaborationRequestsComponent implements OnInit {
-  private readonly auth = inject(AuthService);
-  private readonly svc  = inject(ExpertCollaborationRequestService);
+  private readonly auth       = inject(AuthService);
+  private readonly svc        = inject(ExpertCollaborationRequestService);
+  private readonly profileSvc = inject(ExpertProfileService);
 
   readonly loading      = signal(true);
   readonly loadingMore  = signal(false);
@@ -32,6 +34,11 @@ export class CollaborationRequestsComponent implements OnInit {
   readonly statusFilter = signal<CollaborationRequestStatus | 'All'>('All');
   /** A full page back means there may be more; the API returns a page, not a total. */
   readonly hasMore      = signal(false);
+  /**
+   * Resolved from the expert-profile endpoint rather than guessed: an empty list means nothing about
+   * whether the profile exists, and telling someone who already has one that they need one is wrong.
+   */
+  readonly hasProfile   = signal(true);
 
   readonly statuses = ALL_COLLABORATION_STATUSES;
 
@@ -42,6 +49,14 @@ export class CollaborationRequestsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const user = this.auth.user();
+    if (user) {
+      // 404 from this endpoint is the "not an expert yet" signal, not a failure.
+      this.profileSvc.getById(user.id)
+        .pipe(catchError(() => of(null)))
+        .subscribe(profile => this.hasProfile.set(profile !== null));
+    }
+
     this.reload();
   }
 

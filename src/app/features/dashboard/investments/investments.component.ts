@@ -11,8 +11,10 @@ import { StartupService } from '../../startups/startup.service';
 import { InvestorProfileService } from '../../investors/investor-profile.service';
 import { InvestmentApplicationService } from '../../investors/investment-application.service';
 import { InvestmentDealService } from '../../investors/investment-deal.service';
+import { ProfileService } from '../../startups/profile.service';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { InvestorProfile } from '../../../shared/models/investor-profile.model';
+import { Profile } from '../../../shared/models/profile.model';
 import { InvestmentApplication } from '../../../shared/models/investment-application.model';
 import { InvestmentDeal } from '../../../shared/models/investment-deal.model';
 import { Startup } from '../../../shared/models/startup.model';
@@ -34,10 +36,17 @@ export class InvestmentsComponent implements OnInit {
   private readonly profileSvc   = inject(InvestorProfileService);
   private readonly appSvc       = inject(InvestmentApplicationService);
   private readonly dealSvc      = inject(InvestmentDealService);
+  private readonly sharedProfileSvc = inject(ProfileService);
 
   readonly profileLoading  = signal(true);
   readonly profile         = signal<InvestorProfile | null>(null);
   readonly showProfileForm = signal(false);
+
+  /**
+   * Имя, био, сайт и приватность хранятся в общем профиле — форма инвестора их и редактирует.
+   * Держим текущие значения, чтобы при первом создании засеять форму, а не затереть их пустой.
+   */
+  private readonly sharedProfile = signal<Profile | null>(null);
 
   readonly formType        = signal(0); // 0=Individual, 1=Fund
   readonly formName        = signal('');
@@ -75,9 +84,13 @@ export class InvestmentsComponent implements OnInit {
     forkJoin({
       profile: this.profileSvc.getById(user.id).pipe(catchError(() => of(null))),
       startups: this.startupSvc.getStartupsByProfile(user.id).pipe(catchError(() => of([] as Startup[]))),
-    }).subscribe(({ profile, startups }) => {
+      // Loaded up front rather than when the modal opens, so seeding the form cannot race the user
+      // typing into it.
+      shared: this.sharedProfileSvc.getProfile(user.id).pipe(catchError(() => of(null))),
+    }).subscribe(({ profile, startups, shared }) => {
       this.profile.set(profile);
       this.myStartups.set(startups);
+      this.sharedProfile.set(shared);
       this.profileLoading.set(false);
       this.loadTab(this.activeTab());
     });
@@ -93,11 +106,14 @@ export class InvestmentsComponent implements OnInit {
       this.formWebsite.set(p.website ?? '');
       this.formPublic.set(p.isPublic);
     } else {
+      // Первое создание: поля берём из общего профиля, иначе сохранение затрёт имя, био, сайт и
+      // приватность, заданные в настройках.
+      const shared = this.sharedProfile();
       this.formType.set(0);
-      this.formName.set('');
-      this.formBio.set('');
-      this.formWebsite.set('');
-      this.formPublic.set(true);
+      this.formName.set(shared?.name ?? '');
+      this.formBio.set(shared?.bio ?? '');
+      this.formWebsite.set(shared?.url ?? '');
+      this.formPublic.set(shared?.isPublic ?? true);
     }
     this.formError.set('');
     this.showProfileForm.set(true);

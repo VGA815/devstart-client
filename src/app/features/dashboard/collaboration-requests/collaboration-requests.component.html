@@ -3,26 +3,36 @@
     <h1 class="page__title page__title--sm">Мои заявки на сотрудничество</h1>
   </header>
 
-  <div class="cr-filter">
-    <select class="field__select field__select--sm" (change)="selectStatus($any($event.target).value)">
-      <option value="All">Все статусы</option>
-      @for (s of statuses; track s) {
-        <option [value]="s">{{ getStatusLabel(s) }}</option>
-      }
-    </select>
-  </div>
+  @if (hasProfile()) {
+    <div class="cr-filter">
+      <select class="field__select field__select--sm" (change)="selectStatus($any($event.target).value)">
+        <option value="All">Все статусы</option>
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ getStatusLabel(s) }}</option>
+        }
+      </select>
+    </div>
+  }
 
   @if (loading()) {
     <div class="card card__body--flush">
       <app-skeleton height="56px" /><app-skeleton height="56px" /><app-skeleton height="56px" />
     </div>
+  } @else if (!hasProfile()) {
+    <div class="empty-state empty-state--card">
+      <p class="empty-state__title">У вас ещё нет профиля эксперта</p>
+      <p class="empty-state__sub">
+        Создайте профиль, чтобы отправлять стартапам заявки и получать приглашения.
+      </p>
+      <a class="btn btn--primary" routerLink="/dashboard/expert-profile">Создать профиль</a>
+    </div>
   } @else if (requests().length === 0) {
     <div class="empty-state empty-state--card">
       <p class="empty-state__title">Заявок нет</p>
       <p class="empty-state__sub">
-        Откройте каталог стартапов, чтобы отправить заявку. Для этого нужен профиль эксперта.
+        Откройте каталог стартапов и отправьте заявку — или дождитесь приглашения от стартапа.
       </p>
-      <a class="btn btn--primary" routerLink="/dashboard/expert-profile">Профиль эксперта</a>
+      <a class="btn btn--primary" routerLink="/startups">Каталог стартапов</a>
     </div>
   } @else {
     <div class="card card__body--flush">
