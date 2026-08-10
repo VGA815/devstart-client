@@ -26,9 +26,10 @@
 
     <div class="profile-banner">
       <app-avatar
+        [avatarId]="inv.avatarId"
         [name]="inv.displayName"
         size="xxl"
-        shape="circle" />
+        [shape]="inv.type === 'Fund' ? 'square' : 'circle'" />
       <div class="profile-banner__info">
         <span class="profile-banner__name">{{ inv.displayName }}</span>
         <span class="profile-banner__title">{{ typeLabel(inv.type) }}</span>

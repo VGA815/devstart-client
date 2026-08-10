@@ -42,10 +42,6 @@ export class InvestorsTabComponent {
     return this.facade.investorProfilesMap().get(profileId)?.name ?? 'Инвестор';
   }
 
-  getInvestorAvatarId(profileId: string): string | null {
-    return this.facade.investorProfilesMap().get(profileId)?.avatarId ?? null;
-  }
-
   sinceLabel(createdAt: string): string {
     return new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' }).format(new Date(createdAt));
   }

@@ -11,6 +11,8 @@ export interface InvestmentApplication {
   id: string;
   investorProfileId: string;
   investorDisplayName: string;
+  /** Логотип фонда либо аватарка аккаунта у физлица; null в списке заявок инвестора. */
+  investorAvatarId: string | null;
   startupId: string;
   startupName: string;
   roadmapItemId: string | null;

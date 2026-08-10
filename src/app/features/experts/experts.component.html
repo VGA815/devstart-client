@@ -47,6 +47,7 @@
       @for (ex of filteredExperts(); track ex.id) {
         <a class="people-row" [routerLink]="['/experts', ex.id]">
           <app-avatar
+            [avatarId]="ex.avatarId"
             [name]="ex.displayName"
             size="md"
             shape="circle" />

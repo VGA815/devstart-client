@@ -25,10 +25,12 @@
     <div class="stat-card">
       <span class="stat-card__label">Входящих заявок</span>
       <span class="stat-card__value stat-card__value--green">
-        @if (loading()) { … } @else { {{ incomingCount() ?? '—' }} }
+        @if (loading() || incomingCount() === null) { … } @else { {{ incomingCount() }} }
       </span>
       <span class="stat-card__sub">
-        @if (!loading() && incomingCount()) { Ожидают ответа } @else { Нет данных }
+        @if (incomingCount() === null) { Считаем }
+        @else if (incomingCount()) { Ожидают ответа }
+        @else { Нет новых }
       </span>
     </div>
     <div class="stat-card">

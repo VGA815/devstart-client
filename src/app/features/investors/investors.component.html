@@ -46,9 +46,10 @@
       @for (inv of filteredInvestors(); track inv.id) {
         <a class="people-row" [routerLink]="['/investors', inv.id]">
           <app-avatar
+            [avatarId]="inv.avatarId"
             [name]="inv.displayName"
             size="md"
-            shape="circle" />
+            [shape]="inv.type === 'Fund' ? 'square' : 'circle'" />
           <div class="people-row__info">
             <span class="people-row__name">{{ inv.displayName }}</span>
             <span class="people-row__sub">{{ typeLabel(inv.type) }}</span>

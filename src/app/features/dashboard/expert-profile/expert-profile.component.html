@@ -29,6 +29,21 @@
       <form class="card__body card__body--lg" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
 
         <div class="field">
+          <span class="field__label">Аватарка</span>
+          <div class="ep-avatar">
+            <app-avatar
+              [avatarId]="accountAvatarId()"
+              [name]="profileForm.controls.displayName.value ?? ''"
+              size="lg"
+              shape="circle" />
+            <span class="field__hint">
+              Берётся из основного аккаунта — сменить её можно в
+              <a routerLink="/dashboard/settings">настройках</a>.
+            </span>
+          </div>
+        </div>
+
+        <div class="field">
           <label class="field__label" for="epDisplayName">Имя / название *</label>
           <input id="epDisplayName" class="field__input"
             type="text" formControlName="displayName"

@@ -6,8 +6,9 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { StartupService } from '../../startups/startup.service';
 import { StartupMembersService } from '../../startups/startup-members.service';
 import { NotificationService } from '../notifications/notification.service';
-import { ApplicationService } from '../applications/application.service';
+import { InvestmentApplicationService } from '../../investors/investment-application.service';
 import { ProfileService } from '../../startups/profile.service';
+import { InvestmentApplication } from '../../../shared/models/investment-application.model';
 import { Startup, StartupMember, StartupRole } from '../../../shared/models/startup.model';
 import { Notification } from '../../../shared/models/notification.model';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
@@ -27,7 +28,7 @@ export class DashboardOverviewComponent implements OnInit {
   private readonly startupService = inject(StartupService);
   private readonly membersSvc = inject(StartupMembersService);
   private readonly notifService = inject(NotificationService);
-  private readonly appService = inject(ApplicationService);
+  private readonly appService = inject(InvestmentApplicationService);
   private readonly profileSvc = inject(ProfileService);
 
   readonly loading = signal(true);
@@ -55,31 +56,45 @@ export class DashboardOverviewComponent implements OnInit {
       startups:    this.startupService.getStartupsByProfile(user.id).pipe(catchError(() => of([]))),
       notifs:      this.notifService.getAll(1, 4).pipe(catchError(() => of([]))),
       unreadCount: this.notifService.getUnreadCount().pipe(catchError(() => of(0))),
-      apps:        this.appService.getIncoming(user.id).pipe(catchError(() => of([]))),
-    }).subscribe(({ startups, notifs, unreadCount, apps }) => {
+    }).subscribe(({ startups, notifs, unreadCount }) => {
       this.startups.set(startups);
       this.notifications.set(notifs);
       this.unreadCount.set(unreadCount);
-      this.incomingCount.set(apps.filter(a => a.status === 'Pending').length);
       this.loading.set(false);
 
-      if (startups.length > 0) {
-        forkJoin(
-          Object.fromEntries(
-            startups.map(s => [
-              s.id,
-              this.membersSvc.getMembers(s.id).pipe(catchError(() => of([] as StartupMember[])))
-            ])
-          )
-        ).subscribe(membersMap => {
-          const map = new Map<string, StartupRole>();
-          for (const [startupId, members] of Object.entries(membersMap)) {
-            const mine = (members as StartupMember[]).find(m => m.profileId === user.id);
-            if (mine) map.set(startupId, mine.role);
-          }
-          this.roleMap.set(map);
-        });
+      if (startups.length === 0) {
+        this.incomingCount.set(0);
+        return;
       }
+
+      forkJoin(
+        Object.fromEntries(
+          startups.map(s => [
+            s.id,
+            this.membersSvc.getMembers(s.id).pipe(catchError(() => of([] as StartupMember[])))
+          ])
+        )
+      ).subscribe(membersMap => {
+        const map = new Map<string, StartupRole>();
+        for (const [startupId, members] of Object.entries(membersMap)) {
+          const mine = (members as StartupMember[]).find(m => m.profileId === user.id);
+          if (mine) map.set(startupId, mine.role);
+        }
+        this.roleMap.set(map);
+      });
+
+      // Заявок «ко мне» не существует: они приходят стартапам, поэтому счётчик собирается по
+      // моим проектам. Читать их вправе только основатель и менеджер — у остальных запрос
+      // отвечает 403, и такой стартап просто не попадает в сумму.
+      forkJoin(
+        startups.map(s => this.appService.getByStartup(s.id).pipe(
+          catchError(() => of([] as InvestmentApplication[]))
+        ))
+      ).subscribe(perStartup => {
+        this.incomingCount.set(
+          perStartup.flat().filter(a => a.status === 'Pending').length
+        );
+      });
     });
   }
 

@@ -69,10 +69,10 @@ export function getNotificationLink(notification: Notification): NotificationLin
     case 'StartupMemberAdded':
       return ref ? { commands: ['/startups', ref] } : null;
 
-    // Приходят участникам стартапа — им заявки видны во «Входящих».
+    // Приходят участникам стартапа — им заявки видны на вкладке «Входящие».
     case 'InvestmentApplicationReceived':
     case 'InvestmentApplicationWithdrawn':
-      return { commands: ['/dashboard/applications'] };
+      return { commands: ['/dashboard/investments'], queryParams: { tab: 'incoming' } };
 
     // Приходит инвестору — его заявки живут в разделе «Инвестиции».
     case 'InvestmentApplicationRejected':

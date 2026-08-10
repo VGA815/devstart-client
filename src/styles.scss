@@ -1,4 +1,6 @@
-@use 'styles/variables';
+// Токены идут первыми: остальные партиалы и компоненты читают var(--*) отсюда.
+// Это единственное место, где _tokens.scss подключается — см. комментарий в файле.
+@use 'styles/tokens';
 @use 'styles/reset';
 @use 'styles/typography';
 

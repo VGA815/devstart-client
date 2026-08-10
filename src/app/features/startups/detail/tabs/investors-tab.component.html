@@ -61,10 +61,10 @@
       <div class="sd-investor-row" [class.sd-investor-row--mine]="inv.profileId === facade.currentUserId">
         <a [routerLink]="['/profile', inv.profileId]" class="sd-investor-row__link">
           <app-avatar
-            [avatarId]="getInvestorAvatarId(inv.profileId)"
+            [avatarId]="inv.avatarId"
             [name]="getInvestorName(inv.profileId)"
             size="md"
-            shape="circle" />
+            [shape]="inv.isFund ? 'square' : 'circle'" />
           <div class="sd-investor-row__info">
             <span class="sd-investor-row__name">{{ getInvestorName(inv.profileId) }}</span>
             <span class="sd-investor-row__meta">Инвестор · с {{ sinceLabel(inv.createdAt) }}</span>

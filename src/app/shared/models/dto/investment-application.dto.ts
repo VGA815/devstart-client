@@ -25,6 +25,8 @@ export interface InvestmentApplicationDto {
   id: string;
   investorProfileId: string;
   investorDisplayName: string;
+  /** Логотип фонда либо аватарка аккаунта у физлица; в списке по инвестору не приходит. */
+  investorAvatarId?: string | null;
   startupId: string;
   startupName: string;
   roadmapItemId: string | null;
@@ -73,6 +75,7 @@ export function mapInvestmentApplicationDto(dto: InvestmentApplicationDto): Inve
     id: dto.id,
     investorProfileId: dto.investorProfileId,
     investorDisplayName: dto.investorDisplayName,
+    investorAvatarId: dto.investorAvatarId ?? null,
     startupId: dto.startupId,
     startupName: dto.startupName,
     roadmapItemId: dto.roadmapItemId,

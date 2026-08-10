@@ -15,8 +15,10 @@
   &__content {
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
     gap: 16px;
+
+    // Кнопка «Редактировать» остаётся справа независимо от того, есть ли аватарка.
+    .inv-btn { margin-left: auto; }
   }
 
   &__meta { display: flex; flex-direction: column; gap: 6px; }
@@ -143,6 +145,12 @@
     input { accent-color: var(--accent); cursor: pointer; }
   }
 
+  &__hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
   &__error {
     font-size: 12px;
     color: var(--red);
@@ -232,6 +240,13 @@
   tr:hover td { background: var(--bg-hover); }
 
   &__name  { font-weight: 500; }
+
+  &__investor {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   &__sub   { font-size: 12px; color: var(--text-muted); }
   &__money { font-family: var(--font-mono); font-weight: 600; color: var(--green); }
   &__date  { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); white-space: nowrap; }

@@ -76,3 +76,9 @@
     flex-shrink: 0;
   }
 }
+
+.ep-avatar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

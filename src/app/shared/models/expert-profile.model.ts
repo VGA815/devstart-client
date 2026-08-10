@@ -18,6 +18,8 @@ export interface ExpertProfile {
   bio: string | null;
   website: string | null;
   isPublic: boolean;
+  /** Аватарка основного аккаунта: своей у профиля эксперта нет. */
+  avatarId: string | null;
   linkedInUrl: string | null;
   twitterUrl: string | null;
   gitHubUrl: string | null;

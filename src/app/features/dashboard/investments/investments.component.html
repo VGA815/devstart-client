@@ -28,6 +28,22 @@
           </div>
         </div>
 
+        @if (formType() === 1) {
+          <div class="inv-form__field">
+            <label class="inv-form__label">Логотип фонда</label>
+            <app-avatar-upload
+              [avatarId]="formAvatarId()"
+              [name]="formName()"
+              shape="square"
+              (avatarIdChange)="formAvatarId.set($event)" />
+            <p class="inv-form__hint">Показывается в каталоге инвесторов вместо аватарки аккаунта.</p>
+          </div>
+        } @else {
+          <p class="inv-form__hint">
+            Аватарка физического лица берётся из основного аккаунта — её можно сменить в настройках.
+          </p>
+        }
+
         <div class="inv-form__field">
           <label class="inv-form__label">Имя / Название *</label>
           <input
@@ -92,6 +108,11 @@
     } @else {
 
       <div class="inv-profile-card__content">
+        <app-avatar
+          [avatarId]="profile()!.avatarId"
+          [name]="profile()!.displayName"
+          size="lg"
+          [shape]="profile()!.type === 'Fund' ? 'square' : 'circle'" />
         <div class="inv-profile-card__meta">
           <span class="inv-profile-card__type-badge">
             {{ profile()!.type === 'Individual' ? '👤 Физическое лицо' : '🏢 Фонд' }}
@@ -225,7 +246,16 @@
           <tbody>
             @for (app of incomingApps(); track app.id) {
               <tr>
-                <td class="inv-table__name">{{ app.investorDisplayName }}</td>
+                <td class="inv-table__name">
+                  <span class="inv-table__investor">
+                    <app-avatar
+                      [avatarId]="app.investorAvatarId"
+                      [name]="app.investorDisplayName"
+                      size="sm"
+                      shape="circle" />
+                    {{ app.investorDisplayName }}
+                  </span>
+                </td>
                 <td class="inv-table__sub" data-label="Стартап">{{ app.startupName }}</td>
                 <td class="inv-table__sub" data-label="Этап">{{ app.roadmapItemTitle ?? '—' }}</td>
                 <td class="inv-table__money" data-label="Сумма">{{ formatMoney(app.amount) }}</td>

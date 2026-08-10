@@ -17,11 +17,6 @@ export const dashboardRoutes: Routes = [
       import('./my-startups/my-startups.component').then(m => m.MyStartupsComponent),
   },
   {
-    path: 'applications',
-    loadComponent: () =>
-      import('./applications/applications.component').then(m => m.ApplicationsComponent),
-  },
-  {
     path: 'notifications',
     loadComponent: () =>
       import('./notifications/notifications.component').then(m => m.NotificationsComponent),

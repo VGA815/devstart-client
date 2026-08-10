@@ -1,5 +1,5 @@
 import {
-  Component, ChangeDetectionStrategy, OnInit, inject, signal, computed,
+  Component, ChangeDetectionStrategy, Input, OnInit, inject, signal, computed,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
@@ -13,6 +13,8 @@ import { InvestmentApplicationService } from '../../investors/investment-applica
 import { InvestmentDealService } from '../../investors/investment-deal.service';
 import { ProfileService } from '../../startups/profile.service';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
+import { AvatarUploadComponent } from '../../../shared/components/avatar-upload/avatar-upload.component';
 import { InvestorProfile } from '../../../shared/models/investor-profile.model';
 import { Profile } from '../../../shared/models/profile.model';
 import { InvestmentApplication } from '../../../shared/models/investment-application.model';
@@ -25,12 +27,19 @@ type Tab = 'my-apps' | 'incoming' | 'deals';
 @Component({
   selector: 'app-investments',
   standalone: true,
-  imports: [SkeletonComponent, FormsModule, RouterLink],
+  imports: [SkeletonComponent, FormsModule, RouterLink, AvatarComponent, AvatarUploadComponent],
   templateUrl: './investments.component.html',
   styleUrl: './investments.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvestmentsComponent implements OnInit {
+  /**
+   * Query-параметр `?tab=` — вкладка, открытая сразу при заходе (ссылки из уведомлений о заявках).
+   * Приходит через `withComponentInputBinding()`. Связь односторонняя: переключение вкладок руками
+   * URL не меняет.
+   */
+  @Input() tab?: string;
+
   private readonly auth          = inject(AuthService);
   private readonly startupSvc   = inject(StartupService);
   private readonly profileSvc   = inject(InvestorProfileService);
@@ -53,6 +62,11 @@ export class InvestmentsComponent implements OnInit {
   readonly formBio         = signal('');
   readonly formWebsite     = signal('');
   readonly formPublic      = signal(true);
+  /**
+   * Логотип фонда. У физлица своей аватарки нет — она берётся из основного аккаунта, поэтому поле
+   * показывается и отправляется только при типе «Фонд».
+   */
+  readonly formAvatarId    = signal<string | null>(null);
   readonly formSaving      = signal(false);
   readonly formError       = signal('');
 
@@ -78,6 +92,10 @@ export class InvestmentsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.tab === 'my-apps' || this.tab === 'incoming' || this.tab === 'deals') {
+      this.activeTab.set(this.tab);
+    }
+
     const user = this.auth.user();
     if (!user) { this.profileLoading.set(false); return; }
 
@@ -105,6 +123,9 @@ export class InvestmentsComponent implements OnInit {
       this.formBio.set(p.bio ?? '');
       this.formWebsite.set(p.website ?? '');
       this.formPublic.set(p.isPublic);
+      // Именно собственный логотип фонда: в avatarId у физлица лежит аватарка аккаунта, и её
+      // нельзя подставлять в форму — иначе фонд «присвоит» чужое фото при сохранении.
+      this.formAvatarId.set(p.fundAvatarId);
     } else {
       // Первое создание: поля берём из общего профиля, иначе сохранение затрёт имя, био, сайт и
       // приватность, заданные в настройках.
@@ -114,6 +135,7 @@ export class InvestmentsComponent implements OnInit {
       this.formBio.set(shared?.bio ?? '');
       this.formWebsite.set(shared?.url ?? '');
       this.formPublic.set(shared?.isPublic ?? true);
+      this.formAvatarId.set(null);
     }
     this.formError.set('');
     this.showProfileForm.set(true);
@@ -124,12 +146,16 @@ export class InvestmentsComponent implements OnInit {
     this.formSaving.set(true);
     this.formError.set('');
 
+    const isFund = this.formType() === 1;
     const body = {
       type: this.formType(),
       display_name: this.formName().trim(),
       bio: this.formBio().trim() || undefined,
       website: this.formWebsite().trim() || undefined,
       is_public: this.formPublic(),
+      // У физлица аватарка всегда из основного аккаунта — отправляем null, чтобы бэкенд снял
+      // логотип, если тип переключили с «Фонда».
+      avatar_id: isFund ? this.formAvatarId() : null,
     };
 
     const user = this.auth.user()!;

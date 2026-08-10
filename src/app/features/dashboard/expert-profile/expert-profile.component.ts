@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { catchError, of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -13,12 +14,13 @@ import { ExpertExperience } from '../../../shared/models/expert-experience.model
 import { SPEC_NUM } from '../../../shared/models/dto/expert-profile.dto';
 import { ALL_SPECIALIZATIONS, getSpecializationLabel, formatExperienceRange } from '../../../shared/utils/expert.utils';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 import { optimisticDelete } from '../../../shared/utils/optimistic.utils';
 
 @Component({
   selector: 'app-dashboard-expert-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, SkeletonComponent],
+  imports: [ReactiveFormsModule, RouterLink, SkeletonComponent, AvatarComponent],
   templateUrl: './expert-profile.component.html',
   styleUrl: './expert-profile.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +40,9 @@ export class DashboardExpertProfileComponent implements OnInit {
 
   readonly profile       = signal<ExpertProfile | null>(null);
   readonly experiences   = signal<ExpertExperience[]>([]);
+
+  /** Своей аватарки у эксперта нет: показываем ту, что стоит в основном аккаунте. */
+  readonly accountAvatarId = signal<string | null>(null);
 
   readonly isPublic                  = signal(true);
   readonly selectedSpecializations   = signal<Set<ExpertSpecialization>>(new Set());
@@ -75,6 +80,7 @@ export class DashboardExpertProfileComponent implements OnInit {
     this.profileSvc.getById(user.id).pipe(catchError(() => of(null))).subscribe(profile => {
       if (profile) {
         this.profile.set(profile);
+        this.accountAvatarId.set(profile.avatarId);
         this.isPublic.set(profile.isPublic);
         this.selectedSpecializations.set(new Set(profile.specializations));
         this.profileForm.patchValue({
@@ -101,6 +107,7 @@ export class DashboardExpertProfileComponent implements OnInit {
   private seedFromSharedProfile(userId: string): void {
     this.sharedProfile.getProfile(userId).pipe(catchError(() => of(null))).subscribe(shared => {
       if (shared) {
+        this.accountAvatarId.set(shared.avatarId);
         this.isPublic.set(shared.isPublic);
         this.profileForm.patchValue({
           displayName: shared.name ?? '',

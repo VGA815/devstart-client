@@ -32,7 +32,7 @@ describe('getNotificationLink', () => {
   it('разводит заявки по сторонам сделки', () => {
     // Приходит участникам стартапа
     expect(getNotificationLink(notification('InvestmentApplicationReceived', 'app-1')))
-      .toEqual({ commands: ['/dashboard/applications'] });
+      .toEqual({ commands: ['/dashboard/investments'], queryParams: { tab: 'incoming' } });
     // Приходит инвестору
     expect(getNotificationLink(notification('InvestmentApplicationRejected', 'app-1')))
       .toEqual({ commands: ['/dashboard/investments'] });

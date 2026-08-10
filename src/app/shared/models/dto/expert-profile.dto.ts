@@ -32,6 +32,7 @@ export interface ExpertProfileDto {
   bio: string | null;
   website: string | null;
   isPublic: boolean;
+  avatarId: string | null;
   linkedInUrl: string | null;
   twitterUrl: string | null;
   gitHubUrl: string | null;
@@ -74,6 +75,7 @@ export function mapExpertProfileDto(dto: ExpertProfileDto): ExpertProfile {
     bio:              dto.bio,
     website:          dto.website,
     isPublic:         dto.isPublic,
+    avatarId:         dto.avatarId ?? null,
     linkedInUrl:      dto.linkedInUrl,
     twitterUrl:       dto.twitterUrl,
     gitHubUrl:        dto.gitHubUrl,
