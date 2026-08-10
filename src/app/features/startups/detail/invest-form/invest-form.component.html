@@ -14,8 +14,9 @@
   <div class="sd-invest-form">
     @if (facade.roadmap().length > 0) {
       <div class="field">
-        <label class="field__label field__label--mono">Этап (опционально)</label>
-        <select class="field__select field__select--sm" [value]="investRoadmapId()" (change)="investRoadmapId.set($any($event.target).value)">
+        <label class="field__label field__label--mono" for="if-roadmap">Этап (опционально)</label>
+        <select id="if-roadmap" class="field__select field__select--sm"
+          [value]="investRoadmapId()" (change)="investRoadmapId.set($any($event.target).value)">
           <option value="">— Без привязки к этапу —</option>
           @for (item of facade.roadmap(); track item.id) {
             <option [value]="item.id">{{ item.title }}</option>
@@ -25,115 +26,312 @@
     }
 
     <div class="field">
-      <label class="field__label field__label--mono">Инструмент</label>
-      <div class="chips">
-        @for (ins of [{v:0,l:'SAFE'},{v:1,l:'Конвертируемый заём'},{v:2,l:'Priced Round'}]; track ins.v) {
+      <span class="field__label field__label--mono" id="if-instrument-label">Инструмент</span>
+      <!-- Кнопки-переключатели с aria-pressed, а не role=radio: у radiogroup ожидается один
+           tab-stop и навигация стрелками, чего эти чипы не делают — обещать этого не будем. -->
+      <div class="chips" role="group" aria-labelledby="if-instrument-label">
+        @for (ins of instruments; track ins.value) {
           <button type="button"
             class="chip"
-            [class.chip--active]="investInstrument() === ins.v"
-            (click)="investInstrument.set(ins.v)">{{ ins.l }}</button>
+            [attr.aria-pressed]="investInstrument() === ins.value"
+            [class.chip--active]="investInstrument() === ins.value"
+            (click)="setInstrument(ins.value)">{{ ins.label }}</button>
         }
       </div>
     </div>
 
     <div class="field">
-      <label class="field__label field__label--mono">Сумма ($) *</label>
+      <label class="field__label field__label--mono" for="if-amount">Сумма (₽) *</label>
       <div class="sd-invest-form__amount-row">
         <input
+          id="if-amount"
           class="field__input field__input--sm"
+          [class.field__input--error]="errorFor('amount')"
           type="number"
-          placeholder="50000"
+          inputmode="decimal"
+          placeholder="5000000"
           min="1"
+          [attr.aria-invalid]="!!errorFor('amount')"
+          [attr.aria-describedby]="errorFor('amount') ? 'if-amount-error' : null"
           [value]="investAmount()"
-          (input)="investAmount.set($any($event.target).value)" />
+          (input)="investAmount.set($any($event.target).value)"
+          (blur)="markTouched('amount')" />
         <button type="button" class="sd-invest-form__suggest-btn"
-          [disabled]="suggestedTermsLoading() || !investAmount()"
+          [disabled]="suggestedTermsLoading() || !canSuggest()"
+          [attr.aria-busy]="suggestedTermsLoading()"
+          [title]="canSuggest()
+            ? 'Рассчитать условия по оценке стартапа'
+            : 'Сначала укажите сумму — от неё считается доля инвестора'"
           (click)="loadSuggestedTerms()">
-          {{ suggestedTermsLoading() ? '…' : '⚡ Авто-условия' }}
+          {{ suggestedTermsLoading() ? 'Считаем…' : '⚡ Авто-условия' }}
         </button>
       </div>
+      @if (errorFor('amount')) {
+        <p class="field__hint field__hint--error" id="if-amount-error">{{ errorFor('amount') }}</p>
+      } @else if (!canSuggest()) {
+        <p class="field__hint">Укажите сумму, чтобы рассчитать условия и долю инвестора.</p>
+      }
     </div>
 
-    @if (investInstrument() === 0) {
-      <div class="sd-invest-form__terms-grid">
-        <div class="field">
-          <label class="field__label field__label--mono">Valuation Cap ($)</label>
-          <input class="field__input field__input--sm" type="number" min="0" placeholder="2000000"
-            [value]="investValuationCap()" (input)="investValuationCap.set($any($event.target).value)" />
-        </div>
-        <div class="field">
-          <label class="field__label field__label--mono">Discount (%)</label>
-          <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="20"
-            [value]="investDiscount()" (input)="investDiscount.set($any($event.target).value)" />
-        </div>
-      </div>
-      <label class="field__label field__label--checkbox">
-        <input type="checkbox" [checked]="investProRata()" (change)="investProRata.set($any($event.target).checked)" />
-        <span>Pro-rata rights</span>
-      </label>
+    @if (suggestError()) {
+      <div class="toast toast--warning" role="status">{{ suggestError() }}</div>
     }
 
-    @if (investInstrument() === 1) {
+    <!-- ─── Предпросмотр сделки ──────────────────────────────────────────────── -->
+    @if (preview(); as p) {
+      <div class="sd-preview" [class.sd-preview--stale]="previewStale()">
+        <div class="sd-preview__head">
+          <span class="sd-preview__title">Предпросмотр сделки</span>
+          @if (canUndo()) {
+            <button type="button" class="sd-preview__undo" (click)="undoSuggestion()">
+              ↺ Вернуть мои значения
+            </button>
+          }
+        </div>
+
+        @if (previewStale()) {
+          <p class="sd-preview__stale-note">
+            Условия изменились после расчёта — цифры ниже относятся к прежним. Нажмите
+            «⚡ Авто-условия» ещё раз, чтобы пересчитать.
+          </p>
+        }
+
+        @if (p.impliedInvestorSharePct !== null) {
+          <div class="sd-preview__share">
+            <div class="sd-preview__share-nums">
+              <span class="sd-preview__share-pct">{{ p.impliedInvestorSharePct }}%</span>
+              <span class="sd-preview__share-label">доля инвестора при этой сумме</span>
+            </div>
+            <div class="sd-preview__bar" role="img"
+              [attr.aria-label]="'Инвестор ' + p.impliedInvestorSharePct + '%, основатели и прочие ' + foundersSharePct() + '%'">
+              <span class="sd-preview__bar-investor" [style.width.%]="p.impliedInvestorSharePct"></span>
+            </div>
+            <span class="sd-preview__bar-legend">
+              Основателям и прочим держателям остаётся ≈{{ foundersSharePct() }}%
+            </span>
+          </div>
+        }
+
+        <dl class="sd-preview__facts">
+          @if (valuationAnchor()) {
+            <div class="sd-preview__fact">
+              <dt>Оценка стартапа</dt>
+              <dd>{{ valuationAnchor() }}</dd>
+            </div>
+          }
+          @if (p.scoreReference !== null) {
+            <div class="sd-preview__fact">
+              <dt>Скор</dt>
+              <dd>{{ p.scoreReference }} / 100</dd>
+            </div>
+          }
+          @if (capRationale()) {
+            <div class="sd-preview__fact sd-preview__fact--wide">
+              <dt>Откуда cap</dt>
+              <dd>{{ capRationale() }}</dd>
+            </div>
+          }
+        </dl>
+
+        @if (warnings().length > 0) {
+          <ul class="sd-preview__warnings">
+            @for (w of warnings(); track w.code) {
+              <li class="sd-preview__warning">
+                <span class="sd-preview__warning-icon" aria-hidden="true">⚠</span>
+                <span>{{ warningLabel(w) }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="sd-preview__ok">✓ Условия в пределах рыночной практики.</p>
+        }
+      </div>
+    }
+
+    <!-- ─── Условия по инструменту ───────────────────────────────────────────── -->
+    @if (investInstrument() === 0 || investInstrument() === 1) {
       <div class="sd-invest-form__terms-grid">
         <div class="field">
-          <label class="field__label field__label--mono">Valuation Cap ($)</label>
-          <input class="field__input field__input--sm" type="number" min="0" placeholder="2000000"
-            [value]="investValuationCap()" (input)="investValuationCap.set($any($event.target).value)" />
+          <label class="field__label field__label--mono" for="if-cap">
+            Valuation Cap (₽) *
+            @if (isAutoFilled('valuationCap')) {
+              <span class="sd-auto-tag" title="Значение подставлено авто-условиями">авто</span>
+            }
+          </label>
+          <input id="if-cap" class="field__input field__input--sm" type="number" inputmode="decimal"
+            min="1" placeholder="20000000"
+            [class.field__input--error]="errorFor('valuationCap')"
+            [class.field__input--auto]="isAutoFilled('valuationCap')"
+            [attr.aria-invalid]="!!errorFor('valuationCap')"
+            [attr.aria-describedby]="errorFor('valuationCap') ? 'if-cap-error' : null"
+            [value]="investValuationCap()"
+            (input)="setTermField('valuationCap', $any($event.target).value)"
+            (blur)="markTouched('valuationCap')" />
+          @if (errorFor('valuationCap')) {
+            <p class="field__hint field__hint--error" id="if-cap-error">{{ errorFor('valuationCap') }}</p>
+          }
         </div>
         <div class="field">
-          <label class="field__label field__label--mono">Discount (%)</label>
-          <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="20"
-            [value]="investDiscount()" (input)="investDiscount.set($any($event.target).value)" />
+          <label class="field__label field__label--mono" for="if-discount">
+            Discount (%)
+            @if (isAutoFilled('discountPct')) {
+              <span class="sd-auto-tag" title="Значение подставлено авто-условиями">авто</span>
+            }
+          </label>
+          <input id="if-discount" class="field__input field__input--sm" type="number" inputmode="decimal"
+            min="0" max="50" step="0.5" placeholder="20"
+            [class.field__input--error]="errorFor('discountPct')"
+            [class.field__input--auto]="isAutoFilled('discountPct')"
+            [attr.aria-invalid]="!!errorFor('discountPct')"
+            aria-describedby="if-discount-hint"
+            [value]="investDiscount()"
+            (input)="setTermField('discountPct', $any($event.target).value)"
+            (blur)="markTouched('discountPct')" />
+          @if (errorFor('discountPct')) {
+            <p class="field__hint field__hint--error" id="if-discount-hint">{{ errorFor('discountPct') }}</p>
+          } @else {
+            <p class="field__hint" id="if-discount-hint">0–50%. Опционально.</p>
+          }
         </div>
-        <div class="field">
-          <label class="field__label field__label--mono">Ставка (% год.)</label>
-          <input class="field__input field__input--sm" type="number" min="0" max="50" placeholder="8"
-            [value]="investInterestRate()" (input)="investInterestRate.set($any($event.target).value)" />
-        </div>
-        <div class="field">
-          <label class="field__label field__label--mono">Срок (мес.)</label>
-          <input class="field__input field__input--sm" type="number" min="1" max="120" placeholder="24"
-            [value]="investTermMonths()" (input)="investTermMonths.set($any($event.target).value)" />
-        </div>
+
+        @if (investInstrument() === 1) {
+          <div class="field">
+            <label class="field__label field__label--mono" for="if-rate">
+              Ставка (% год.) *
+              @if (isAutoFilled('interestRatePct')) {
+                <span class="sd-auto-tag" title="Значение подставлено авто-условиями">авто</span>
+              }
+            </label>
+            <input id="if-rate" class="field__input field__input--sm" type="number" inputmode="decimal"
+              min="0" max="30" step="0.5" placeholder="6"
+              [class.field__input--error]="errorFor('interestRatePct')"
+              [class.field__input--auto]="isAutoFilled('interestRatePct')"
+              [attr.aria-invalid]="!!errorFor('interestRatePct')"
+              aria-describedby="if-rate-hint"
+              [value]="investInterestRate()"
+              (input)="setTermField('interestRatePct', $any($event.target).value)"
+              (blur)="markTouched('interestRatePct')" />
+            @if (errorFor('interestRatePct')) {
+              <p class="field__hint field__hint--error" id="if-rate-hint">{{ errorFor('interestRatePct') }}</p>
+            } @else {
+              <p class="field__hint" id="if-rate-hint">0–30% годовых.</p>
+            }
+          </div>
+          <div class="field">
+            <label class="field__label field__label--mono" for="if-term">
+              Срок (мес.) *
+              @if (isAutoFilled('termMonths')) {
+                <span class="sd-auto-tag" title="Значение подставлено авто-условиями">авто</span>
+              }
+            </label>
+            <input id="if-term" class="field__input field__input--sm" type="number" inputmode="numeric"
+              min="6" max="60" step="1" placeholder="18"
+              [class.field__input--error]="errorFor('termMonths')"
+              [class.field__input--auto]="isAutoFilled('termMonths')"
+              [attr.aria-invalid]="!!errorFor('termMonths')"
+              aria-describedby="if-term-hint"
+              [value]="investTermMonths()"
+              (input)="setTermField('termMonths', $any($event.target).value)"
+              (blur)="markTouched('termMonths')" />
+            @if (errorFor('termMonths')) {
+              <p class="field__hint field__hint--error" id="if-term-hint">{{ errorFor('termMonths') }}</p>
+            } @else {
+              <p class="field__hint" id="if-term-hint">6–60 месяцев.</p>
+            }
+          </div>
+        }
       </div>
     }
 
     @if (investInstrument() === 2) {
       <div class="sd-invest-form__terms-grid">
         <div class="field">
-          <label class="field__label field__label--mono">Pre-money valuation ($)</label>
-          <input class="field__input field__input--sm" type="number" min="0" placeholder="5000000"
-            [value]="investPreMoney()" (input)="investPreMoney.set($any($event.target).value)" />
+          <label class="field__label field__label--mono" for="if-premoney">
+            Pre-money valuation (₽) *
+            @if (isAutoFilled('preMoney')) {
+              <span class="sd-auto-tag" title="Значение подставлено авто-условиями">авто</span>
+            }
+          </label>
+          <input id="if-premoney" class="field__input field__input--sm" type="number" inputmode="decimal"
+            min="1" placeholder="50000000"
+            [class.field__input--error]="errorFor('preMoney')"
+            [class.field__input--auto]="isAutoFilled('preMoney')"
+            [attr.aria-invalid]="!!errorFor('preMoney')"
+            [attr.aria-describedby]="errorFor('preMoney') ? 'if-premoney-error' : null"
+            [value]="investPreMoney()"
+            (input)="setTermField('preMoney', $any($event.target).value)"
+            (blur)="markTouched('preMoney')" />
+          @if (errorFor('preMoney')) {
+            <p class="field__hint field__hint--error" id="if-premoney-error">{{ errorFor('preMoney') }}</p>
+          }
         </div>
         <div class="field">
-          <label class="field__label field__label--mono">Liquidation Preference (×)</label>
-          <input class="field__input field__input--sm" type="number" min="1" max="5" step="0.5" placeholder="1"
-            [value]="investLiquidationPref()" (input)="investLiquidationPref.set($any($event.target).value)" />
+          <label class="field__label field__label--mono" for="if-liqpref">
+            Liquidation Preference (×)
+            @if (isAutoFilled('liquidationPref')) {
+              <span class="sd-auto-tag" title="Значение подставлено авто-условиями">авто</span>
+            }
+          </label>
+          <input id="if-liqpref" class="field__input field__input--sm" type="number" inputmode="decimal"
+            min="1" max="3" step="0.5" placeholder="1"
+            [class.field__input--error]="errorFor('liquidationPref')"
+            [class.field__input--auto]="isAutoFilled('liquidationPref')"
+            [attr.aria-invalid]="!!errorFor('liquidationPref')"
+            aria-describedby="if-liqpref-hint"
+            [value]="investLiquidationPref()"
+            (input)="setTermField('liquidationPref', $any($event.target).value)"
+            (blur)="markTouched('liquidationPref')" />
+          @if (errorFor('liquidationPref')) {
+            <p class="field__hint field__hint--error" id="if-liqpref-hint">{{ errorFor('liquidationPref') }}</p>
+          } @else {
+            <p class="field__hint" id="if-liqpref-hint">1×–3×. Пусто — стандарт 1×.</p>
+          }
         </div>
       </div>
+    }
+
+    @if (proRataApplies()) {
       <label class="field__label field__label--checkbox">
-        <input type="checkbox" [checked]="investProRata()" (change)="investProRata.set($any($event.target).checked)" />
+        <input type="checkbox" [checked]="investProRata()"
+          (change)="investProRata.set($any($event.target).checked)" />
         <span>Pro-rata rights</span>
       </label>
     }
 
     <div class="field">
-      <label class="field__label field__label--mono">Сообщение</label>
+      <label class="field__label field__label--mono" for="if-message">Сообщение</label>
       <textarea
+        id="if-message"
         class="field__textarea"
+        [class.field__textarea--error]="errorFor('message')"
         placeholder="Расскажите о себе и своих ожиданиях…"
         rows="3"
+        maxlength="2000"
+        [attr.aria-invalid]="!!errorFor('message')"
+        [attr.aria-describedby]="errorFor('message') ? 'if-message-error' : null"
         [value]="investMessage()"
-        (input)="investMessage.set($any($event.target).value)"></textarea>
+        (input)="investMessage.set($any($event.target).value)"
+        (blur)="markTouched('message')"></textarea>
+      @if (errorFor('message')) {
+        <p class="field__hint field__hint--error" id="if-message-error">{{ errorFor('message') }}</p>
+      }
     </div>
 
     @if (investError()) {
-      <p class="field__hint field__hint--error">{{ investError() }}</p>
+      <div class="toast toast--error" role="alert">{{ investError() }}</div>
+    }
+    @if (submitAttempted() && !isValid()) {
+      <p class="field__hint field__hint--error" role="alert">
+        Проверьте отмеченные поля ({{ errorCount() }}) — заявка не отправлена.
+      </p>
     }
 
     <div class="sd-invest-form__actions">
       <button class="btn btn--ghost btn--sm" type="button" (click)="close.emit()">Отмена</button>
-      <button class="btn btn--success-soft btn--sm" type="button" [disabled]="investSubmitting()" (click)="submit()">
+      <button class="btn btn--success-soft btn--sm" type="button"
+        [disabled]="investSubmitting()"
+        [attr.aria-disabled]="!isValid()"
+        (click)="submit()">
         {{ investSubmitting() ? 'Отправка…' : 'Отправить' }}
       </button>
     </div>

@@ -1,4 +1,5 @@
 import { InvestmentApplication, InvestmentApplicationStatus, InvestmentInstrument, ValidationFlag } from '../investment-application.model';
+import { fractionToPct } from '../../utils/percent.utils';
 
 const STATUS_MAP: Record<number, InvestmentApplicationStatus> = {
   0: 'Pending',
@@ -33,7 +34,9 @@ export interface InvestmentApplicationDto {
   status: number;
   instrument?: number;
   valuationCap?: number | null;
+  /** Доля, не проценты: 0.2 = 20%. */
   discount?: number | null;
+  /** Доля, не проценты: 0.06 = 6% год. */
   interestRate?: number | null;
   termMonths?: number | null;
   preMoneyValuation?: number | null;
@@ -51,7 +54,9 @@ export interface CreateInvestmentApplicationRequestDto {
   message?: string;
   instrument?: number;
   valuation_cap?: number;
+  /** Доля, не проценты: 0.2 = 20%. Валидатор бэкенда требует 0–0.5. */
   discount?: number;
+  /** Доля, не проценты: 0.06 = 6% год. Валидатор бэкенда требует 0–0.30. */
   interest_rate?: number;
   term_months?: number;
   pre_money_valuation?: number;
@@ -77,8 +82,8 @@ export function mapInvestmentApplicationDto(dto: InvestmentApplicationDto): Inve
     status: STATUS_MAP[dto.status] ?? 'Pending',
     instrument: INSTRUMENT_MAP[dto.instrument ?? 0] ?? 'Safe',
     valuationCap: dto.valuationCap ?? null,
-    discount: dto.discount ?? null,
-    interestRate: dto.interestRate ?? null,
+    discountPct: fractionToPct(dto.discount),
+    interestRatePct: fractionToPct(dto.interestRate),
     termMonths: dto.termMonths ?? null,
     preMoneyValuation: dto.preMoneyValuation ?? null,
     liquidationPreference: dto.liquidationPreference ?? null,

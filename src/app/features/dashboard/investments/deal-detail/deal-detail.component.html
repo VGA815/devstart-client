@@ -71,10 +71,10 @@
               <span class="dd-info-row__value">{{ formatMoney(d.valuationCap) }}</span>
             </div>
           }
-          @if (d.discount) {
+          @if (d.discountPct) {
             <div class="dd-info-row">
               <span class="dd-info-row__label">Discount</span>
-              <span class="dd-info-row__value">{{ d.discount }}%</span>
+              <span class="dd-info-row__value">{{ d.discountPct }}%</span>
             </div>
           }
           <div class="dd-info-row">
@@ -90,16 +90,16 @@
               <span class="dd-info-row__value">{{ formatMoney(d.valuationCap) }}</span>
             </div>
           }
-          @if (d.discount) {
+          @if (d.discountPct) {
             <div class="dd-info-row">
               <span class="dd-info-row__label">Discount</span>
-              <span class="dd-info-row__value">{{ d.discount }}%</span>
+              <span class="dd-info-row__value">{{ d.discountPct }}%</span>
             </div>
           }
-          @if (d.interestRate) {
+          @if (d.interestRatePct) {
             <div class="dd-info-row">
               <span class="dd-info-row__label">Ставка</span>
-              <span class="dd-info-row__value">{{ d.interestRate }}% год.</span>
+              <span class="dd-info-row__value">{{ d.interestRatePct }}% год.</span>
             </div>
           }
           @if (d.termMonths) {

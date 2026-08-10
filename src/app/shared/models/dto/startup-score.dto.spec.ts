@@ -1,4 +1,7 @@
-import { ScoreFactorDto, StartupScoreDto, mapStartupScoreDto } from './startup-score.dto';
+import {
+  ScoreFactorDto, StartupScoreDto, SuggestedTermsDto,
+  mapStartupScoreDto, mapSuggestedTermsDto,
+} from './startup-score.dto';
 
 function factor(overrides: Partial<ScoreFactorDto> = {}): ScoreFactorDto {
   return {
@@ -134,5 +137,93 @@ describe('mapStartupScoreDto', () => {
 
       expect(result.factors[0].detail.inputs[0].value).toEqual({ kind: 0, number: null, code: null });
     });
+  });
+});
+
+function termsDto(overrides: Partial<SuggestedTermsDto> = {}): SuggestedTermsDto {
+  return {
+    instrument: 1,
+    suggestedValuationCap: 21_000_000,
+    suggestedDiscount: 0.2,
+    suggestedInterestRate: 0.06,
+    suggestedTermMonths: 18,
+    suggestedPreMoneyValuation: null,
+    suggestedLiquidationPreference: 1,
+    impliedInvestorSharePct: 24.13,
+    warnings: [],
+    scoreReference: 62,
+    valuationLowReference: 12_000_000,
+    valuationHighReference: 20_000_000,
+    ...overrides,
+  };
+}
+
+describe('mapSuggestedTermsDto', () => {
+  // Бэкенд валидирует discount 0–0.5 и ставку 0–0.30 долями, а поля подписаны «%». Пока
+  // перевода не было, авто-условия подставляли «0.2» в процентное поле.
+  it('переводит доли ставок в проценты', () => {
+    const result = mapSuggestedTermsDto(termsDto());
+
+    expect(result.discountPct).toBe(20);
+    expect(result.interestRatePct).toBe(6);
+  });
+
+  it('не тащит артефакты double при переводе', () => {
+    const result = mapSuggestedTermsDto(termsDto({
+      suggestedDiscount: 0.07,
+      suggestedInterestRate: 0.065,
+    }));
+
+    expect(result.discountPct).toBe(7);        // не 7.000000000000001
+    expect(result.interestRatePct).toBe(6.5);
+  });
+
+  it('суммы не трогает — они и так в ₽', () => {
+    const result = mapSuggestedTermsDto(termsDto({ suggestedPreMoneyValuation: 50_000_000 }));
+
+    expect(result.valuationCap).toBe(21_000_000);
+    expect(result.preMoneyValuation).toBe(50_000_000);
+  });
+
+  it('сохраняет null у неприменимых к инструменту ставок', () => {
+    const result = mapSuggestedTermsDto(termsDto({
+      instrument: 2,
+      suggestedDiscount: null,
+      suggestedInterestRate: null,
+      suggestedTermMonths: null,
+      suggestedValuationCap: null,
+    }));
+
+    expect(result.discountPct).toBeNull();
+    expect(result.interestRatePct).toBeNull();
+    expect(result.termMonths).toBeNull();
+    expect(result.valuationCap).toBeNull();
+  });
+
+  it('пробрасывает обоснование и долю инвестора', () => {
+    const result = mapSuggestedTermsDto(termsDto());
+
+    expect(result.impliedInvestorSharePct).toBe(24.13);
+    expect(result.scoreReference).toBe(62);
+    expect(result.valuationLowReference).toBe(12_000_000);
+    expect(result.valuationHighReference).toBe(20_000_000);
+  });
+
+  it('маппит предупреждения по условиям сделки', () => {
+    const result = mapSuggestedTermsDto(termsDto({
+      warnings: [
+        { code: 'deal_terms.high_dilution', severity: 'warning', message: 'Investor share above 30%…' },
+        { code: 'deal_terms.amount_exceeds_cap', severity: 'warning', message: 'Invested amount…' },
+      ],
+    }));
+
+    expect(result.warnings.length).toBe(2);
+    expect(result.warnings[0].code).toBe('deal_terms.high_dilution');
+    expect(result.warnings[1].severity).toBe('warning');
+  });
+
+  it('отсутствующий массив warnings нормализуется в []', () => {
+    const result = mapSuggestedTermsDto(termsDto({ warnings: null }));
+    expect(result.warnings).toEqual([]);
   });
 });

@@ -369,16 +369,16 @@ export const StartupDetailStore = signalStore(
         loadTab('roadmap');
       },
 
-      loadSuggestedTerms(instrument: number, amount: number): Observable<SuggestedTerms | null> {
-        return scoreSvc.getSuggestedTerms(store.id(), instrument, amount).pipe(
-          catchError(() => of(null))
-        );
+      // Ошибку не глотаем: 403 (нужен Pro) и Valuation.InsufficientData — это не «ничего не
+      // произошло», а два разных объяснимых исхода, которые форма показывает текстом.
+      loadSuggestedTerms(instrument: number, amount: number): Observable<SuggestedTerms> {
+        return scoreSvc.getSuggestedTerms(store.id(), instrument, amount);
       },
 
-      submitApplication(payload: InvestPayload): Observable<string | null> {
-        return investAppSvc.create({ startup_id: store.id(), ...payload }).pipe(
-          catchError(() => of(null))
-        );
+      // Тоже прокидываем: у отказа есть разбор по полям (ProblemDetails.errors), а «не удалось
+      // отправить заявку» не подсказывает, что именно чинить.
+      submitApplication(payload: InvestPayload): Observable<string> {
+        return investAppSvc.create({ startup_id: store.id(), ...payload });
       },
 
       saveCompetitor(payload: CompetitorPayload, editingId: string | null): Observable<unknown> {

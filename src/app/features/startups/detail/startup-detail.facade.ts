@@ -72,11 +72,13 @@ export class StartupDetailFacade {
 
   prepareInvest(): void { this.store.prepareInvest(); }
 
-  loadSuggestedTerms(instrument: number, amount: number): Observable<SuggestedTerms | null> {
+  /** Может завершиться ошибкой: 403 (нужен Pro) или Valuation.InsufficientData. */
+  loadSuggestedTerms(instrument: number, amount: number): Observable<SuggestedTerms> {
     return this.store.loadSuggestedTerms(instrument, amount);
   }
 
-  submitApplication(payload: InvestPayload): Observable<string | null> {
+  /** Может завершиться ошибкой валидации — форма разбирает её по полям. */
+  submitApplication(payload: InvestPayload): Observable<string> {
     return this.store.submitApplication(payload);
   }
 

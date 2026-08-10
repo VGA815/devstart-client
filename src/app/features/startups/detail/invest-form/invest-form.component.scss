@@ -17,6 +17,18 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+
+    @media (max-width: 480px) { grid-template-columns: 1fr; }
+
+    /* Подпись с плашкой «авто» переносится на вторую строку на узких колонках и в моно-
+       фолбэке — резервируем две строки, иначе инпуты соседних колонок разъезжаются. */
+    .field__label {
+      display: flex;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 2px 0;
+      min-height: 2.7em;
+    }
   }
 
   &__amount-row {
@@ -24,7 +36,7 @@
     gap: 6px;
     align-items: stretch;
 
-    input { flex: 1; }
+    input { flex: 1; min-width: 0; }
   }
 
   &__suggest-btn {
@@ -39,7 +51,202 @@
     transition: var(--transition);
     white-space: nowrap;
 
-    &:hover:not(:disabled) { background: var(--accent-glow); }
+    &:hover:not(:disabled) { background: var(--accent-soft); }
+    &:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+}
+
+/* Пометка на поле, подставленном авто-условиями: значение не введено руками. */
+.sd-auto-tag {
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.field__input--auto:not(.field__input--error) {
+  border-color: var(--accent-border);
+  background: var(--accent-glow);
+}
+
+/* ─── Предпросмотр сделки ──────────────────────────────────────────────────── */
+
+.sd-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius);
+  background: var(--accent-glow);
+  animation: fadeIn 0.2s ease;
+
+  /* Цифры больше не соответствуют форме — гасим, чтобы на них не опирались. */
+  &--stale {
+    border-color: var(--border);
+    background: var(--bg3);
+
+    /* Гасим, но не до нечитаемого: устаревшие цифры всё ещё нужно разобрать глазами. */
+    .sd-preview__share,
+    .sd-preview__facts,
+    .sd-preview__warnings,
+    .sd-preview__ok { opacity: 0.72; }
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  &__undo {
+    padding: 2px 6px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+
+    &:hover { color: var(--text); border-color: var(--border-strong); }
+    &:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  }
+
+  &__stale-note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--yellow);
+  }
+
+  &__share {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__share-nums {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__share-pct {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  &__share-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Дорожка = доля основателей, заполнение = доля инвестора. Дорожке нужен видимый тон,
+     иначе на тёмной теме читается только синий сегмент и «сколько осталось» не видно. */
+  &__bar {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--green);
+    overflow: hidden;
+  }
+
+  &__bar-investor {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.25s ease;
+
+    /* На светлой теме --accent и --green почти совпадают по яркости (контраст ~1.4:1), так
+       что граница сегментов по одному тону не читается. Жёсткий разделитель цветом панели
+       делит полосу независимо от темы и различения цветов. */
+    box-shadow: 2px 0 0 0 var(--bg2);
+  }
+
+  &__bar-legend {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  &__facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 0;
+
+    @media (max-width: 480px) { grid-template-columns: 1fr; }
+  }
+
+  &__fact {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    &--wide { grid-column: 1 / -1; }
+
+    dt {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    dd {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text);
+    }
+  }
+
+  &__warnings {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__warning {
+    display: flex;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--yellow);
+  }
+
+  &__warning-icon { flex-shrink: 0; }
+
+  &__ok {
+    margin: 0;
+    font-size: 12px;
+    color: var(--green);
   }
 }

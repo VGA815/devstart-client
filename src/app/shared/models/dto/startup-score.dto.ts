@@ -1,6 +1,7 @@
 import {
   ScoreFactor, ScoreFactorDetail, ScoreHint, ScoreInput, ScoreValue, StartupScore, SuggestedTerms,
 } from '../startup-score.model';
+import { fractionToPct } from '../../utils/percent.utils';
 
 export interface ScoreValueDto {
   kind: number | null;
@@ -56,15 +57,27 @@ export interface StartupScoreDto {
 }
 
 
+export interface DealTermsFlagDto {
+  code: string;
+  severity: string;
+  message: string;
+}
+
 export interface SuggestedTermsDto {
   instrument: number;
   suggestedValuationCap: number | null;
+  /** Доля, не проценты: 0.2 = 20%. */
   suggestedDiscount: number | null;
+  /** Доля, не проценты: 0.06 = 6% год. */
   suggestedInterestRate: number | null;
   suggestedTermMonths: number | null;
   suggestedPreMoneyValuation: number | null;
   suggestedLiquidationPreference: number | null;
-  proRataRights: boolean;
+  impliedInvestorSharePct: number | null;
+  warnings: DealTermsFlagDto[] | null;
+  scoreReference: number | null;
+  valuationLowReference: number | null;
+  valuationHighReference: number | null;
 }
 
 function mapScoreValueDto(dto: ScoreValueDto | null): ScoreValue {
@@ -129,13 +142,22 @@ export function mapStartupScoreDto(dto: StartupScoreDto): StartupScore {
 
 export function mapSuggestedTermsDto(dto: SuggestedTermsDto): SuggestedTerms {
   return {
-    instrument:           dto.instrument,
-    valuationCap:         dto.suggestedValuationCap,
-    discount:             dto.suggestedDiscount,
-    interestRate:         dto.suggestedInterestRate,
-    termMonths:           dto.suggestedTermMonths,
-    preMoneyValuation:    dto.suggestedPreMoneyValuation,
+    instrument:            dto.instrument,
+    valuationCap:          dto.suggestedValuationCap,
+    // Бэкенд отдаёт доли — переводим в проценты здесь, на границе API.
+    discountPct:           fractionToPct(dto.suggestedDiscount),
+    interestRatePct:       fractionToPct(dto.suggestedInterestRate),
+    termMonths:            dto.suggestedTermMonths,
+    preMoneyValuation:     dto.suggestedPreMoneyValuation,
     liquidationPreference: dto.suggestedLiquidationPreference,
-    proRataRights:        dto.proRataRights,
+    impliedInvestorSharePct: dto.impliedInvestorSharePct ?? null,
+    warnings: (dto.warnings ?? []).map(w => ({
+      code:     w.code,
+      severity: w.severity,
+      message:  w.message,
+    })),
+    scoreReference:         dto.scoreReference ?? null,
+    valuationLowReference:  dto.valuationLowReference ?? null,
+    valuationHighReference: dto.valuationHighReference ?? null,
   };
 }

@@ -21,8 +21,10 @@ export interface InvestmentApplication {
   // Deal terms
   instrument: InvestmentInstrument;
   valuationCap: number | null;
-  discount: number | null;
-  interestRate: number | null;
+  /** Проценты, не доля: 20 = 20%. Бэкенд хранит долей, перевод — в маппере DTO. */
+  discountPct: number | null;
+  /** Проценты годовых, не доля: 6 = 6% год. */
+  interestRatePct: number | null;
   termMonths: number | null;
   preMoneyValuation: number | null;
   liquidationPreference: number | null;

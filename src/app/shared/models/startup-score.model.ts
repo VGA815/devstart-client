@@ -69,13 +69,35 @@ export interface StartupScore {
   factors: ScoreFactor[];
 }
 
+/** Рыночное предупреждение по условиям сделки (DealTermsValidator на бэкенде). */
+export interface DealTermsWarning {
+  /** Напр. `deal_terms.high_dilution`. Ключ для локализованной подписи. */
+  code: string;
+  severity: string;
+  /** Формулировка бэкенда (англ.) — фолбэк для незнакомого кода. */
+  message: string;
+}
+
+/**
+ * Авто-условия сделки: сами цифры + то, чем они обоснованы.
+ *
+ * Суммы в ₽ (движок оценки RUB-native), ставки — в процентах (см. [[percent.utils]]).
+ * Pro-rata бэкенд не предлагает: это переговорная позиция инвестора, а не производная оценки.
+ */
 export interface SuggestedTerms {
   instrument: number; // 0=Safe, 1=ConvertibleLoan, 2=PricedRound
   valuationCap: number | null;
-  discount: number | null;
-  interestRate: number | null;
+  discountPct: number | null;
+  interestRatePct: number | null;
   termMonths: number | null;
   preMoneyValuation: number | null;
   liquidationPreference: number | null;
-  proRataRights: boolean;
+
+  /** Доля инвестора (%) при запрошенной сумме на этих условиях; null — не считается. */
+  impliedInvestorSharePct: number | null;
+  warnings: DealTermsWarning[];
+  /** Скор и диапазон оценки, от которых отстроен cap — «откуда взялись цифры». */
+  scoreReference: number | null;
+  valuationLowReference: number | null;
+  valuationHighReference: number | null;
 }
