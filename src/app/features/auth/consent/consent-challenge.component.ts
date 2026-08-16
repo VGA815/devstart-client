@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
+import { captchaErrorMessage } from '../../../core/captcha/captcha-error';
 import { ConsentService } from '../../../core/consents/consent.service';
 import { ConsentItemDto } from '../../../shared/models/dto/consent.dto';
 import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
@@ -109,7 +110,8 @@ export class ConsentChallengeComponent implements OnInit {
           this.error.set('Требуется подтвердить дополнительные документы.');
         }
       },
-      error: () => this.error.set('Не удалось сохранить согласия. Попробуйте снова.'),
+      error: (err: unknown) => this.error.set(
+        captchaErrorMessage(err) ?? 'Не удалось сохранить согласия. Попробуйте снова.'),
     });
   }
 

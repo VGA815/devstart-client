@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
+import { captchaErrorMessage } from '../../../core/captcha/captcha-error';
 
 @Component({
   selector: 'app-reset-password',
@@ -66,6 +67,8 @@ export class ResetPasswordComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
+        const captchaMsg = captchaErrorMessage(err);
+        if (captchaMsg) { this.error.set(captchaMsg); return; }
         if (err.status === 404) {
           this.invalidToken.set(true);
         } else {

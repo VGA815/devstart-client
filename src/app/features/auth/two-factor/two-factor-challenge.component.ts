@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService, AuthOutcome } from '../../../core/auth/auth.service';
+import { captchaErrorMessage } from '../../../core/captcha/captcha-error';
 import { QrCodeComponent } from '../../../shared/components/qr-code/qr-code.component';
 
 /**
@@ -131,6 +132,11 @@ export class TwoFactorChallengeComponent implements OnInit {
   }
 
   private handleError(err: HttpErrorResponse): void {
+    // Проверяется первой: Captcha.Missing/Failed приходят с 400, который иначе был бы прочитан
+    // как «неверный код» и отправил бы пользователя перенабирать правильный TOTP.
+    const captchaMsg = captchaErrorMessage(err);
+    if (captchaMsg) { this.error.set(captchaMsg); return; }
+
     const title: string = err.error?.title ?? '';
     if (err.status === 401 && title.includes('Pending')) {
       this.error.set('Сессия входа устарела. Войдите ещё раз.');

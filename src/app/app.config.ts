@@ -6,6 +6,7 @@ import { provideRouter, withComponentInputBinding, withPreloading } from '@angul
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { captchaInterceptor } from './core/captcha/captcha.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { IdlePreloadStrategy } from './core/routing/idle-preload.strategy';
 import { MatomoService } from './core/analytics/matomo.service';
@@ -17,8 +18,10 @@ export const appConfig: ApplicationConfig = {
     // плоские поля в компонентах приватные и в шаблоны не попадают.
     provideExperimentalZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding(), withPreloading(IdlePreloadStrategy)),
+    // captchaInterceptor идёт первым: токен должен появиться до того, как authInterceptor
+    // клонирует запрос ради Authorization. No-op при пустом environment.captchaSiteKey.
     provideHttpClient(
-      withInterceptors([authInterceptor, errorInterceptor])
+      withInterceptors([captchaInterceptor, authInterceptor, errorInterceptor])
     ),
     // Analytics. Here rather than in AppComponent.ngOnInit so the router subscription exists
     // before the first NavigationEnd (this runs before the root component is created), and so

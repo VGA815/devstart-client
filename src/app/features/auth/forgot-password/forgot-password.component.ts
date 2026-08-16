@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { AuthService } from '../../../core/auth/auth.service';
+import { captchaErrorMessage } from '../../../core/captcha/captcha-error';
 
 @Component({
   selector: 'app-forgot-password',
@@ -52,9 +53,10 @@ export class ForgotPasswordComponent {
         this.submittedEmail.set(email);
         this.sent.set(true);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.loading.set(false);
-        this.error.set('Не удалось отправить письмо. Попробуйте позже.');
+        this.error.set(
+          captchaErrorMessage(err) ?? 'Не удалось отправить письмо. Попробуйте позже.');
       },
     });
   }

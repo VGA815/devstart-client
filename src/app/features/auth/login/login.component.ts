@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
 import { OAuthService } from '../../../core/auth/oauth.service';
+import { captchaErrorMessage } from '../../../core/captcha/captcha-error';
 import { OAuthProvider } from '../../../shared/models/dto/auth.dto';
 
 @Component({
@@ -65,6 +66,8 @@ export class LoginComponent {
         }
       },
       error: (err: HttpErrorResponse) => {
+        const captchaMsg = captchaErrorMessage(err);
+        if (captchaMsg) { this.error.set(captchaMsg); return; }
         if (err.status === 403) {
           this.verifyEmail.set(email!);
           this.emailNotVerified.set(true);
@@ -82,9 +85,10 @@ export class LoginComponent {
     this.resendSuccess.set(false);
     this.auth.resendEmailVerification(this.verifyEmail()).subscribe({
       next: () => { this.resending.set(false); this.resendSuccess.set(true); },
-      error: () => {
+      error: (err: unknown) => {
         this.resending.set(false);
-        this.resendError.set('Не удалось отправить письмо. Попробуйте позже.');
+        this.resendError.set(
+          captchaErrorMessage(err) ?? 'Не удалось отправить письмо. Попробуйте позже.');
       },
     });
   }
@@ -106,9 +110,10 @@ export class LoginComponent {
       error: (err: HttpErrorResponse) => {
         this.oauthLoading.set(null);
         this.error.set(
-          err.status === 0
+          captchaErrorMessage(err) ??
+          (err.status === 0
             ? 'Сервис временно недоступен. Попробуйте позже.'
-            : 'Не удалось начать вход через провайдер.'
+            : 'Не удалось начать вход через провайдер.')
         );
       },
     });

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/auth.service';
+import { captchaErrorMessage } from '../../core/captcha/captcha-error';
 
 @Component({
   selector: 'app-email-confirmed',
@@ -48,9 +49,10 @@ export class EmailConfirmedComponent implements OnInit {
         this.resending.set(false);
         this.resendSuccess.set(true);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.resending.set(false);
-        this.resendError.set('Не удалось отправить письмо. Попробуйте позже.');
+        this.resendError.set(
+          captchaErrorMessage(err) ?? 'Не удалось отправить письмо. Попробуйте позже.');
       },
     });
   }

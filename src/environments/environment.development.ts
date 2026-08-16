@@ -10,4 +10,9 @@ export const environment = {
   // configuration, so a key missing from environment.ts breaks the production build.
   matomoUrl: '',
   matomoSiteId: '1',
+  // Empty so `ng serve` and unit tests never load the SmartCaptcha script. To exercise the real
+  // widget locally, paste Yandex's official "always passes" TEST client key here and set the
+  // matching test server key as Captcha__ServerKey on the API (plus Captcha__Enabled=true).
+  // Keep this key present in both environment files — see the note above.
+  captchaSiteKey: '',
 };

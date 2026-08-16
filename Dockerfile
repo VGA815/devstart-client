@@ -23,11 +23,20 @@ ARG WS_URL=ws://localhost:8082/connection/websocket
 # same origin, so no CORS and no extra CSP host — plus the site id created by the install wizard.
 ARG MATOMO_URL=
 ARG MATOMO_SITE_ID=
+# Yandex SmartCaptcha (invisible) on the auth forms. An empty CAPTCHA_SITE_KEY (the default)
+# disables the widget entirely, so the image builds and runs without a Yandex Cloud account.
+# This is the PUBLIC client key — the server key is a secret and belongs only in the API
+# container's Captcha__ServerKey, never in a frontend build arg.
+# Note the ordering hazard: this key is baked in at BUILD time while the server's
+# Captcha__Enabled is just an env var. Rebuild the frontend BEFORE enabling enforcement, or
+# every login and registration starts returning 400. See DEPLOYMENT.md.
+ARG CAPTCHA_SITE_KEY=
 RUN sed -i \
       -e "s|apiUrl: '[^']*'|apiUrl: '${API_URL}'|" \
       -e "s|wsUrl: '[^']*'|wsUrl: '${WS_URL}'|" \
       -e "s|matomoUrl: '[^']*'|matomoUrl: '${MATOMO_URL}'|" \
       -e "s|matomoSiteId: '[^']*'|matomoSiteId: '${MATOMO_SITE_ID}'|" \
+      -e "s|captchaSiteKey: '[^']*'|captchaSiteKey: '${CAPTCHA_SITE_KEY}'|" \
       src/environments/environment.ts
 
 # Inject the absolute public site URL into the crawler files (robots.txt / sitemap.xml).

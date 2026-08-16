@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
+import { captchaErrorMessage } from '../../../core/captcha/captcha-error';
 import { OAuthService } from '../../../core/auth/oauth.service';
 import { OAuthProvider } from '../../../shared/models/dto/auth.dto';
 import { ConsentService } from '../../../core/consents/consent.service';
@@ -79,9 +80,10 @@ export class RegisterComponent implements OnInit {
     this.resendSuccess.set(false);
     this.auth.resendEmailVerification(this.verifyEmail()).subscribe({
       next: () => { this.resending.set(false); this.resendSuccess.set(true); },
-      error: () => {
+      error: (err: unknown) => {
         this.resending.set(false);
-        this.resendError.set('Не удалось отправить письмо. Попробуйте позже.');
+        this.resendError.set(
+          captchaErrorMessage(err) ?? 'Не удалось отправить письмо. Попробуйте позже.');
       },
     });
   }
@@ -117,6 +119,8 @@ export class RegisterComponent implements OnInit {
       next: (outcome) =>
         this.router.navigate([outcome.kind === 'consent' ? '/consent' : '/dashboard']),
       error: (err: HttpErrorResponse) => {
+        const captchaMsg = captchaErrorMessage(err);
+        if (captchaMsg) { this.error.set(captchaMsg); return; }
         if (err.status === 403) {
           this.verifyEmail.set(v.email!);
           this.registered.set(true);
@@ -138,9 +142,10 @@ export class RegisterComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.oauthLoading.set(null);
         this.error.set(
-          err.status === 0
+          captchaErrorMessage(err) ??
+          (err.status === 0
             ? 'Сервис временно недоступен. Попробуйте позже.'
-            : 'Не удалось начать регистрацию через провайдер.'
+            : 'Не удалось начать регистрацию через провайдер.')
         );
       },
     });
