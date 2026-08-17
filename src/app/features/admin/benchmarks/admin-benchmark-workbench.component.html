@@ -1,0 +1,401 @@
+<div class="adm-page">
+  <header class="page__heading">
+    <h1 class="page__title page__title--sm">Верстак бенчмарков</h1>
+    <p class="page__sub">
+      Предложения выводятся из собранных внешних наблюдений. Страница ничего не записывает:
+      «Принять» открывает обычную форму добавления с заполненными полями.
+    </p>
+  </header>
+
+  <div class="adm-filters">
+    <button class="btn btn--sm" type="button"
+      [class.btn--primary]="tab() === 'suggestions'" [class.btn--ghost]="tab() !== 'suggestions'"
+      (click)="tab.set('suggestions')">Предложения</button>
+    <button class="btn btn--sm" type="button"
+      [class.btn--primary]="tab() === 'data'" [class.btn--ghost]="tab() !== 'data'"
+      (click)="tab.set('data')">Данные</button>
+    <button class="btn btn--sm" type="button"
+      [class.btn--primary]="tab() === 'registry'" [class.btn--ghost]="tab() !== 'registry'"
+      (click)="tab.set('registry')">Реестр</button>
+    <a class="btn btn--ghost btn--sm" routerLink="../benchmarks">К бенчмаркам</a>
+  </div>
+
+  <!-- ── Предложения ─────────────────────────────────────────────────────────── -->
+  @if (tab() === 'suggestions') {
+    <div class="card adm-form-card">
+      <div class="card__header"><span class="card__title">Параметры деривации</span></div>
+      <div class="card__body">
+        <p class="adm-note">
+          Параметры не сохраняются нигде: они едут в запрос и попадают в обоснование вместе с
+          полученным числом. Параметр, лежащий отдельно от числа, рано или поздно с ним разойдётся.
+        </p>
+        <div class="adm-inline-form__row">
+          <div class="field">
+            <label class="field__label">Порог компараблов N</label>
+            <input class="field__input field__input--sm" type="number" min="1"
+              [value]="minComparables()" (input)="minComparables.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Страновой коэффициент</label>
+            <input class="field__input field__input--sm" type="text" inputmode="decimal"
+              [value]="countryDiscount()" (input)="countryDiscount.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Дисконт неликвидности и размера</label>
+            <input class="field__input field__input--sm" type="text" inputmode="decimal"
+              [value]="illiquidityDiscount()" (input)="illiquidityDiscount.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Срез Damodaran</label>
+            <input class="field__input field__input--sm" type="text"
+              [value]="datasetRegion()" (input)="datasetRegion.set($any($event.target).value)" />
+          </div>
+        </div>
+        <div class="adm-inline-form__actions">
+          <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="loading()" (click)="loadSuggestions()">
+            {{ loading() ? 'Пересчёт…' : 'Пересчитать' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <app-skeleton height="48px" /><app-skeleton height="48px" />
+    } @else if (error()) {
+      <div class="empty-state empty-state--card"><p class="empty-state__sub">{{ error() }}</p></div>
+    } @else {
+      @if (result(); as r) {
+      <div class="adm-kv">
+        <span>Квартал</span><span class="adm-mono">{{ r.quarterLabel }}</span>
+        <span>Датасет Damodaran</span>
+        <span class="adm-mono">
+          {{ r.damodaranDatasetYear ?? '—' }} {{ r.damodaranDatasetRegion ?? '' }}
+        </span>
+        <span>Капитализации собраны</span>
+        <span class="adm-mono">{{ formatDate(r.lastMarketCapCollectedAt) }}</span>
+        <span>Выручка собрана</span>
+        <span class="adm-mono">{{ formatDate(r.lastRevenueCollectedAt) }}</span>
+      </div>
+
+      @if (!r.hasObservations) {
+        <div class="empty-state empty-state--card">
+          <p class="empty-state__sub">Наблюдений нет — запустите сбор или загрузите датасет.</p>
+          <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="collectBusy()" (click)="collect(2)">Запустить сбор</button>
+        </div>
+      }
+
+      @for (metric of [1, 2]; track metric) {
+      <div class="card card__body--flush">
+        <div class="card__header"><span class="card__title">{{ metricLabel(metric) }}</span></div>
+        @for (s of suggestionsFor(metric); track s.industry) {
+          <div class="adm-row">
+            <div class="adm-row__info">
+              <span class="adm-row__title">{{ industryLabel(s.industry) }}</span>
+              <span class="adm-row__sub">
+                @if (s.value != null) {
+                  сейчас {{ formatSuggested(s, s.currentValue) }} →
+                  предложено {{ formatSuggested(s, s.value) }}
+                  @if (s.deltaPercent != null) { <span class="adm-mono">({{ deltaLabel(s) }})</span> }
+                } @else {
+                  {{ s.noSuggestionReason }}
+                }
+              </span>
+              <span class="adm-row__badges">
+                @if (s.metricType === 1) {
+                  <span class="badge badge--mono" [class.badge--green]="s.comparableCount >= r.minComparables"
+                    [class.badge--yellow]="s.comparableCount > 0 && s.comparableCount < r.minComparables"
+                    [class.badge--gray]="s.comparableCount === 0">
+                    компараблов: {{ s.comparableCount }}
+                  </span>
+                }
+                @if (s.value != null) {
+                  <span class="badge badge--mono" [class.badge--green]="s.isDerived"
+                    [class.badge--yellow]="!s.isDerived">
+                    {{ s.isDerived ? 'выведено' : 'параметр' }}
+                  </span>
+                }
+                @if (s.fiscalYears.length) {
+                  <span class="badge badge--mono">выручка FY{{ s.fiscalYears.join('/') }}</span>
+                }
+                @if (s.collidesWithExisting) {
+                  <span class="badge badge--mono badge--red">
+                    версия на {{ formatDate(s.effectiveFrom) }} уже есть
+                  </span>
+                }
+              </span>
+            </div>
+            <div class="adm-row__actions">
+              <button class="btn btn--ghost btn--sm" type="button" (click)="toggleChain(s)">
+                {{ isChainOpen(s) ? 'Скрыть цепочку' : 'Цепочка' }}
+              </button>
+              @if (s.value != null) {
+                <button class="btn btn--primary btn--sm" type="button" (click)="accept(s)">Принять</button>
+              }
+            </div>
+          </div>
+
+          @if (isChainOpen(s)) {
+            <div class="adm-inline-form">
+              @for (step of s.chain; track step.label) {
+                <p class="adm-mono">
+                  {{ step.label }}: {{ step.value == null ? '—' : step.value }} · {{ step.detail }}
+                </p>
+              }
+              @if (s.source) {
+                <p class="adm-note">{{ s.source }}</p>
+              }
+            </div>
+          }
+        }
+      </div>
+      }
+      }
+    }
+  }
+
+  <!-- ── Данные ──────────────────────────────────────────────────────────────── -->
+  @if (tab() === 'data') {
+    <div class="card adm-form-card">
+      <div class="card__header"><span class="card__title">Датасет Damodaran</span></div>
+      <div class="card__body">
+        <p class="adm-note">
+          CSV-экспорт листа с колонками отраслевого названия и EV/Sales. Год и региональный срез
+          указываются руками — из файла они не угадываются, потому что уезжают в обоснование числа.
+          Разбор атомарный: непонятная раскладка — ошибка и ноль записанных строк.
+        </p>
+        <div class="adm-inline-form__row">
+          <div class="field">
+            <label class="field__label">Год датасета</label>
+            <input class="field__input field__input--sm" type="number"
+              [value]="datasetYear()" (input)="datasetYear.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label class="field__label">Региональный срез</label>
+            <input class="field__input field__input--sm" type="text"
+              [value]="datasetRegion()" (input)="datasetRegion.set($any($event.target).value)" />
+          </div>
+          <div class="field field--grow">
+            <label class="field__label">Файл</label>
+            <input class="field__input field__input--sm" type="file" accept=".csv,text/csv"
+              (change)="pickFile($event)" />
+          </div>
+        </div>
+        @if (uploadError()) { <p class="adm-error">{{ uploadError() }}</p> }
+        @if (uploadOk())    { <p class="adm-ok">{{ uploadOk() }}</p> }
+        <div class="adm-inline-form__actions">
+          <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="uploadBusy()" (click)="upload()">
+            {{ uploadBusy() ? 'Загрузка…' : 'Загрузить' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card adm-form-card">
+      <div class="card__header"><span class="card__title">Сбор внешних наблюдений</span></div>
+      <div class="card__body">
+        <p class="adm-note">
+          Сборы идут по расписанию раз в квартал. Ручной запуск нужен перед первым кварталом и при
+          отладке. Падение по одному эмитенту не роняет прогон — он логируется и пропускается.
+        </p>
+        @if (collectOk()) { <p class="adm-ok">{{ collectOk() }}</p> }
+        <div class="adm-inline-form__actions">
+          <button class="btn btn--ghost btn--sm" type="button"
+            [disabled]="collectBusy()" (click)="collect(0)">Капитализации (MOEX)</button>
+          <button class="btn btn--ghost btn--sm" type="button"
+            [disabled]="collectBusy()" (click)="collect(1)">Выручка (ГИР БО)</button>
+          <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="collectBusy()" (click)="collect(2)">Обе</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card adm-form-card">
+      <div class="card__header">
+        <span class="card__title">Несопоставленные корзины ({{ unmapped().length }})</span>
+      </div>
+      <div class="card__body">
+        @if (unmapped().length === 0) {
+          <p class="adm-note">Все загруженные корзины сопоставлены или явно исключены.</p>
+        } @else {
+          <p class="adm-note">Это и есть очередь работ по реестру: пока корзина не сопоставлена, её EV/Sales не участвует ни в одном предложении.</p>
+          @for (b of unmapped(); track b.externalKey) {
+            <div class="adm-row adm-row--form">
+              <div class="adm-row__info">
+                <span class="adm-row__title">{{ b.externalKey }}</span>
+                <span class="adm-row__sub">
+                  EV/Sales {{ multiple(b.value) }} · {{ b.datasetRegion }} · {{ formatDate(b.asOf) }}
+                </span>
+              </div>
+              <div class="adm-row__actions">
+                <select class="field__select field__select--sm" [disabled]="registryBusy()"
+                  (change)="mapBucket(b.externalKey, $any($event.target).value)">
+                  <option value="">Сопоставить…</option>
+                  @for (opt of industryOptions; track opt[0]) {
+                    <option [value]="opt[0]">{{ opt[1] }}</option>
+                  }
+                  <option value="none">Не сопоставляется</option>
+                </select>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Реестр ──────────────────────────────────────────────────────────────── -->
+  @if (tab() === 'registry') {
+    @if (registryError()) { <p class="adm-error">{{ registryError() }}</p> }
+
+    <div class="card adm-form-card">
+      <div class="card__header">
+        <span class="card__title">Эмитенты ({{ issuers().length }})</span>
+      </div>
+      <div class="card__body">
+        <p class="adm-note">
+          Список компараблов, по которому идут оба сбора. Снятие галочки «активен» не удаляет строку:
+          уже собранные наблюдения сохраняют свой референт. Если по группе РСБУ не сопоставим с
+          капитализацией — впишите консолидированную выручку, она победит автоматическую.
+        </p>
+        <div class="adm-inline-form__actions">
+          <button class="btn btn--ghost btn--sm" type="button" (click)="newIssuer()">+ Эмитент</button>
+        </div>
+
+        @if (editingIssuer()) {
+          <div class="adm-row--form">
+            <div class="adm-inline-form__row">
+              <div class="field">
+                <label class="field__label">Тикер</label>
+                <input class="field__input field__input--sm" type="text"
+                  [value]="issuerForm().ticker ?? ''"
+                  (input)="patchIssuer('ticker', $any($event.target).value)" />
+              </div>
+              <div class="field">
+                <label class="field__label">ИНН</label>
+                <input class="field__input field__input--sm" type="text" placeholder="10 или 12 цифр"
+                  [value]="issuerForm().inn ?? ''"
+                  (input)="patchIssuer('inn', $any($event.target).value)" />
+              </div>
+              <div class="field field--grow">
+                <label class="field__label">Название</label>
+                <input class="field__input field__input--sm" type="text"
+                  [value]="issuerForm().displayName ?? ''"
+                  (input)="patchIssuer('displayName', $any($event.target).value)" />
+              </div>
+              <div class="field">
+                <label class="field__label">Сектор</label>
+                <select class="field__select field__select--sm"
+                  [value]="issuerForm().industry ?? 0"
+                  (change)="patchIssuer('industry', +$any($event.target).value)">
+                  @for (opt of industryOptions; track opt[0]) {
+                    <option [value]="opt[0]">{{ opt[1] }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="adm-inline-form__row">
+              <div class="field">
+                <label class="field__label">Выручка (консолидированная)</label>
+                <input class="field__input field__input--sm" type="number"
+                  [value]="issuerForm().revenueOverride ?? ''"
+                  (input)="patchIssuer('revenueOverride', $any($event.target).valueAsNumber || null)" />
+              </div>
+              <div class="field">
+                <label class="field__label">Финансовый год</label>
+                <input class="field__input field__input--sm" type="number"
+                  [value]="issuerForm().revenueOverrideFiscalYear ?? ''"
+                  (input)="patchIssuer('revenueOverrideFiscalYear', $any($event.target).valueAsNumber || null)" />
+              </div>
+              <div class="field field--grow">
+                <label class="field__label">Откуда взята</label>
+                <input class="field__input field__input--sm" type="text" placeholder="Отчётность, страница"
+                  [value]="issuerForm().revenueOverrideNote ?? ''"
+                  (input)="patchIssuer('revenueOverrideNote', $any($event.target).value)" />
+              </div>
+            </div>
+            <div class="adm-inline-form__row">
+              <div class="field field--grow">
+                <label class="field__label">Примечание</label>
+                <input class="field__input field__input--sm" type="text" placeholder="Почему отнесён сюда"
+                  [value]="issuerForm().note ?? ''"
+                  (input)="patchIssuer('note', $any($event.target).value)" />
+              </div>
+              <label class="adm-check">
+                <input type="checkbox" [checked]="issuerForm().isActive ?? true"
+                  (change)="patchIssuer('isActive', $any($event.target).checked)" />
+                <span>Активен</span>
+              </label>
+            </div>
+            <div class="adm-inline-form__actions">
+              <button class="btn btn--ghost btn--sm" type="button"
+                (click)="editingIssuer.set(null)">Отмена</button>
+              <button class="btn btn--primary btn--sm" type="button"
+                [disabled]="registryBusy()" (click)="saveIssuer()">Сохранить</button>
+            </div>
+          </div>
+        }
+
+        @for (i of issuers(); track i.id) {
+          <div class="adm-row">
+            <div class="adm-row__info">
+              <span class="adm-row__title">{{ i.ticker }} · {{ i.displayName }}</span>
+              <span class="adm-row__sub">
+                {{ industryLabel(i.industry) }} · кап. {{ money(i.latestMarketCap) }} ·
+                выручка {{ money(i.latestRevenue) }}
+                @if (i.latestRevenueFiscalYear) { FY{{ i.latestRevenueFiscalYear }} }
+              </span>
+              <span class="adm-row__badges">
+                <span class="badge badge--mono" [class.badge--green]="i.isActive"
+                  [class.badge--gray]="!i.isActive">
+                  {{ i.isActive ? 'активен' : 'снят' }}
+                </span>
+                @if (i.latestRevenueIsManual) {
+                  <span class="badge badge--mono badge--yellow">выручка вручную</span>
+                }
+                @if (!i.inn && !i.latestRevenueIsManual) {
+                  <span class="badge badge--mono badge--gray">нет ИНН</span>
+                }
+              </span>
+            </div>
+            <div class="adm-row__actions">
+              <button class="btn btn--ghost btn--sm" type="button" (click)="editIssuer(i)">Изменить</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card adm-form-card">
+      <div class="card__header">
+        <span class="card__title">Сопоставления Damodaran ({{ mappings().length }})</span>
+      </div>
+      <div class="card__body">
+        @for (m of mappings(); track m.id) {
+          <div class="adm-row">
+            <div class="adm-row__info">
+              <span class="adm-row__title">{{ m.externalKey }}</span>
+              <span class="adm-row__sub">
+                → {{ industryLabel(m.industry) }}@if (m.note) { · {{ m.note }} }
+              </span>
+            </div>
+            <div class="adm-row__actions">
+              <select class="field__select field__select--sm" [disabled]="registryBusy()"
+                [value]="m.industry ?? 'none'"
+                (change)="mapBucket(m.externalKey, $any($event.target).value)">
+                @for (opt of industryOptions; track opt[0]) {
+                  <option [value]="opt[0]">{{ opt[1] }}</option>
+                }
+                <option value="none">Не сопоставляется</option>
+              </select>
+              <button class="btn btn--ghost btn--sm" type="button"
+                [disabled]="registryBusy()" (click)="deleteMapping(m.id)">Удалить</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

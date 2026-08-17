@@ -42,6 +42,12 @@ export const adminRoutes: Routes = [
       import('./benchmarks/admin-benchmarks.component').then(m => m.AdminBenchmarksComponent),
   },
   {
+    path: 'benchmark-suggestions',
+    loadComponent: () =>
+      import('./benchmarks/admin-benchmark-workbench.component')
+        .then(m => m.AdminBenchmarkWorkbenchComponent),
+  },
+  {
     path: 'legal',
     loadComponent: () =>
       import('./legal/admin-legal-docs.component').then(m => m.AdminLegalDocsComponent),

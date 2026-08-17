@@ -6,6 +6,7 @@
 
   <div class="adm-filters">
     <button class="btn btn--ghost btn--sm" type="button" (click)="load()">Обновить</button>
+    <a class="btn btn--ghost btn--sm" routerLink="../benchmark-suggestions">Предложения деривации</a>
     @if (!formOpen()) {
       <button class="btn btn--primary btn--sm" type="button" (click)="formOpen.set(true)">+ Добавить версию</button>
     }
@@ -13,8 +14,16 @@
 
   @if (formOpen()) {
     <div class="card adm-form-card">
-      <div class="card__header"><span class="card__title">Новая версия бенчмарка</span></div>
+      <div class="card__header">
+        <span class="card__title">Новая версия бенчмарка</span>
+      </div>
       <div class="card__body">
+        @if (prefilled()) {
+          <p class="field__hint">
+            Поля заполнены предложением деривации. Проверьте значение, дату и обоснование — отправляете вы,
+            и в записи останется ваше имя.
+          </p>
+        }
         <div class="adm-inline-form__row">
           <div class="field">
             <label class="field__label">Метрика</label>
@@ -37,10 +46,13 @@
           <div class="field">
             <label class="field__label">Стадия</label>
             <select class="field__select field__select--sm"
-              [value]="stage()" (change)="stage.set($any($event.target).value)">
-              <option value="">Все стадии</option>
-              @for (opt of stageOptions; track opt[0]) {
-                <option [value]="opt[0]">{{ opt[1] }}</option>
+              [disabled]="isSectorOnly()"
+              [value]="isSectorOnly() ? '' : stage()" (change)="stage.set($any($event.target).value)">
+              <option value="">{{ isSectorOnly() ? 'Не применяется' : 'Все стадии' }}</option>
+              @if (!isSectorOnly()) {
+                @for (opt of stageOptions; track opt[0]) {
+                  <option [value]="opt[0]">{{ opt[1] }}</option>
+                }
               }
             </select>
           </div>
@@ -48,7 +60,7 @@
         <div class="adm-inline-form__row">
           <div class="field">
             <label class="field__label">Значение
-              <span class="field__hint field__hint--inline">₽ для pre-money, множитель для мультипликатора</span>
+              <span class="field__hint field__hint--inline">{{ valueHint() }}</span>
             </label>
             <input class="field__input field__input--sm" type="text" inputmode="decimal"
               [value]="value()" (input)="value.set($any($event.target).value)" />
@@ -66,7 +78,7 @@
         </div>
         @if (formError()) { <p class="adm-error">{{ formError() }}</p> }
         <div class="adm-inline-form__actions">
-          <button class="btn btn--ghost btn--sm" type="button" (click)="formOpen.set(false)">Отмена</button>
+          <button class="btn btn--ghost btn--sm" type="button" (click)="closeForm()">Отмена</button>
           <button class="btn btn--primary btn--sm" type="button"
             [disabled]="busy()" (click)="submitAdd()">
             {{ busy() ? 'Сохранение…' : 'Добавить' }}

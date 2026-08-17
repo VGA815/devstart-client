@@ -16,10 +16,17 @@ import {
   AdminUserDetail,
   AdminUserListItem,
   AdminUsersFilter,
+  BenchmarkDerivationParams,
+  BenchmarkIndustryMapping,
+  BenchmarkIssuer,
+  BenchmarkSuggestions,
   ConsentDocument,
   CreateConsentDocumentRequest,
   CreatePromoCodeRequest,
+  DamodaranUploadResult,
   NpdIncomeStatus,
+  SaveBenchmarkIssuerRequest,
+  UnmappedBenchmarkBucket,
   ValuationBenchmark,
 } from './admin.models';
 
@@ -179,6 +186,72 @@ export class AdminService {
 
   addBenchmark(body: AddBenchmarkRequest): Observable<string> {
     return this.http.post<string>(`${this.base}/valuation-benchmarks`, body);
+  }
+
+  // ── Верстак бенчмарков ───────────────────────────────────────────────────────
+
+  getBenchmarkIssuers(): Observable<BenchmarkIssuer[]> {
+    return this.http.get<BenchmarkIssuer[]>(`${this.base}/valuation-benchmarks/issuers`);
+  }
+
+  saveBenchmarkIssuer(body: SaveBenchmarkIssuerRequest): Observable<string> {
+    return this.http.post<string>(`${this.base}/valuation-benchmarks/issuers`, body);
+  }
+
+  getBenchmarkIndustryMappings(sourceKind?: number): Observable<BenchmarkIndustryMapping[]> {
+    let params = new HttpParams();
+    if (sourceKind != null) params = params.set('sourceKind', sourceKind);
+    return this.http.get<BenchmarkIndustryMapping[]>(
+      `${this.base}/valuation-benchmarks/industry-mappings`, { params });
+  }
+
+  saveBenchmarkIndustryMapping(
+    body: { sourceKind: number; externalKey: string; industry: number | null; note: string | null },
+  ): Observable<string> {
+    return this.http.post<string>(`${this.base}/valuation-benchmarks/industry-mappings`, body);
+  }
+
+  deleteBenchmarkIndustryMapping(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/valuation-benchmarks/industry-mappings/${id}`);
+  }
+
+  getUnmappedBenchmarkBuckets(): Observable<UnmappedBenchmarkBucket[]> {
+    return this.http.get<UnmappedBenchmarkBucket[]>(`${this.base}/valuation-benchmarks/unmapped-buckets`);
+  }
+
+  /**
+   * Предложения деривации. Параметры — входы запроса: сервер их не хранит,
+   * они попадают в source вместе с полученным числом.
+   */
+  getBenchmarkSuggestions(params?: Partial<BenchmarkDerivationParams>): Observable<BenchmarkSuggestions> {
+    let httpParams = new HttpParams();
+    if (params?.minComparables != null)
+      httpParams = httpParams.set('minComparables', params.minComparables);
+    if (params?.countryDiscount != null)
+      httpParams = httpParams.set('countryDiscount', params.countryDiscount);
+    if (params?.illiquidityAndSizeDiscount != null)
+      httpParams = httpParams.set('illiquidityAndSizeDiscount', params.illiquidityAndSizeDiscount);
+    if (params?.datasetRegion) httpParams = httpParams.set('datasetRegion', params.datasetRegion);
+    return this.http.get<BenchmarkSuggestions>(
+      `${this.base}/valuation-benchmarks/suggestions`, { params: httpParams });
+  }
+
+  uploadDamodaranDataset(
+    file: File, datasetYear: number, datasetRegion: string,
+  ): Observable<DamodaranUploadResult> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    const params = new HttpParams()
+      .set('datasetYear', datasetYear)
+      .set('datasetRegion', datasetRegion);
+    return this.http.post<DamodaranUploadResult>(
+      `${this.base}/valuation-benchmarks/damodaran`, form, { params });
+  }
+
+  /** kind: 0 капитализация, 1 выручка, 2 обе. */
+  runBenchmarkCollection(kind: number): Observable<void> {
+    const params = new HttpParams().set('kind', kind);
+    return this.http.post<void>(`${this.base}/valuation-benchmarks/collect`, null, { params });
   }
 
   // ── Audit ────────────────────────────────────────────────────────────────────

@@ -215,6 +215,110 @@ export interface AddBenchmarkRequest {
   source: string;
 }
 
+// ── Верстак бенчмарков: реестр, staging, деривация ─────────────────────────────
+
+export interface BenchmarkIssuer {
+  id: string;
+  ticker: string;
+  inn: string | null;
+  displayName: string;
+  industry: number;
+  isActive: boolean;
+  revenueOverride: number | null;
+  revenueOverrideFiscalYear: number | null;
+  revenueOverrideNote: string | null;
+  note: string | null;
+  latestMarketCap: number | null;
+  latestMarketCapAsOf: string | null;
+  latestRevenue: number | null;
+  latestRevenueFiscalYear: number | null;
+  latestRevenueIsManual: boolean;
+}
+
+export interface SaveBenchmarkIssuerRequest {
+  id: string | null;
+  ticker: string;
+  inn: string | null;
+  displayName: string;
+  industry: number;
+  isActive: boolean;
+  revenueOverride: number | null;
+  revenueOverrideFiscalYear: number | null;
+  revenueOverrideNote: string | null;
+  note: string | null;
+}
+
+export interface BenchmarkIndustryMapping {
+  id: string;
+  sourceKind: number;           // 0 Damodaran, 1 Okved
+  externalKey: string;
+  industry: number | null;      // null = «не сопоставляется»
+  note: string | null;
+}
+
+export interface UnmappedBenchmarkBucket {
+  externalKey: string;
+  value: number;
+  asOf: string;
+  datasetRegion: string | null;
+}
+
+export interface DerivationStep {
+  label: string;
+  value: number | null;
+  detail: string;
+}
+
+export interface BenchmarkSuggestion {
+  metricType: number;           // 1 RevenueMultiple, 2 CompetitionIntensity
+  industry: number;
+  value: number | null;
+  comparableCount: number;
+  isDerived: boolean;
+  chain: DerivationStep[];
+  fiscalYears: number[];
+  source: string | null;
+  noSuggestionReason: string | null;
+  effectiveFrom: string;
+  currentValue: number | null;
+  deltaPercent: number | null;
+  collidesWithExisting: boolean;
+}
+
+export interface BenchmarkSuggestions {
+  minComparables: number;
+  countryDiscount: number;
+  illiquidityAndSizeDiscount: number;
+  datasetRegion: string;
+  asOf: string;
+  quarterLabel: string;
+  hasObservations: boolean;
+  lastMarketCapCollectedAt: string | null;
+  lastRevenueCollectedAt: string | null;
+  damodaranDatasetYear: number | null;
+  damodaranDatasetRegion: string | null;
+  suggestions: BenchmarkSuggestion[];
+}
+
+/** Параметры деривации. Не сохраняются — едут в запрос и в source полученного числа. */
+export interface BenchmarkDerivationParams {
+  minComparables: number;
+  countryDiscount: number;
+  illiquidityAndSizeDiscount: number;
+  datasetRegion: string;
+}
+
+export interface DamodaranUploadResult {
+  bucketsImported: number;
+  unmappedBuckets: number;
+  objectKey: string;
+}
+
+export const MAPPING_SOURCE_KIND_LABELS: Record<number, string> = {
+  0: 'Damodaran',
+  1: 'ОКВЭД',
+};
+
 // ── Audit ──────────────────────────────────────────────────────────────────────
 
 export interface AdminAuditEntry {
@@ -288,7 +392,11 @@ export const DISCOUNT_TYPE_LABELS: Record<number, string> = {
 export const METRIC_TYPE_LABELS: Record<number, string> = {
   0: 'Pre-money медиана',
   1: 'Мультипликатор выручки',
+  2: 'Интенсивность конкуренции',
 };
+
+/** Метрики без стадии и без валюты: 1 RevenueMultiple, 2 CompetitionIntensity. */
+export const SECTOR_ONLY_METRICS = [1, 2];
 
 export const INDUSTRY_LABELS: Record<number, string> = {
   0: 'Другое',
