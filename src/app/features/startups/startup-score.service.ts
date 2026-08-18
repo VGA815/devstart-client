@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { BYPASS_403 } from '../../core/http/error.interceptor';
 import { StartupScore, SuggestedTerms } from '../../shared/models/startup-score.model';
 import {
+  ScoringReportDownloadUrlDto,
   StartupScoreDto, SuggestedTermsDto,
   mapStartupScoreDto, mapSuggestedTermsDto,
 } from '../../shared/models/dto/startup-score.dto';
@@ -21,6 +22,17 @@ export class StartupScoreService {
       context: new HttpContext().set(BYPASS_403, true),
     }).pipe(
       map(mapStartupScoreDto)
+    );
+  }
+
+  /**
+   * Ссылка на PDF-отчёт по скорингу. Гейт тот же, что у самого скоринга (SC-67), поэтому 403
+   * обрабатывается так же — без глобального редиректа.
+   */
+  getReportDownloadUrl(startupId: string): Observable<ScoringReportDownloadUrlDto> {
+    return this.http.get<ScoringReportDownloadUrlDto>(
+      `${this.base}/startups/${startupId}/score/report`,
+      { context: new HttpContext().set(BYPASS_403, true) },
     );
   }
 

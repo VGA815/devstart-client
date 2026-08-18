@@ -161,3 +161,15 @@ export function mapSuggestedTermsDto(dto: SuggestedTermsDto): SuggestedTerms {
     valuationHighReference: dto.valuationHighReference ?? null,
   };
 }
+
+// Presigned link to the PDF scoring report (GET /startups/{id}/score/report).
+// The file is rendered server-side and stored under a key tied to the moment the score was computed,
+// so `calculatedAt` says what the document is a statement about.
+export interface ScoringReportDownloadUrlDto {
+  startupId: string;
+  url: string;
+  expiresAt: string;
+  fileName: string;
+  sha256: string;
+  calculatedAt: string;
+}

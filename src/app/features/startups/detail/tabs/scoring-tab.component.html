@@ -34,6 +34,20 @@
 } @else {
   @let sc = facade.score()!;
 
+  <!-- SC-67: тот же скоринг в виде документа, который можно унести и показать третьим лицам.
+       Доступен всегда, когда доступен сам скоринг — включая случай «данных недостаточно»,
+       где отчёт именно это и констатирует. -->
+  <div class="sc-report">
+    <button class="btn btn--ghost-accent btn--sm" type="button"
+            [disabled]="reportLoading()"
+            (click)="downloadReport()">
+      {{ reportLoading() ? 'Формируем…' : '⬇ Скачать PDF-отчёт' }}
+    </button>
+    @if (reportError()) {
+      <span class="sc-report__error">{{ reportError() }}</span>
+    }
+  </div>
+
   @if (sc.totalScore === null) {
     <div class="sc-insufficient">
       <span class="sc-insufficient__icon">—</span>

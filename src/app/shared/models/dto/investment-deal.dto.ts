@@ -66,6 +66,18 @@ export interface TermSheetResponseDto {
   generatedAt: string;
 }
 
+// Presigned download link (GET /investment-deals/{id}/term-sheet/download?format=pdf|markdown).
+// The link is short-lived and already carries the file name storage will serve it under, so the
+// client only has to follow it.
+export interface TermSheetDownloadUrlDto {
+  dealId: string;
+  url: string;
+  expiresAt: string;
+  format: number;
+  fileName: string;
+  sha256: string | null;
+}
+
 
 export function mapInvestmentDealDto(
   dto: InvestmentDealDto,

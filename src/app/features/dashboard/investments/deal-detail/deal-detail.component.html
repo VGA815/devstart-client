@@ -171,14 +171,34 @@
       <div class="dd-ts-file">
         <div class="dd-ts-file__icon">📄</div>
         <div class="dd-ts-file__info">
-          <span class="dd-ts-file__name">term-sheet-{{ dealId.slice(0, 8) }}.md</span>
-          <span class="dd-ts-file__meta">Term Sheet · Markdown · {{ termSheetFileSize() }}</span>
+          <span class="dd-ts-file__name">term-sheet-{{ dealId.slice(0, 8) }}</span>
+          <span class="dd-ts-file__meta">Term Sheet · PDF и Markdown · {{ termSheetFileSize() }}</span>
         </div>
         <div class="dd-ts-file__actions">
           <button class="dd-btn dd-btn--ghost dd-btn--sm" type="button" (click)="downloadMd()">⬇&nbsp;.md</button>
-          <button class="dd-btn dd-btn--ghost dd-btn--sm" type="button" (click)="downloadPdf()">⬇&nbsp;PDF</button>
+          <button class="dd-btn dd-btn--ghost dd-btn--sm" type="button"
+                  [disabled]="pdfLoading()"
+                  (click)="downloadPdf()">
+            {{ pdfLoading() ? 'Готовим…' : '⬇ PDF' }}
+          </button>
         </div>
       </div>
+
+      @if (pdfError()) {
+        <div class="dd-alert dd-alert--error">
+          {{ pdfError() }}
+          @if (pdfMissing()) {
+            <button class="dd-btn dd-btn--ghost dd-btn--sm" type="button"
+                    [disabled]="regenerating()"
+                    (click)="regenerateDocs()">
+              {{ regenerating() ? 'Запускаем…' : '↻ Сформировать PDF' }}
+            </button>
+          }
+        </div>
+      }
+      @if (regenSuccess()) {
+        <div class="dd-alert dd-alert--success">{{ regenSuccess() }}</div>
+      }
 
       @if (termSheetTitle()) {
         <h2 class="dd-ts-title">{{ termSheetTitle() }}</h2>

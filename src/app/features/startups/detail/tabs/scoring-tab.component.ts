@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
+import { catchError, of } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 import { ScoreFactor } from '../../../../shared/models/startup-score.model';
@@ -11,6 +12,7 @@ import {
   getComponentLabel, getHintLabel, getInputLabel,
 } from '../../../../shared/utils/scoring-labels.utils';
 import { StartupDetailFacade } from '../startup-detail.facade';
+import { StartupScoreService } from '../../startup-score.service';
 
 /** Справочник по имени фактора (строки приходят с бэка на англ.): иконка, подпись, описание оси. */
 interface FactorMeta { label: string; icon: string; desc: string; }
@@ -54,6 +56,7 @@ const METHOD_LABELS: Record<string, string> = {
 export class ScoringTabComponent {
   protected readonly facade = inject(StartupDetailFacade);
   private readonly purchase = inject(ServicePurchaseFacade);
+  private readonly scoreSvc = inject(StartupScoreService);
 
   /**
    * Скоринг закрыт подпиской, но тот же разбор продаётся разово именно по этому проекту (SC-49).
@@ -84,6 +87,32 @@ export class ScoringTabComponent {
     if (!startup) return;
 
     this.purchase.open({ serviceType: 'ScoringReport', target: toStartupTarget(startup) });
+  }
+
+  protected readonly reportLoading = signal(false);
+  protected readonly reportError = signal('');
+
+  /**
+   * Забирает у сервера подписанную ссылку на PDF-отчёт и открывает её. Файл собирает сервер: те же
+   * баллы, та же версия методики и та же формулировка про ориентир диапазона, что и на экране.
+   */
+  protected downloadReport(): void {
+    const startup = this.facade.startup();
+    if (!startup || this.reportLoading()) return;
+
+    this.reportLoading.set(true);
+    this.reportError.set('');
+
+    this.scoreSvc.getReportDownloadUrl(startup.id)
+      .pipe(catchError(() => of(null)))
+      .subscribe(result => {
+        this.reportLoading.set(false);
+        if (!result) {
+          this.reportError.set('Не удалось сформировать отчёт. Попробуйте ещё раз.');
+          return;
+        }
+        window.location.href = result.url;
+      });
   }
 
   protected readonly formatMoney         = formatMoney;

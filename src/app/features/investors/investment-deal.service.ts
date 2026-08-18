@@ -7,6 +7,7 @@ import { InvestmentDeal } from '../../shared/models/investment-deal.model';
 import {
   InvestmentDealDto,
   CapTableResultDto,
+  TermSheetDownloadUrlDto,
   TermSheetResponseDto,
   mapInvestmentDealDto,
 } from '../../shared/models/dto/investment-deal.dto';
@@ -26,6 +27,17 @@ export class InvestmentDealService {
 
   regenerateDocuments(dealId: string): Observable<unknown> {
     return this.http.post<void>(`${this.base}/investment-deals/${dealId}/regenerate-documents`, {});
+  }
+
+  /** Short-lived presigned link to the stored term sheet. The access check is the server's. */
+  getTermSheetDownloadUrl(
+    dealId: string,
+    format: 'pdf' | 'markdown',
+  ): Observable<TermSheetDownloadUrlDto> {
+    return this.http.get<TermSheetDownloadUrlDto>(
+      `${this.base}/investment-deals/${dealId}/term-sheet/download`,
+      { params: { format } },
+    );
   }
 
   getById(dealId: string): Observable<InvestmentDeal> {
