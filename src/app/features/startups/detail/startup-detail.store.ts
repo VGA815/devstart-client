@@ -11,6 +11,7 @@ import { StartupMetricsService } from '../startup-metrics.service';
 import { StartupMembersService } from '../startup-members.service';
 import { StartupFollowersService } from '../startup-followers.service';
 import { StartupCompetitorsService } from '../startup-competitors.service';
+import { StartupPatentsService } from '../startup-patents.service';
 import { StartupInvestorsService } from '../startup-investors.service';
 import { StartupScoreService } from '../startup-score.service';
 import { CommunityStandardsService } from '../community-standards.service';
@@ -26,6 +27,7 @@ import { StartupRoadmapItem } from '../../../shared/models/startup-roadmap.model
 import { StartupMetric } from '../../../shared/models/startup-metric.model';
 import { StartupDocument } from '../../../shared/models/startup-document.model';
 import { StartupCompetitor } from '../../../shared/models/startup-competitor.model';
+import { StartupPatents, StartupPatentSuggestions } from '../../../shared/models/startup-patent.model';
 import { StartupInvestor } from '../../../shared/models/startup-investor.model';
 import { StartupScore, SuggestedTerms } from '../../../shared/models/startup-score.model';
 import {
@@ -34,7 +36,7 @@ import {
 import { CreateInvestmentApplicationRequestDto } from '../../../shared/models/dto/investment-application.dto';
 import { UpdateStartupMemberProfileRequestDto } from '../../../shared/models/dto/startup.dto';
 
-export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'investors' | 'documents' | 'competitors' | 'scoring' | 'community';
+export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'investors' | 'documents' | 'competitors' | 'patents' | 'scoring' | 'community';
 
 export interface CompetitorPayload {
   name: string;
@@ -77,6 +79,14 @@ interface StartupDetailState {
   competitorsLoading: boolean;
   deletingCompetitorId: string | null;
 
+  // Записи ИС приходят одним ответом вместе со сверкой и заявленным ИНН: состояние считается на
+  // чтении, поэтому отдельного «статуса проверки» тут нет и быть не может.
+  patents: StartupPatents | null;
+  patentsLoading: boolean;
+  deletingPatentId: string | null;
+  patentSuggestions: StartupPatentSuggestions | null;
+  patentSuggestionsLoading: boolean;
+
   investors: StartupInvestor[];
   investorsLoading: boolean;
   investorProfilesMap: Map<string, Profile>;
@@ -116,6 +126,11 @@ const initialState: StartupDetailState = {
   competitors: [],
   competitorsLoading: false,
   deletingCompetitorId: null,
+  patents: null,
+  patentsLoading: false,
+  deletingPatentId: null,
+  patentSuggestions: null,
+  patentSuggestionsLoading: false,
   investors: [],
   investorsLoading: false,
   investorProfilesMap: new Map(),
@@ -154,6 +169,7 @@ export const StartupDetailStore = signalStore(
     const membersSvc         = inject(StartupMembersService);
     const followersSvc       = inject(StartupFollowersService);
     const competitorsSvc     = inject(StartupCompetitorsService);
+    const patentsSvc         = inject(StartupPatentsService);
     const startupInvestorsSvc = inject(StartupInvestorsService);
     const scoreSvc           = inject(StartupScoreService);
     const communitySvc       = inject(CommunityStandardsService);
@@ -248,6 +264,15 @@ export const StartupDetailStore = signalStore(
             catchError(() => of([]))
           ).subscribe(items => {
             patchState(store, { competitors: items, competitorsLoading: false });
+          });
+          break;
+
+        case 'patents':
+          patchState(store, { patentsLoading: true });
+          patentsSvc.getByStartupId(store.id()).pipe(
+            catchError(() => of(null))
+          ).subscribe(data => {
+            patchState(store, { patents: data, patentsLoading: false });
           });
           break;
 
@@ -390,6 +415,38 @@ export const StartupDetailStore = signalStore(
           loaded.delete('competitors');
           loadTab('competitors');
         }));
+      },
+
+      // Ошибку прокидываем: у отказа есть разбор (409 «такой номер уже добавлен», лимит, формат
+      // номера не для этого вида объекта), и «не удалось сохранить» не подсказывает, что чинить.
+      savePatent(kind: number, number: string): Observable<unknown> {
+        return patentsSvc.create({ startup_id: store.id(), kind, number }).pipe(tap(() => {
+          loaded.delete('patents');
+          loadTab('patents');
+        }));
+      },
+
+      deletePatent(id: string): void {
+        patchState(store, { deletingPatentId: id });
+        patentsSvc.delete(id).subscribe({
+          next: () => {
+            patchState(store, { deletingPatentId: null });
+            loaded.delete('patents');
+            loadTab('patents');
+          },
+          error: () => patchState(store, { deletingPatentId: null }),
+        });
+      },
+
+      // Обратный поиск по сверенному ИНН: «покажи всё, что реестр уже приписывает этому ИНН».
+      // Грузится по кнопке, а не вместе со вкладкой — это вспомогательное действие для участника.
+      loadPatentSuggestions(): void {
+        patchState(store, { patentSuggestionsLoading: true });
+        patentsSvc.getSuggestions(store.id()).pipe(
+          catchError(() => of(null))
+        ).subscribe(data => {
+          patchState(store, { patentSuggestions: data, patentSuggestionsLoading: false });
+        });
       },
 
       deleteCompetitor(c: StartupCompetitor): void {

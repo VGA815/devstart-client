@@ -17,6 +17,7 @@ import { TeamTabComponent } from './tabs/team-tab.component';
 import { InvestorsTabComponent } from './tabs/investors-tab.component';
 import { DocumentsTabComponent } from './tabs/documents-tab.component';
 import { CompetitorsTabComponent } from './tabs/competitors-tab.component';
+import { PatentsTabComponent } from './tabs/patents-tab.component';
 import { ScoringTabComponent } from './tabs/scoring-tab.component';
 import { CommunityTabComponent } from './tabs/community-tab.component';
 import { InvestFormComponent } from './invest-form/invest-form.component';
@@ -29,7 +30,7 @@ import { InvestFormComponent } from './invest-form/invest-form.component';
     TagComponent, SkeletonComponent, AvatarComponent,
     OverviewTabComponent, RoadmapTabComponent, MetricsTabComponent, TeamTabComponent,
     InvestorsTabComponent, DocumentsTabComponent, CompetitorsTabComponent, ScoringTabComponent,
-    CommunityTabComponent,
+    CommunityTabComponent, PatentsTabComponent,
     InvestFormComponent,
   ],
   providers: [StartupDetailStore, StartupDetailFacade],
@@ -63,6 +64,7 @@ export class StartupDetailComponent implements OnInit {
     { key: 'investors',    label: 'Инвесторы' },
     { key: 'documents',    label: 'Документы' },
     { key: 'competitors',  label: 'Конкуренты' },
+    { key: 'patents',      label: 'Патенты и ИС' },
     { key: 'community',    label: 'Сообщество' },
     { key: 'scoring',      label: '★ Скоринг' },
   ];

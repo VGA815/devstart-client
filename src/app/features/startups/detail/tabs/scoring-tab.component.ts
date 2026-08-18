@@ -28,6 +28,8 @@ const SOURCE_FLAGS: { flag: number; label: string; kind: string }[] = [
   { flag: 1, label: 'со слов стартапа', kind: 'self' },
   { flag: 2, label: 'данные платформы', kind: 'platform' },
   { flag: 4, label: 'внешний бенчмарк', kind: 'external' },
+  // Название чипа не обещает больше, чем платформа знает: реестр сверен, владение — нет.
+  { flag: 8, label: 'сверено с реестром', kind: 'registry' },
 ];
 
 interface SourceChip { label: string; kind: string; }

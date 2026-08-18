@@ -16,6 +16,18 @@ import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.
 import { MarkdownEditorComponent } from '../../../shared/components/markdown-editor/markdown-editor.component';
 import { HasUnsavedChanges } from '../../../core/forms/unsaved-changes.guard';
 import { apiErrorMessage } from '../../../core/http/api-error';
+import { isValidInn, isValidOgrn } from '../../../shared/utils/tax-id.utils';
+
+/**
+ * Валидатор контрольной суммы: пустое поле допустимо (значит «очистить»), непустое — проверяется.
+ * Ошибка называется `checksum`, чтобы шаблон мог отличить её от `required`.
+ */
+function checksumValidator(isValid: (value: string) => boolean) {
+  return (control: { value: unknown }) => {
+    const value = String(control.value ?? '').trim();
+    return value.length === 0 || isValid(value) ? null : { checksum: true };
+  };
+}
 
 type StageOption    = { label: string; value: number };
 type LocationOption = { label: string; value: number };
@@ -128,6 +140,11 @@ export class StartupEditComponent implements OnInit, HasUnsavedChanges {
 
     hasPatents:               [false],
     hasStrategicPartnerships: [false],
+
+    // Контрольная сумма проверяется и здесь, и на сервере: локально она ловит опечатку мгновенно,
+    // но ничего не говорит о принадлежности номера — этого не знает и сервер.
+    inn:  ['', [checksumValidator(isValidInn)]],
+    ogrn: ['', [checksumValidator(isValidOgrn)]],
   });
 
   /** Зеркало значений формы в сигнале — `valueChanges` сам по себе не реактивен для computed. */
@@ -195,6 +212,8 @@ export class StartupEditComponent implements OnInit, HasUnsavedChanges {
           marketGrowthRate: numToField(startup.marketGrowthRate),
           targetRoundAmount: numToField(startup.targetRoundAmount),
           hasPatents:       startup.hasPatents,
+          inn:              startup.inn ?? '',
+          ogrn:             startup.ogrn ?? '',
           hasStrategicPartnerships: startup.hasStrategicPartnerships,
           ...(product ? {
             productProblem:   product.problem ?? '',
@@ -278,6 +297,10 @@ export class StartupEditComponent implements OnInit, HasUnsavedChanges {
         industry:            INDUSTRY_NUM[this.selectedIndustry()],
         target_round_amount: parseDecimal(v.targetRoundAmount),
         has_strategic_partnerships: v.hasStrategicPartnerships ?? false,
+        // Пустая строка — это «очистить», а не «не трогать»: поле в форме есть, значит его состояние
+        // всегда осознанное. Пропуск оставил бы прежнее значение и молча игнорировал очистку.
+        inn:                 (v.inn ?? '').trim(),
+        ogrn:                (v.ogrn ?? '').trim(),
       })),
       product: asOutcome(this.productSvc.updateProduct({
         startup_id:        this.id,

@@ -41,6 +41,12 @@ export class StartupDetailFacade {
   readonly competitorsLoading   = this.store.competitorsLoading;
   readonly deletingCompetitorId = this.store.deletingCompetitorId;
 
+  readonly patents                  = this.store.patents;
+  readonly patentsLoading           = this.store.patentsLoading;
+  readonly deletingPatentId         = this.store.deletingPatentId;
+  readonly patentSuggestions        = this.store.patentSuggestions;
+  readonly patentSuggestionsLoading = this.store.patentSuggestionsLoading;
+
   readonly investors           = this.store.investors;
   readonly investorsLoading    = this.store.investorsLoading;
   readonly investorProfilesMap = this.store.investorProfilesMap;
@@ -76,6 +82,15 @@ export class StartupDetailFacade {
   loadSuggestedTerms(instrument: number, amount: number): Observable<SuggestedTerms> {
     return this.store.loadSuggestedTerms(instrument, amount);
   }
+
+  /** Может завершиться 409 (дубль номера), лимитом или ошибкой формата — форма показывает текстом. */
+  savePatent(kind: number, number: string): Observable<unknown> {
+    return this.store.savePatent(kind, number);
+  }
+
+  deletePatent(id: string): void { this.store.deletePatent(id); }
+
+  loadPatentSuggestions(): void { this.store.loadPatentSuggestions(); }
 
   /** Может завершиться ошибкой валидации — форма разбирает её по полям. */
   submitApplication(payload: InvestPayload): Observable<string> {

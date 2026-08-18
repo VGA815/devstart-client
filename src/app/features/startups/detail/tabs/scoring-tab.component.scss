@@ -267,6 +267,7 @@
     &--self     { border-color: var(--yellow-border); background: var(--yellow-soft); color: var(--yellow); }
     &--platform { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
     &--external { border-color: var(--green-border);  background: var(--green-soft);  color: var(--green); }
+    &--registry { border-color: var(--green-border);  background: var(--green-soft);  color: var(--green); }
     &--none     { border-color: var(--neutral-border); background: var(--neutral-soft); color: var(--text-dim); }
   }
 

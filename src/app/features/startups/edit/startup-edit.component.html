@@ -184,7 +184,34 @@
             <input type="checkbox" formControlName="hasPatents" />
             <span>Есть патенты или ИС</span>
           </label>
-          <p class="edit-hint-block">Патенты, зарегистрированные торговые марки или другие объекты интеллектуальной собственности</p>
+          <p class="edit-hint-block">
+            Патенты, зарегистрированные торговые марки или другие объекты интеллектуальной
+            собственности — включая зарубежные и ноу-хау. Конкретные номера свидетельств добавляются
+            на вкладке «Патенты и ИС» карточки стартапа: там их можно сверить с реестром Роспатента.
+          </p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eInn">ИНН юрлица</label>
+          <input id="eInn" class="field__input"
+            type="text" inputmode="numeric" formControlName="inn" placeholder="10 или 12 цифр" />
+          @if (form.controls.inn.hasError('checksum')) {
+            <p class="field__hint field__hint--error">ИНН не проходит проверку контрольной суммы</p>
+          } @else {
+            <p class="edit-hint-block">
+              Нужен, чтобы сверить правообладателя записей ИС с заявленным юрлицом. Пустое поле —
+              очистить. Проверка не подтверждает, что юрлицо принадлежит вам.
+            </p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="eOgrn">ОГРН</label>
+          <input id="eOgrn" class="field__input"
+            type="text" inputmode="numeric" formControlName="ogrn" placeholder="13 или 15 цифр" />
+          @if (form.controls.ogrn.hasError('checksum')) {
+            <p class="field__hint field__hint--error">ОГРН не проходит проверку контрольной суммы</p>
+          }
         </div>
 
       </div>

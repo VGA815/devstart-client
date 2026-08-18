@@ -35,6 +35,9 @@ export interface Startup {
   /** Целевой объём текущего раунда, ₽ — используется в VC Method для pre/post-money. */
   targetRoundAmount: number | null;
   hasStrategicPartnerships: boolean;
+  /** ИНН заявленного юрлица (SC-66) — заявление стартапа, не подтверждение владения. */
+  inn: string | null;
+  ogrn: string | null;
   /**
    * Доля выполненного чек-листа сообщества, 0–100. Приходит из проекции и может немного
    * отставать от живого расчёта на `api/startups/{id}/community`.

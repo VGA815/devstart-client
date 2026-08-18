@@ -1,0 +1,158 @@
+@if (facade.patentsLoading()) {
+  <app-skeleton height="80px" /><app-skeleton height="80px" />
+} @else if (!facade.patents()) {
+  <div class="empty-state empty-state--card"><p class="empty-state__title">Не удалось загрузить записи ИС</p></div>
+} @else {
+  @if (facade.patents(); as data) {
+    <!-- Заявление и свидетельства стоят рядом: разрыв между ними инвестор оценивает сам. -->
+    <div class="sd-ip-claim">
+      <span class="sd-ip-claim__label">Заявлено на карточке:</span>
+      <span class="sd-ip-claim__value" [class.sd-ip-claim__value--yes]="data.hasPatentsDeclared">
+        {{ data.hasPatentsDeclared ? 'есть патенты или иная ИС' : 'патенты не заявлены' }}
+      </span>
+      @if (legalEntityLine(); as line) {
+        <span class="sd-ip-claim__entity">{{ line }}</span>
+      }
+    </div>
+
+    @if (showInvitation() && facade.isFounderOrAdmin()) {
+      <p class="sd-ip-invite">
+        Вы отметили наличие патентов. Укажите номера свидетельств — инвестор сможет сверить их
+        с реестром. На балл это не влияет: сверка добавляет происхождение данных, а не очки.
+      </p>
+    }
+
+    @if (facade.isFounderOrAdmin() && !showForm()) {
+      <div class="sd-ip-toolbar">
+        <button class="btn btn--ghost btn--sm" type="button" (click)="openForm()">+ Добавить запись ИС</button>
+        @if (data.declaredInn) {
+          <button class="btn btn--ghost btn--sm" type="button" (click)="toggleSuggestions()">
+            {{ showSuggestions() ? 'Скрыть найденное по ИНН' : 'Найти по ИНН в реестре' }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (showForm()) {
+      <div class="sd-ip-form">
+        <div class="sd-ip-form__header">Новая запись ИС</div>
+        <div class="sd-ip-form__body">
+          <div class="field-grid">
+            <div class="field">
+              <label class="field__label field__label--mono">Вид объекта *</label>
+              <select class="field__input field__input--sm"
+                [value]="formKind()"
+                (change)="onKindChange($any($event.target).value)">
+                @for (k of kinds; track k.kind) {
+                  <option [value]="k.kind">{{ k.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label class="field__label field__label--mono">Номер *</label>
+              <input class="field__input field__input--sm"
+                type="text"
+                [placeholder]="numberPlaceholder(formKind())"
+                [value]="formNumber()"
+                (input)="formNumber.set($any($event.target).value)" />
+              <p class="field__hint">Ожидается {{ numberHint(formKind()) }}. Префикс RU и буквы вида «C1» можно не убирать.</p>
+            </div>
+          </div>
+          @if (formError()) {
+            <p class="field__hint field__hint--error">{{ formError() }}</p>
+          }
+          <div class="sd-ip-form__actions">
+            <button class="btn btn--ghost btn--sm" type="button" (click)="cancelForm()">Отмена</button>
+            <button class="btn btn--primary btn--sm" type="button" [disabled]="formSaving()" (click)="save()">
+              {{ formSaving() ? 'Сохранение…' : 'Добавить' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (showSuggestions()) {
+      <div class="sd-ip-suggest">
+        <div class="sd-ip-suggest__header">Записи реестра по заявленному ИНН</div>
+        @if (facade.patentSuggestionsLoading()) {
+          <app-skeleton height="48px" />
+        } @else if (!facade.patentSuggestions() || facade.patentSuggestions()!.suggestions.length === 0) {
+          <p class="sd-ip-suggest__empty">
+            По этому ИНН в загруженной части реестра ничего не найдено. Это не значит, что записей нет —
+            загружены не все реестры.
+          </p>
+        } @else {
+          @for (s of facade.patentSuggestions()!.suggestions; track s.kind + '-' + s.number) {
+            <div class="sd-ip-suggest__row">
+              <span class="sd-ip-suggest__kind">{{ kindLabel(s.kind) }}</span>
+              <span class="sd-ip-suggest__number">№ {{ s.number }}</span>
+              <span class="sd-ip-suggest__title">{{ s.title ?? '—' }}</span>
+              <button class="btn btn--ghost btn--sm" type="button" (click)="addFromSuggestion(s)">Добавить</button>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    @if (data.records.length === 0) {
+      <div class="empty-state empty-state--card">
+        <p class="empty-state__title">Записи ИС не указаны</p>
+      </div>
+    } @else {
+      <div class="sd-ip-list">
+        @for (p of data.records; track p.id) {
+          <div class="sd-ip-card" [class]="'sd-ip-card--' + stateKind(p)">
+            <div class="sd-ip-card__header">
+              <div class="sd-ip-card__title-row">
+                <span class="sd-ip-card__kind">{{ kindLabel(p.kind) }}</span>
+                <span class="sd-ip-card__number">№ {{ p.number }}</span>
+                <span class="sd-ip-card__state" [class]="'sd-ip-card__state--' + stateKind(p)">
+                  {{ stateLabel(p) }}
+                </span>
+              </div>
+              @if (facade.isFounderOrAdmin()) {
+                <div class="sd-ip-card__actions">
+                  <button class="sd-ip-card__btn sd-ip-card__btn--danger"
+                    type="button"
+                    [disabled]="facade.deletingPatentId() === p.id"
+                    (click)="remove(p)">
+                    {{ facade.deletingPatentId() === p.id ? '…' : '✕' }}
+                  </button>
+                </div>
+              }
+            </div>
+
+            @if (p.title) {
+              <p class="sd-ip-card__name">{{ p.title }}</p>
+            }
+
+            @if (p.holderName || p.holderInn) {
+              <p class="sd-ip-card__holder">
+                Правообладатель по реестру: {{ p.holderName ?? '—' }}@if (p.holderInn) {<span>, ИНН {{ p.holderInn }}</span>}
+              </p>
+            }
+
+            <div class="sd-ip-card__meta">
+              @if (p.registeredOn) {
+                <span class="sd-ip-card__meta-item">зарегистрировано {{ p.registeredOn }}</span>
+              }
+              @if (p.protectionStatus !== null) {
+                <span class="sd-ip-card__meta-item">{{ protectionLabel(p.protectionStatus) }}</span>
+              }
+              @if (ownershipLabel(p); as own) {
+                <span class="sd-ip-card__own" [class]="'sd-ip-card__own--' + ownershipKind(p)">{{ own }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <p class="sd-ip-note">
+        Сверка идёт с локальной копией открытых данных Роспатента и обновляется ежеквартально.
+        Совпадение ИНН означает, что реестр называет правообладателем заявленное стартапом юрлицо, —
+        это <strong>не</strong> подтверждение того, что стартап этим юрлицом управляет. На балл и на
+        диапазон оценки сверка не влияет.
+      </p>
+    }
+  }
+}

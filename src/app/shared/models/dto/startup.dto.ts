@@ -53,6 +53,9 @@ export interface StartupDto {
   industry?: number | null;
   targetRoundAmount?: number | null;
   hasStrategicPartnerships?: boolean;
+  /** ИНН/ОГРН заявленного юрлица (SC-66). Заявление, а не доказательство контроля. */
+  inn?: string | null;
+  ogrn?: string | null;
   // Есть только в ответе списка каталога — карточка одного стартапа их не несёт.
   communityStandardsPercent?: number | null;
   communityStandardsLevel?: number | null;
@@ -98,6 +101,12 @@ export interface UpdateStartupRequestDto {
   industry?: number;
   target_round_amount?: number;
   has_strategic_partnerships?: boolean;
+  /**
+   * ИНН/ОГРН трёхзначны по смыслу: поле опущено — сервер оставляет сохранённое, пустая строка —
+   * очищает, значение — проверяется по контрольной сумме. Поэтому не отправляем undefined как ''.
+   */
+  inn?: string;
+  ogrn?: string;
 }
 
 export interface CreateStartupRequestDto {
@@ -160,6 +169,8 @@ export function mapStartupDto(dto: StartupDto): Startup {
     industry: dto.industry != null ? INDUSTRY_MAP[dto.industry] ?? 'Other' : 'Other',
     targetRoundAmount: dto.targetRoundAmount ?? null,
     hasStrategicPartnerships: dto.hasStrategicPartnerships ?? false,
+    inn: dto.inn ?? null,
+    ogrn: dto.ogrn ?? null,
     communityStandardsPercent: dto.communityStandardsPercent ?? 0,
     communityStandardsLevel: mapCommunityStandardsLevel(dto.communityStandardsLevel),
     isFeatured: dto.isFeatured ?? false,
