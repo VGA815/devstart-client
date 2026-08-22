@@ -68,7 +68,7 @@ type StartupDraftField =
 
 type StartupDraftForm =
   Partial<Record<StartupDraftField, string | null>>
-  & Partial<Record<'hasPatents' | 'hasStrategicPartnerships', boolean | null>>;
+  & Partial<Record<'hasPatents', boolean | null>>;
 
 interface StartupDraft {
   version: number;
@@ -85,7 +85,7 @@ const EMPTY_FORM: StartupDraftForm = {
   publicEmail: '', billingEmail: '', url: '', socialLinks: '',
   problem: '', solution: '', valueProposition: '', differentiators: '', stack: '',
   tam: '', sam: '', som: '', marketGrowthRate: '', targetRoundAmount: '',
-  hasPatents: false, hasStrategicPartnerships: false,
+  hasPatents: false,
 };
 
 @Component({
@@ -152,7 +152,6 @@ export class StartupCreateComponent {
     marketGrowthRate:  ['', [Validators.min(0), Validators.max(1000)]],
     targetRoundAmount: ['', [Validators.min(0)]],
     hasPatents:               [false],
-    hasStrategicPartnerships: [false],
   });
 
   // Сводка для шага «Проверка»: читается после клика по шагу, значения на превью не меняются
@@ -275,7 +274,6 @@ export class StartupCreateComponent {
       has_patents:              v.hasPatents ?? false,
       industry:                 INDUSTRY_NUM[this.selectedIndustry()],
       target_round_amount:      parseDecimal(v.targetRoundAmount),
-      has_strategic_partnerships: v.hasStrategicPartnerships ?? false,
     }).subscribe({
       next: () => {
         this.loading.set(false);

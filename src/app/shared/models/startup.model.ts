@@ -32,9 +32,11 @@ export interface Startup {
   marketGrowthRate: number | null;
   /** Сектор — задаёт медианы, мультипликаторы и интенсивность конкуренции в скоринге. */
   industry: StartupIndustry;
-  /** Целевой объём текущего раунда, ₽ — используется в VC Method для pre/post-money. */
+  /**
+   * Целевой объём текущего раунда, ₽. VC Method вычитает его из post-money — и без заявленного
+   * раунда метод в ансамбль не входит вовсе (см. docs/valuation-methodology.md).
+   */
   targetRoundAmount: number | null;
-  hasStrategicPartnerships: boolean;
   /** ИНН заявленного юрлица (SC-66) — заявление стартапа, не подтверждение владения. */
   inn: string | null;
   ogrn: string | null;

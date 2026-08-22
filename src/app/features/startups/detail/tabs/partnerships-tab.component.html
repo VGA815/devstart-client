@@ -1,0 +1,145 @@
+@if (facade.isFounderOrAdmin() && !showForm()) {
+  <div class="sd-partnerships-toolbar">
+    <button class="btn btn--ghost btn--sm" type="button" (click)="openNewForm()">
+      + Добавить партнёрство
+    </button>
+  </div>
+}
+
+@if (showForm()) {
+  <div class="sd-partnership-form">
+    <div class="sd-partnership-form__header">
+      {{ editing() ? 'Редактировать партнёрство' : 'Новое партнёрство' }}
+    </div>
+    <div class="sd-partnership-form__body">
+      <div class="field-grid">
+        <div class="field">
+          <label class="field__label field__label--mono">Партнёр *</label>
+          <input class="field__input field__input--sm"
+            type="text" placeholder="Название компании или организации"
+            [value]="formName()"
+            (input)="formName.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label field__label--mono">Вид партнёрства</label>
+          <select class="field__input field__input--sm"
+            [value]="formKind()"
+            (change)="setKind($any($event.target).value)">
+            @for (k of kinds; track k.kind) {
+              <option [value]="k.kind">{{ k.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label field__label--mono">Сайт партнёра *</label>
+        <input class="field__input field__input--sm"
+          type="url" required placeholder="https://partner.com"
+          [value]="formWebsite()"
+          (input)="formWebsite.set($any($event.target).value)" />
+        <p class="field__hint">
+          Сайт обязателен: по нему читатель проверяет, что партнёр существует, и по его домену
+          записи различаются между собой.
+        </p>
+      </div>
+      <div class="field">
+        <label class="field__label field__label--mono">В чём партнёрство состоит</label>
+        <textarea class="field__textarea"
+          rows="3" placeholder="Что вы делаете вместе и что это даёт стартапу"
+          [value]="formDesc()"
+          (input)="formDesc.set($any($event.target).value)"></textarea>
+        <p class="field__hint">
+          Именно это поле отличает запись от заглушки: в оценке считаются только записи с описанием.
+        </p>
+      </div>
+      @if (formError()) {
+        <p class="field__hint field__hint--error">{{ formError() }}</p>
+      }
+      <div class="sd-partnership-form__actions">
+        <button class="btn btn--ghost btn--sm" type="button" (click)="cancelForm()">Отмена</button>
+        <button class="btn btn--primary btn--sm" type="button" [disabled]="formSaving()" (click)="save()">
+          {{ formSaving() ? 'Сохранение…' : 'Сохранить' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (facade.partnershipsLoading()) {
+  <app-skeleton height="80px" /><app-skeleton height="80px" />
+} @else if (!facade.isAuthenticated()) {
+  <div class="empty-state empty-state--card">
+    <p class="empty-state__title">Войдите, чтобы увидеть партнёрства</p>
+  </div>
+} @else if (facade.partnerships().length === 0 && !showForm()) {
+  <div class="empty-state empty-state--card">
+    <p class="empty-state__title">Партнёрства не добавлены</p>
+    <p class="empty-state__sub">
+      Раньше здесь был чекбокс «есть стратегические партнёрства». Он открывал целый фактор оценки
+      за одно нажатие, поэтому его заменил список: партнёр, ссылка и в чём договорённость состоит.
+    </p>
+  </div>
+} @else {
+  <p class="sd-partnerships__hint">
+    В оценку идёт число <strong>проработанных</strong> записей — тех, где сказано, в чём партнёрство
+    состоит. Насыщение на {{ saturationCount }}: каждая из первых трёх берёт треть берковского
+    потолка, последующие на оценку не влияют. Проработанные отмечены значком
+    <span class="sd-partnerships__hint-badge">✓ зачтено</span>.
+  </p>
+
+  <div class="sd-partnerships__progress">
+    <span class="sd-partnerships__progress-count">
+      {{ workedOutCount() }} из {{ saturationCount }}
+    </span>
+    <div class="sd-partnerships__progress-bar">
+      @for (slot of [1, 2, 3]; track slot) {
+        <span class="sd-partnerships__progress-slot"
+          [class.sd-partnerships__progress-slot--filled]="workedOutCount() >= slot"></span>
+      }
+    </div>
+    <span class="sd-partnerships__progress-note">
+      @if (remainingToSaturation() > 0) {
+        ещё {{ remainingToSaturation() }} проработанных записей поднимут оценку
+      } @else {
+        фактор набран полностью
+      }
+    </span>
+  </div>
+
+  <div class="sd-partnerships">
+    @for (p of facade.partnerships(); track p.id) {
+      <div class="sd-partnership-card" [class.sd-partnership-card--counted]="p.isWorkedOut">
+        <div class="sd-partnership-card__header">
+          <div class="sd-partnership-card__title-row">
+            <span class="sd-partnership-card__name">{{ p.partnerName }}</span>
+            <span class="sd-partnership-card__kind">{{ kindLabel(p.kind) }}</span>
+            @if (p.isWorkedOut) {
+              <span class="sd-partnership-card__counted" title="Запись засчитана в оценку">✓ зачтено</span>
+            } @else {
+              <span class="sd-partnership-card__pending" title="Без описания запись в оценку не идёт">
+                нет описания
+              </span>
+            }
+            <a [href]="p.website" target="_blank" rel="noopener" class="sd-partnership-card__link">
+              🌐 {{ p.website }}
+            </a>
+          </div>
+          @if (facade.isFounderOrAdmin()) {
+            <div class="sd-partnership-card__actions">
+              <button class="sd-partnership-card__btn" type="button" (click)="openEditForm(p)">✎</button>
+              <button class="sd-partnership-card__btn sd-partnership-card__btn--danger"
+                type="button"
+                [disabled]="facade.deletingPartnershipId() === p.id"
+                (click)="remove(p)">
+                {{ facade.deletingPartnershipId() === p.id ? '…' : '✕' }}
+              </button>
+            </div>
+          }
+        </div>
+        @if (p.description) {
+          <p class="sd-partnership-card__desc">{{ p.description }}</p>
+        }
+      </div>
+    }
+  </div>
+}

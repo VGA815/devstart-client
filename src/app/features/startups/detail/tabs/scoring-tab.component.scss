@@ -268,6 +268,7 @@
     &--platform { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
     &--external { border-color: var(--green-border);  background: var(--green-soft);  color: var(--green); }
     &--registry { border-color: var(--green-border);  background: var(--green-soft);  color: var(--green); }
+    &--cross    { border-color: var(--green-border);  background: var(--green-soft);  color: var(--green); }
     &--none     { border-color: var(--neutral-border); background: var(--neutral-soft); color: var(--text-dim); }
   }
 
@@ -482,6 +483,17 @@
   }
 
   &__chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  &__note {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    background: var(--yellow-soft);
+    border: 1px solid var(--yellow-border);
+    border-radius: var(--radius);
+  }
 
   &__chip {
     padding: 3px 10px;

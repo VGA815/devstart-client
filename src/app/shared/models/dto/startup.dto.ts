@@ -52,7 +52,6 @@ export interface StartupDto {
   marketGrowthRate?: number | null;
   industry?: number | null;
   targetRoundAmount?: number | null;
-  hasStrategicPartnerships?: boolean;
   /** ИНН/ОГРН заявленного юрлица (SC-66). Заявление, а не доказательство контроля. */
   inn?: string | null;
   ogrn?: string | null;
@@ -100,7 +99,6 @@ export interface UpdateStartupRequestDto {
   /** Опускать нельзя, если поле в форме: пропуск оставляет прежний сектор, а не сбрасывает его. */
   industry?: number;
   target_round_amount?: number;
-  has_strategic_partnerships?: boolean;
   /**
    * ИНН/ОГРН трёхзначны по смыслу: поле опущено — сервер оставляет сохранённое, пустая строка —
    * очищает, значение — проверяется по контрольной сумме. Поэтому не отправляем undefined как ''.
@@ -134,7 +132,6 @@ export interface CreateStartupRequestDto {
   has_patents?: boolean;
   industry?: number;
   target_round_amount?: number;
-  has_strategic_partnerships?: boolean;
 }
 
 export interface UpdateStartupMemberProfileRequestDto {
@@ -168,7 +165,6 @@ export function mapStartupDto(dto: StartupDto): Startup {
     marketGrowthRate: dto.marketGrowthRate ?? null,
     industry: dto.industry != null ? INDUSTRY_MAP[dto.industry] ?? 'Other' : 'Other',
     targetRoundAmount: dto.targetRoundAmount ?? null,
-    hasStrategicPartnerships: dto.hasStrategicPartnerships ?? false,
     inn: dto.inn ?? null,
     ogrn: dto.ogrn ?? null,
     communityStandardsPercent: dto.communityStandardsPercent ?? 0,

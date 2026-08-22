@@ -2,11 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { StartupCompetitor } from '../../../shared/models/startup-competitor.model';
+import { StartupPartnership } from '../../../shared/models/startup-partnership.model';
 import { CommunityDocumentType } from '../../../shared/models/community-standards.model';
 import { SuggestedTerms } from '../../../shared/models/startup-score.model';
 import {
   StartupDetailStore, DetailTab,
-  CompetitorPayload, InvestPayload, MemberProfilePayload,
+  CompetitorPayload, PartnershipPayload, InvestPayload, MemberProfilePayload,
 } from './startup-detail.store';
 
 
@@ -40,6 +41,10 @@ export class StartupDetailFacade {
   readonly competitors          = this.store.competitors;
   readonly competitorsLoading   = this.store.competitorsLoading;
   readonly deletingCompetitorId = this.store.deletingCompetitorId;
+
+  readonly partnerships          = this.store.partnerships;
+  readonly partnershipsLoading   = this.store.partnershipsLoading;
+  readonly deletingPartnershipId = this.store.deletingPartnershipId;
 
   readonly patents                  = this.store.patents;
   readonly patentsLoading           = this.store.patentsLoading;
@@ -102,6 +107,12 @@ export class StartupDetailFacade {
   }
 
   deleteCompetitor(c: StartupCompetitor): void { this.store.deleteCompetitor(c); }
+
+  savePartnership(payload: PartnershipPayload, editingId: string | null): Observable<unknown> {
+    return this.store.savePartnership(payload, editingId);
+  }
+
+  deletePartnership(p: StartupPartnership): void { this.store.deletePartnership(p); }
 
   saveMemberProfile(payload: MemberProfilePayload): Observable<void> {
     return this.store.saveMemberProfile(payload);

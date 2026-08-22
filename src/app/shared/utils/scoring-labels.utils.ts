@@ -68,6 +68,7 @@ const INPUT_LABELS: Record<string, string> = {
   'market.input.cagr':                  'Рост рынка в год',
 
   'product.input.stage':                'Стадия',
+  'product.input.stage_consistency':    'Стадия и метрики',
   'product.input.has_patents':          'Патенты',
   'product.input.has_positioning':      'Ценность и отличия заполнены',
   'product.input.roadmap_items':        'Пунктов в плане развития',
@@ -123,6 +124,12 @@ const VALUE_CODE_LABELS: Record<string, string> = {
   'position.ceo':                      'CEO',
   'position.cto':                      'CTO',
   'position.cmo':                      'CMO',
+
+  // Кросс-проверка стадии. Формулировки нарочно описательные, а не оценочные: сверка ничего не
+  // блокирует и баллов не двигает, она адресована читателю профиля (см. docs/scoring-methodology.md).
+  'stage_consistency.not_applicable':  'на этой стадии тяга не заявляется',
+  'stage_consistency.supported':       'метрики подтверждают стадию',
+  'stage_consistency.unsupported':     'метрики стадию не подтверждают',
 };
 
 export function getComponentLabel(code: string): string {

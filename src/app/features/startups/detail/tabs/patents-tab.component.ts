@@ -4,12 +4,11 @@ import { SkeletonComponent } from '../../../../shared/components/skeleton/skelet
 import {
   IpKind,
   LegalEntityState,
-  PatentOwnership,
   PatentProtectionStatus,
-  PatentResolutionState,
   StartupPatent,
   StartupPatentSuggestion,
 } from '../../../../shared/models/startup-patent.model';
+import { DeclaredValueComparison, RegistryLookupState } from '../../../../shared/models/registry-lookup.model';
 import { StartupDetailFacade } from '../startup-detail.facade';
 
 /** Человеческий текст по стабильному коду Problem Details (title), см. docs/api.md. */
@@ -128,16 +127,16 @@ export class PatentsTabComponent {
    */
   stateLabel(p: StartupPatent): string {
     switch (p.state) {
-      case PatentResolutionState.Found:              return 'найдена в реестре';
-      case PatentResolutionState.NotFoundInRegistry: return 'в реестре не найдена';
+      case RegistryLookupState.Found:              return 'найдена в реестре';
+      case RegistryLookupState.NotFoundInRegistry: return 'в реестре не найдена';
       default:                                       return 'сверка недоступна';
     }
   }
 
   stateKind(p: StartupPatent): string {
     switch (p.state) {
-      case PatentResolutionState.Found:              return 'found';
-      case PatentResolutionState.NotFoundInRegistry: return 'missing';
+      case RegistryLookupState.Found:              return 'found';
+      case RegistryLookupState.NotFoundInRegistry: return 'missing';
       default:                                       return 'unknown';
     }
   }
@@ -158,9 +157,9 @@ export class PatentsTabComponent {
    */
   ownershipLabel(p: StartupPatent): string | null {
     switch (p.ownership) {
-      case PatentOwnership.MatchesDeclaredInn:
+      case DeclaredValueComparison.Matches:
         return 'ИНН правообладателя совпадает с заявленным стартапом';
-      case PatentOwnership.DiffersFromDeclaredInn:
+      case DeclaredValueComparison.Differs:
         return 'ИНН правообладателя отличается от заявленного стартапом';
       default:
         return null;
@@ -169,8 +168,8 @@ export class PatentsTabComponent {
 
   ownershipKind(p: StartupPatent): string {
     switch (p.ownership) {
-      case PatentOwnership.MatchesDeclaredInn:     return 'match';
-      case PatentOwnership.DiffersFromDeclaredInn: return 'differs';
+      case DeclaredValueComparison.Matches:     return 'match';
+      case DeclaredValueComparison.Differs: return 'differs';
       default:                                     return 'none';
     }
   }

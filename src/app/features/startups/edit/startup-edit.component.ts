@@ -139,7 +139,6 @@ export class StartupEditComponent implements OnInit, HasUnsavedChanges {
     targetRoundAmount: ['', [Validators.min(0)]],
 
     hasPatents:               [false],
-    hasStrategicPartnerships: [false],
 
     // Контрольная сумма проверяется и здесь, и на сервере: локально она ловит опечатку мгновенно,
     // но ничего не говорит о принадлежности номера — этого не знает и сервер.
@@ -214,7 +213,6 @@ export class StartupEditComponent implements OnInit, HasUnsavedChanges {
           hasPatents:       startup.hasPatents,
           inn:              startup.inn ?? '',
           ogrn:             startup.ogrn ?? '',
-          hasStrategicPartnerships: startup.hasStrategicPartnerships,
           ...(product ? {
             productProblem:   product.problem ?? '',
             productSolution:  product.solution,
@@ -296,7 +294,6 @@ export class StartupEditComponent implements OnInit, HasUnsavedChanges {
         has_patents:         v.hasPatents ?? false,
         industry:            INDUSTRY_NUM[this.selectedIndustry()],
         target_round_amount: parseDecimal(v.targetRoundAmount),
-        has_strategic_partnerships: v.hasStrategicPartnerships ?? false,
         // Пустая строка — это «очистить», а не «не трогать»: поле в форме есть, значит его состояние
         // всегда осознанное. Пропуск оставил бы прежнее значение и молча игнорировал очистку.
         inn:                 (v.inn ?? '').trim(),

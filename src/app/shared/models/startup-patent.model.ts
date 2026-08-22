@@ -1,3 +1,5 @@
+import { DeclaredValueComparison, RegistryLookupState } from './registry-lookup.model';
+
 /** Вид объекта ИС. Значения зеркалят `IntellectualPropertyKind` на бэке (append-only). */
 export enum IpKind {
   Invention = 0,
@@ -6,26 +8,6 @@ export enum IpKind {
   ComputerProgram = 3,
   Database = 4,
   Trademark = 5,
-}
-
-/**
- * Как запись стоит против локальной копии реестра. Три состояния, и все три показываются:
- * «не найдена» — про запись, «сверка недоступна» — про платформу, и склеивать их нельзя.
- */
-export enum PatentResolutionState {
-  RegistryUnavailable = 0,
-  Found = 1,
-  NotFoundInRegistry = 2,
-}
-
-/**
- * Сравнение ИНН правообладателя с ИНН, который заявил стартап. Именно сравнение: совпадение
- * означает, что реестр называет правообладателем то самое юрлицо, — но не что стартап им управляет.
- */
-export enum PatentOwnership {
-  NotComparable = 0,
-  MatchesDeclaredInn = 1,
-  DiffersFromDeclaredInn = 2,
 }
 
 /** Правовой статус охраны по реестру. */
@@ -50,8 +32,9 @@ export interface StartupPatent {
   number: string;
   /** Только цифры — по ним искали в реестре. */
   numberNormalized: string;
-  state: PatentResolutionState;
-  ownership: PatentOwnership;
+  state: RegistryLookupState;
+  /** Сравнение ИНН правообладателя с заявленным. Сравнение, а не доказательство владения. */
+  ownership: DeclaredValueComparison;
   title: string | null;
   holderName: string | null;
   holderInn: string | null;

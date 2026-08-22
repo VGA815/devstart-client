@@ -25,7 +25,7 @@ function startupDto(id: string, name: string, isStopped = false): Record<string,
     id, name, publicEmail: 'a@b.c', shortDescription: null, description: null, url: null,
     isStopped, stage: 2, socialMediaLinks: null, location: null, billingEmail: null,
     avatarId: null, tam: null, sam: null, som: null, hasPatents: false, marketGrowthRate: null,
-    industry: 0, targetRoundAmount: null, hasStrategicPartnerships: false,
+    industry: 0, targetRoundAmount: null,
   };
 }
 

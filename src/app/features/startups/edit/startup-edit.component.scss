@@ -57,6 +57,13 @@
   margin: 0;
 }
 
+.edit-link {
+  color: var(--accent);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
 form {
   display: flex;
   flex-direction: column;

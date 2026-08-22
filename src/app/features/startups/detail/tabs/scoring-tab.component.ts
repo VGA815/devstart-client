@@ -32,6 +32,9 @@ const SOURCE_FLAGS: { flag: number; label: string; kind: string }[] = [
   { flag: 4, label: 'внешний бенчмарк', kind: 'external' },
   // Название чипа не обещает больше, чем платформа знает: реестр сверен, владение — нет.
   { flag: 8, label: 'сверено с реестром', kind: 'registry' },
+  // Ставится только на подтверждении: чип говорит, на чём фактор держится, а не что платформа
+  // подозревает. Исход сверки целиком — в `inputs` детализации (product.input.stage_consistency).
+  { flag: 16, label: 'сверено с метриками', kind: 'cross' },
 ];
 
 interface SourceChip { label: string; kind: string; }
@@ -73,6 +76,27 @@ export class ScoringTabComponent {
     if (!item) return '';
     const amount = new Intl.NumberFormat('ru-RU').format(item.price);
     return `${amount} ${item.currency === 'RUB' ? '₽' : item.currency}`;
+  });
+
+  /**
+   * VC-метод применим по стадии, но в ансамбль не вошёл, потому что не заявлен целевой раунд.
+   * Показываем это только тем, кто может дозаполнить поле, — и только как объяснение: сокрытие
+   * раунда оценку не поднимает (бэк дополнительно ограничивает итог сверху), так что это не
+   * приглашение «впиши число побольше», а ответ на вопрос «почему методов меньше».
+   *
+   * Такому объяснению место именно здесь, а не в массиве `hints`: подсказки — про невыполненные
+   * условия и их цену в баллах, и вход, о котором просить нельзя, туда не попадает по правилу
+   * (docs/scoring-methodology.md, «Чего подсказки не советуют»).
+   */
+  protected readonly vcMethodMissingRound = computed(() => {
+    const startup = this.facade.startup();
+    const score = this.facade.score();
+    if (!startup || !score || !this.facade.isFounderOrAdmin()) return false;
+
+    const vcApplies = startup.stage === 'Mvp' || startup.stage === 'Seed' || startup.stage === 'SeriesA';
+    const roundDeclared = (startup.targetRoundAmount ?? 0) > 0;
+
+    return vcApplies && !roundDeclared && !score.methodsUsed.includes('VcMethod');
   });
 
   /** Отчёт по этому проекту уже оплачен — предлагать покупку второй раз нельзя. */

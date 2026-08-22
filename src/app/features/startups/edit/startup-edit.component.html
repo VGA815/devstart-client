@@ -315,15 +315,21 @@
           @if (fieldError('targetRoundAmount')) {
             <span class="field__hint field__hint--error">{{ fieldError('targetRoundAmount') }}</span>
           }
-          <p class="edit-hint-block">Используется в VC-методе для разделения pre-money и post-money.</p>
+          <p class="edit-hint-block">
+            VC-метод вычитает раунд из post-money. Пока поле пустое, метод в ансамбль не входит и
+            оценка дополнительно ограничивается сверху — пропуск поля её не поднимает.
+          </p>
         </div>
 
         <div class="field">
-          <label class="field__label field__label--checkbox">
-            <input type="checkbox" formControlName="hasStrategicPartnerships" />
-            <span>Есть стратегические партнёрства</span>
-          </label>
-          <p class="edit-hint-block">Действующие соглашения с партнёрами, дающие доступ к рынку, каналам или технологиям</p>
+          <p class="edit-hint-block">
+            Стратегические партнёрства ведутся списком на вкладке
+            <a class="edit-link" [routerLink]="['/startups', id]" [queryParams]="{ tab: 'partnerships' }">
+              «Партнёрства»
+            </a>:
+            партнёр, ссылка и в чём договорённость состоит. Чекбокса больше нет — он открывал целый
+            фактор оценки за одно нажатие.
+          </p>
         </div>
 
       </div>

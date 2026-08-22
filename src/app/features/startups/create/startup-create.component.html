@@ -275,14 +275,17 @@
               @if (fieldError('targetRoundAmount')) {
                 <span class="field__hint field__hint--error">{{ fieldError('targetRoundAmount') }}</span>
               }
+              <p class="create-hint-block">
+                Оценка вычитает раунд из post-money. Пока поле пустое, VC-метод в расчёт не входит —
+                пропуск поля оценку не поднимает.
+              </p>
             </div>
 
             <div class="field">
-              <label class="field__label field__label--checkbox">
-                <input type="checkbox" formControlName="hasStrategicPartnerships" />
-                <span>Есть стратегические партнёрства</span>
-              </label>
-              <p class="create-hint-block">Действующие соглашения с партнёрами, дающие доступ к рынку, каналам или технологиям</p>
+              <p class="create-hint-block">
+                Стратегические партнёрства теперь заводятся списком на вкладке «Партнёрства» уже
+                созданного стартапа: партнёр, ссылка и в чём договорённость состоит.
+              </p>
             </div>
 
           </div>
@@ -398,7 +401,6 @@
               <div class="summary__row"><dt>SOM</dt><dd>{{ v.som || '—' }}</dd></div>
               <div class="summary__row"><dt>Темп роста рынка</dt><dd>{{ v.marketGrowthRate || '—' }}</dd></div>
               <div class="summary__row"><dt>Целевой раунд</dt><dd>{{ v.targetRoundAmount || '—' }}</dd></div>
-              <div class="summary__row"><dt>Партнёрства</dt><dd>{{ v.hasStrategicPartnerships ? 'Да' : 'Нет' }}</dd></div>
             </dl>
           </div>
         </div>

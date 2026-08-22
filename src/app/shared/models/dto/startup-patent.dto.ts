@@ -1,13 +1,12 @@
 import {
   IpKind,
   LegalEntityInfo,
-  PatentOwnership,
   PatentProtectionStatus,
-  PatentResolutionState,
   StartupPatent,
   StartupPatents,
   StartupPatentSuggestions,
 } from '../startup-patent.model';
+import { DeclaredValueComparison, RegistryLookupState } from '../registry-lookup.model';
 
 export interface StartupPatentDto {
   id: string;
@@ -68,8 +67,8 @@ export function mapStartupPatentDto(dto: StartupPatentDto): StartupPatent {
     kind: dto.kind as IpKind,
     number: dto.number,
     numberNormalized: dto.numberNormalized,
-    state: dto.state as PatentResolutionState,
-    ownership: dto.ownership as PatentOwnership,
+    state: dto.state as RegistryLookupState,
+    ownership: dto.ownership as DeclaredValueComparison,
     title: dto.title ?? null,
     holderName: dto.holderName ?? null,
     holderInn: dto.holderInn ?? null,

@@ -1,0 +1,246 @@
+:host { display: contents; }
+
+.sd-partnerships-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.sd-partnerships {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &__hint {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    strong { color: var(--text); font-weight: 600; }
+  }
+
+  &__hint-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    background: var(--green-soft);
+    border: 1px solid var(--green-border);
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  // Лесенка насыщения: три слота, ровно столько же ступеней у фактора на бэке.
+  &__progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  &__progress-count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  &__progress-bar {
+    display: flex;
+    gap: 4px;
+  }
+
+  &__progress-slot {
+    width: 34px;
+    height: 5px;
+    border-radius: var(--radius-full);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+
+    &--filled {
+      background: var(--green);
+      border-color: var(--green);
+    }
+  }
+
+  &__progress-note {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+}
+
+.sd-partnership-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+  animation: fadeIn 0.12s ease;
+
+  &:hover { border-color: var(--text-dim); }
+
+  // Проработанная запись — та, что засчитывается в оценку.
+  &--counted { border-left: 2px solid var(--green-border); }
+
+  &__counted {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: var(--green-soft);
+    border: 1px solid var(--green-border);
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  // Не упрёк, а состояние: запись видна всем, просто в оценку не идёт.
+  &__pending {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: var(--neutral-soft);
+    border: 1px solid var(--neutral-border);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__kind {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px 10px;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  &__link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  &__btn {
+    width: 26px;
+    height: 26px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 767px) { width: 36px; height: 36px; }
+
+    &:hover { color: var(--accent); border-color: var(--accent-border); }
+
+    &--danger {
+      &:hover { color: var(--red); border-color: var(--red-border); }
+    }
+
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &__desc {
+    padding: 0 14px 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+}
+
+.sd-partnership-form {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+  animation: fadeIn 0.15s ease;
+
+  &__header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  &__body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 2px;
+  }
+}

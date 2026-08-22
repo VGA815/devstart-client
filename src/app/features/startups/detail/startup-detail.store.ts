@@ -12,6 +12,7 @@ import { StartupMembersService } from '../startup-members.service';
 import { StartupFollowersService } from '../startup-followers.service';
 import { StartupCompetitorsService } from '../startup-competitors.service';
 import { StartupPatentsService } from '../startup-patents.service';
+import { StartupPartnershipsService } from '../startup-partnerships.service';
 import { StartupInvestorsService } from '../startup-investors.service';
 import { StartupScoreService } from '../startup-score.service';
 import { CommunityStandardsService } from '../community-standards.service';
@@ -28,6 +29,7 @@ import { StartupMetric } from '../../../shared/models/startup-metric.model';
 import { StartupDocument } from '../../../shared/models/startup-document.model';
 import { StartupCompetitor } from '../../../shared/models/startup-competitor.model';
 import { StartupPatents, StartupPatentSuggestions } from '../../../shared/models/startup-patent.model';
+import { StartupPartnership } from '../../../shared/models/startup-partnership.model';
 import { StartupInvestor } from '../../../shared/models/startup-investor.model';
 import { StartupScore, SuggestedTerms } from '../../../shared/models/startup-score.model';
 import {
@@ -36,7 +38,7 @@ import {
 import { CreateInvestmentApplicationRequestDto } from '../../../shared/models/dto/investment-application.dto';
 import { UpdateStartupMemberProfileRequestDto } from '../../../shared/models/dto/startup.dto';
 
-export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'investors' | 'documents' | 'competitors' | 'patents' | 'scoring' | 'community';
+export type DetailTab = 'overview' | 'roadmap' | 'metrics' | 'team' | 'investors' | 'documents' | 'competitors' | 'partnerships' | 'patents' | 'scoring' | 'community';
 
 export interface CompetitorPayload {
   name: string;
@@ -44,6 +46,13 @@ export interface CompetitorPayload {
   description?: string;
   strengths_vs_us?: string;
   weaknesses_vs_us?: string;
+}
+
+export interface PartnershipPayload {
+  partner_name: string;
+  website: string;
+  kind: number;
+  description?: string;
 }
 
 export type InvestPayload = Omit<CreateInvestmentApplicationRequestDto, 'startup_id'>;
@@ -78,6 +87,10 @@ interface StartupDetailState {
   competitors: StartupCompetitor[];
   competitorsLoading: boolean;
   deletingCompetitorId: string | null;
+
+  partnerships: StartupPartnership[];
+  partnershipsLoading: boolean;
+  deletingPartnershipId: string | null;
 
   // Записи ИС приходят одним ответом вместе со сверкой и заявленным ИНН: состояние считается на
   // чтении, поэтому отдельного «статуса проверки» тут нет и быть не может.
@@ -126,6 +139,9 @@ const initialState: StartupDetailState = {
   competitors: [],
   competitorsLoading: false,
   deletingCompetitorId: null,
+  partnerships: [],
+  partnershipsLoading: false,
+  deletingPartnershipId: null,
   patents: null,
   patentsLoading: false,
   deletingPatentId: null,
@@ -169,6 +185,7 @@ export const StartupDetailStore = signalStore(
     const membersSvc         = inject(StartupMembersService);
     const followersSvc       = inject(StartupFollowersService);
     const competitorsSvc     = inject(StartupCompetitorsService);
+    const partnershipsSvc    = inject(StartupPartnershipsService);
     const patentsSvc         = inject(StartupPatentsService);
     const startupInvestorsSvc = inject(StartupInvestorsService);
     const scoreSvc           = inject(StartupScoreService);
@@ -264,6 +281,15 @@ export const StartupDetailStore = signalStore(
             catchError(() => of([]))
           ).subscribe(items => {
             patchState(store, { competitors: items, competitorsLoading: false });
+          });
+          break;
+
+        case 'partnerships':
+          patchState(store, { partnershipsLoading: true });
+          partnershipsSvc.getByStartupId(store.id()).pipe(
+            catchError(() => of([]))
+          ).subscribe(items => {
+            patchState(store, { partnerships: items, partnershipsLoading: false });
           });
           break;
 
@@ -446,6 +472,34 @@ export const StartupDetailStore = signalStore(
           catchError(() => of(null))
         ).subscribe(data => {
           patchState(store, { patentSuggestions: data, patentSuggestionsLoading: false });
+        });
+      },
+
+      // Ошибку прокидываем: у отказа есть разбор (409 «этот домен уже добавлен», лимит записей),
+      // и «не удалось сохранить» не подсказывает, что чинить.
+      savePartnership(payload: PartnershipPayload, editingId: string | null): Observable<unknown> {
+        const request$: Observable<unknown> = editingId
+          ? partnershipsSvc.update(editingId, payload)
+          : partnershipsSvc.create({ startup_id: store.id(), ...payload });
+
+        return request$.pipe(tap(() => {
+          loaded.delete('partnerships');
+          loadTab('partnerships');
+        }));
+      },
+
+      // Список правим на месте, как у конкурентов: счётчик проработанных считается из него же,
+      // поэтому лишний запрос ничего не уточнил бы.
+      deletePartnership(p: StartupPartnership): void {
+        patchState(store, { deletingPartnershipId: p.id });
+        partnershipsSvc.delete(p.id).subscribe({
+          next: () => {
+            patchState(store, {
+              deletingPartnershipId: null,
+              partnerships: store.partnerships().filter(x => x.id !== p.id),
+            });
+          },
+          error: () => patchState(store, { deletingPartnershipId: null }),
         });
       },
 
